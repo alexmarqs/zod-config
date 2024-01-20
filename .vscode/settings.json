@@ -1,0 +1,6 @@
+{
+	"editor.codeActionsOnSave": {
+		"quickfix.biome": "explicit"
+	},
+	"editor.defaultFormatter": "biomejs.biome"
+}

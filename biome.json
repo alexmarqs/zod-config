@@ -1,0 +1,36 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.3.3/schema.json",
+  "organizeImports": {
+    "enabled": true
+  },
+  "files": {
+    "ignore": ["node_modules", "dist", "pnpm-lock.yaml", ".github", ".vscode"]
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "suspicious": {
+        "noExplicitAny": "off"
+      },
+      "performance": {
+        "noAccumulatingSpread": "off"
+      },
+      "complexity": {
+        "noForEach": "off"
+      },
+      "recommended": true,
+      "correctness": {
+        "noUnusedVariables": "error"
+      },
+      "nursery": {
+        "noUnusedImports": "error"
+      }
+    }
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "enabled": true,
+    "lineWidth": 100
+  }
+}

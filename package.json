@@ -1,0 +1,70 @@
+{
+  "name": "zod-config",
+  "version": "0.0.0",
+  "description": "Load configuration variables from multiple sources with flexible adapters, ensuring type safety with Zod.",
+  "author": "Alexandre Marques",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "module": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./json-adapter": {
+      "import": "./dist/json-adapter/index.mjs",
+      "require": "./dist/json-adapter/index.js",
+      "module": "./dist/json-adapter/index.mjs",
+      "types": "./dist/json-adapter/index.d.ts"
+    },
+    "./env-adapter": {
+      "import": "./dist/env-adapter/index.mjs",
+      "require": "./dist/env-adapter/index.js",
+      "module": "./dist/env-adapter/index.mjs",
+      "types": "./dist/env-adapter/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "pnpm build",
+    "type-check": "tsc --noEmit",
+    "format": "pnpm dlx @biomejs/biome format ./src/**/*.ts --write",
+    "lint": "pnpm dlx @biomejs/biome lint ./src/**/*.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "release:": "standard-version",
+    "release:dry-run": "standard-version --dry-run",
+    "yalc:publish": "yalc publish"
+  },
+  "files": ["dist/**"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexmarqs/zod-config.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alexmarqs/zod-config/issues"
+  },
+  "homepage": "https://github.com/alexmarqs/zod-config#readme",
+  "keywords": ["zod", "config", "env", "json", "typescript", "adapters", "typesafe"],
+  "devDependencies": {
+    "@biomejs/biome": "1.4.1",
+    "@types/node": "20.10.7",
+    "standard-version": "9.5.0",
+    "tsup": "8.0.1",
+    "typescript": "5.3.3",
+    "vitest": "1.1.3",
+    "zod": "3.22.4"
+  },
+  "peerDependencies": {
+    "zod": "^3.x"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
