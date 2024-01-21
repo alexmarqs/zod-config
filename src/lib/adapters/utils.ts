@@ -15,7 +15,6 @@ export const filterByPrefixKey = (
     }, {});
 };
 
-// ref:
 export function deepMerge(target: any, ...sources: any[]) {
   if (!sources.length) {
     return target;

@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it, vi, beforeAll } from "vitest";
-import { readConfig } from "../src/lib/config";
+import { loadConfig } from "../src/lib/config";
 import { z } from "zod";
 import { envAdapter } from "../src/lib/adapters/env-adapter";
 import { jsonAdapter } from "../src/lib/adapters/json-adapter";
@@ -7,7 +7,7 @@ import path from "path";
 import { writeFile, unlink } from "fs/promises";
 import { Adapter } from "../src/types";
 
-describe("Read Config tests", () => {
+describe("Load config tests", () => {
   describe("default adapter", () => {
     it("should return parsed data when schema is valid", async () => {
       // given
@@ -21,7 +21,7 @@ describe("Read Config tests", () => {
       };
 
       // when
-      const config = await readConfig({
+      const config = await loadConfig({
         schema,
       });
 
@@ -43,7 +43,7 @@ describe("Read Config tests", () => {
 
       // when
       // then
-      readConfig({
+      loadConfig({
         schema,
       }).catch((err) => {
         expectZodError(err);
@@ -70,7 +70,7 @@ describe("Read Config tests", () => {
       });
 
       // when
-      const config = await readConfig({
+      const config = await loadConfig({
         schema,
         adapters: jsonAdapter({
           path: testFilePath,
@@ -90,7 +90,7 @@ describe("Read Config tests", () => {
 
       // when
       // then
-      readConfig({
+      loadConfig({
         schema,
         adapters: jsonAdapter({
           path: testFilePath,
@@ -109,7 +109,7 @@ describe("Read Config tests", () => {
 
       // when
       // then
-      readConfig({
+      loadConfig({
         schema,
         adapters: jsonAdapter({
           path: "not-exist.json",
@@ -136,7 +136,7 @@ describe("Read Config tests", () => {
       };
 
       // when
-      const config = await readConfig({
+      const config = await loadConfig({
         schema,
         adapters: envAdapter(),
       });
@@ -154,7 +154,7 @@ describe("Read Config tests", () => {
       });
 
       // when
-      const config = await readConfig({
+      const config = await loadConfig({
         schema,
         adapters: envAdapter({
           customEnv: {
@@ -194,7 +194,7 @@ describe("Read Config tests", () => {
       };
 
       // when
-      const config = await readConfig({
+      const config = await loadConfig({
         schema,
         adapters: [
           envAdapter(),
@@ -225,7 +225,7 @@ describe("Read Config tests", () => {
       const consoleErrorSpy = vi.spyOn(console, "error");
 
       // when
-      const config = await readConfig({
+      const config = await loadConfig({
         schema,
         adapters: [
           envAdapter(),
@@ -257,7 +257,7 @@ describe("Read Config tests", () => {
       };
 
       // when
-      const config = await readConfig({
+      const config = await loadConfig({
         schema,
         adapters: [
           jsonAdapter({
@@ -293,7 +293,7 @@ describe("Read Config tests", () => {
       };
 
       // when
-      const config = await readConfig({
+      const config = await loadConfig({
         schema,
         adapters: customAdapter,
       });
@@ -330,7 +330,7 @@ describe("Read Config tests", () => {
       };
 
       // when
-      const config = await readConfig({
+      const config = await loadConfig({
         schema,
         adapters: [customAdapter1, customAdapter2],
       });
@@ -356,7 +356,7 @@ describe("Read Config tests", () => {
       const onError = vi.fn();
 
       // when
-      await readConfig({
+      await loadConfig({
         schema,
         onError,
       });
@@ -379,7 +379,7 @@ describe("Read Config tests", () => {
       const onSuccess = vi.fn();
 
       // when
-      await readConfig({
+      await loadConfig({
         schema,
         onSuccess,
       });

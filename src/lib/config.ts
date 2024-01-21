@@ -3,7 +3,7 @@ import { Adapter, Config } from "../types";
 import { deepMerge } from "./adapters/utils";
 
 /**
- * Read config from adapters.
+ * Load config from adapters.
  *
  * - If no adapters are provided, we will read from process.env.
  * - If multiple adapters are provided, we will deep merge the data from all adapters, with the last adapter taking precedence.
@@ -11,7 +11,7 @@ import { deepMerge } from "./adapters/utils";
  * @param config
  * @returns parsed config
  */
-export const readConfig = async <T extends AnyZodObject>(
+export const loadConfig = async <T extends AnyZodObject>(
   config: Config<T>,
 ): Promise<z.infer<T>> => {
   const { schema, adapters, onError, onSuccess } = config;
