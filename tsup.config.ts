@@ -27,7 +27,7 @@ export default defineConfig([
     clean: true,
     minify: true,
     dts: true,
-    outDir: "json-adapter/dist",
+    outDir: "json-adapter/",
   },
   {
     entry: [
@@ -40,6 +40,6 @@ export default defineConfig([
     clean: true,
     minify: true,
     dts: true,
-    outDir: "env-adapter/dist",
+    outDir: "env-adapter/",
   },
 ]);

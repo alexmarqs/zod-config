@@ -22,7 +22,7 @@
     "yalc:publish": "yalc publish",
     "postrelease": "git push && git push --tags"
   },
-  "files": ["dist/**", "env-adapter/dist/**", "json-adapter/dist/**"],
+  "files": ["dist/**", "env-adapter/**", "json-adapter/**"],
   "exports": {
     "./package.json": "./package.json",
     ".": {
@@ -32,16 +32,16 @@
       "require": "./dist/index.js"
     },
     "./env-adapter": {
-      "types": "./env-adapter/dist/index.d.ts",
-      "import": "./env-adapter/dist/index.mjs",
-      "module": "./env-adapter/dist/index.mjs",
-      "require": "./env-adapter/dist/index.js"
+      "types": "./env-adapter/index.d.ts",
+      "import": "./env-adapter/index.mjs",
+      "module": "./env-adapter/index.mjs",
+      "require": "./env-adapter/index.js"
     },
     "./json-adapter": {
-      "types": "./json-adapter/dist/index.d.ts",
-      "import": "./json-adapter/dist/index.mjs",
-      "module": "./json-adapter/dist/index.mjs",
-      "require": "./json-adapter/dist/index.js"
+      "types": "./json-adapter/index.d.ts",
+      "import": "./json-adapter/index.mjs",
+      "module": "./json-adapter/index.mjs",
+      "require": "./json-adapter/index.js"
     }
   },
   "publishConfig": {
