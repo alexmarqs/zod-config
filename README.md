@@ -142,7 +142,7 @@ const customConfig = await loadConfig({
 
 ### Combine multiple adapters
 
-You can combine multiple adapters to load the configuration from different sources. We deeply merge the configuration from different sources, following the order of the adapters provided.
+You can combine multiple adapters to load the configuration from different sources. We **deeply merge the configuration from different sources**, following the order of the adapters provided.
 
 ```ts
 import { z } from 'zod';
