@@ -11,6 +11,7 @@
   <a href="https://opensource.org/licenses/MIT" target="_blank"><img height=20 src="https://img.shields.io/badge/License-MIT-yellow.svg" /></a>
 </a>
 </p>
+
 ## Features
 
 - 👮‍♂️ **Type safety**. Zod Config uses [Zod](https://zod.dev/);
