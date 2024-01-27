@@ -7,26 +7,6 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "module": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
-    },
-    "./json-adapter": {
-      "import": "./dist/lib/adapters/json-adapter/index.mjs",
-      "require": "./dist/lib/adapters/json-adapter/index.js",
-      "module": "./dist/lib/adapters/json-adapter/index.mjs",
-      "types": "./dist/lib/adapters/json-adapter/index.d.ts"
-    },
-    "./env-adapter": {
-      "import": "./dist/lib/adapters/env-adapter/index.mjs",
-      "require": "./dist/lib/adapters/env-adapter/index.js",
-      "module": "./dist/lib/adapters/env-adapter/index.mjs",
-      "types": "./dist/lib/adapters/env-adapter/index.d.ts"
-    }
-  },
   "scripts": {
     "build": "tsup",
     "prepublishOnly": "pnpm build",
@@ -42,7 +22,28 @@
     "yalc:publish": "yalc publish",
     "postrelease": "git push && git push --tags"
   },
-  "files": ["dist/**"],
+  "files": ["dist/**", "env-adapter/dist/**", "json-adapter/dist/**"],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "module": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./env-adapter": {
+      "types": "./env-adapter/dist/index.d.ts",
+      "import": "./env-adapter/dist/index.mjs",
+      "module": "./env-adapter/dist/index.mjs",
+      "require": "./env-adapter/dist/index.js"
+    },
+    "./json-adapter": {
+      "types": "./json-adapter/dist/index.d.ts",
+      "import": "./json-adapter/dist/index.mjs",
+      "module": "./json-adapter/dist/index.mjs",
+      "require": "./json-adapter/dist/index.js"
+    }
+  },
   "publishConfig": {
     "access": "public"
   },
