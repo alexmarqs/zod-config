@@ -8,6 +8,9 @@
     "strictFunctionTypes": true,                         /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
     "skipLibCheck": true,                                /* Skip type checking all .d.ts files. */
     "strictNullChecks": true,                            /* When type checking, take into account 'null' and 'undefined'. */  
+    "noEmit": true,                                      /* Disable emitting files from a compilation. */
+    "outDir": "./dist",                                  /* Specify an output folder for all emitted files. */
+
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "src/**/*.spec.ts", "src/**/*.test.ts", "tests"]
