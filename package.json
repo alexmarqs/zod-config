@@ -19,8 +19,7 @@
     "prerelease": "pnpm run build",
     "release": "standard-version --skip.changelog",
     "release:dry-run": "standard-version --skip.changelog --dry-run",
-    "yalc:publish": "yalc publish",
-    "postrelease": "git push && git push --tags"
+    "yalc:publish": "yalc publish"
   },
   "files": [
     "dist/**"
