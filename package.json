@@ -17,8 +17,8 @@
     "test:watch": "vitest",
     "prebuild": "pnpm run type-check",
     "prerelease": "pnpm run build",
-    "release:": "standard-version",
-    "release:dry-run": "standard-version --dry-run",
+    "release:": "standard-version --skip.changelog",
+    "release:dry-run": "standard-version --skip.changelog --dry-run",
     "yalc:publish": "yalc publish",
     "postrelease": "git push && git push --tags"
   },
@@ -41,15 +41,12 @@
       "import": "./dist/json-adapter.mjs",
       "module": "./dist/json-adapter.mjs",
       "require": "./dist/json-adapter.js"
-    },
-    "./package.json": "./package.json"
+    }
   },
   "typesVersions": {
     "*": {
       "env-adapter": ["./dist/env-adapter.d.ts"],
-      "json-adapter": ["./dist/json-adapter.d.ts"],
-      "package.json": ["./package.json"],
-      "*": ["./dist/index.d.ts"]
+      "json-adapter": ["./dist/json-adapter.d.ts"]
     }
   },
   "publishConfig": {

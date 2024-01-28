@@ -8,7 +8,7 @@ export default defineConfig([
       "env-adapter": "src/lib/adapters/env-adapter/index.ts",
     },
     format: ["cjs", "esm"],
-    target: "node14", // support Node.js 14 and above
+    target: "node14",
     splitting: false,
     sourcemap: true,
     clean: true,
