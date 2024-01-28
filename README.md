@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="./.github/assets/logo.png" width="200px" align="center" alt="Zod logo" />
+  <img src="https://github.com/alexmarqs/zod-config/blob/main/.github/assets/logo.png?raw=true" width="200px" align="center" alt="Zod logo" />
   <h1 align="center">Zod Config</h1>
   <p align="center">
    Load configuration variables from multiple sources type safely using Zod.
