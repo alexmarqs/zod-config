@@ -19,7 +19,7 @@
 
 - 👮‍♂️ **Type safety**. Zod Config uses [Zod](https://zod.dev/);
 - 🤌 **Tiny**. Zod Config is a tiny library with no dependencies, tree-shaking friendly;
-- ✨ **Flexible**. Combine multiple adapters to load the configuration from different sources. We deeply merge the configuration from different sources, following the order of the adapters provided; Create your own adapters easily;
+- ✨ **Flexible**. Combine multiple adapters to load the configuration from different sources. We deeply merge the configuration from different sources, following the order of the adapters provided; Create your own adapters easily; Use the callback functions to handle errors and success due to the async nature of the adapters;
 - 🪴 **Easy to use**. Zod Config is designed to be easy to use, with a simple API;
 
 
@@ -31,6 +31,19 @@ pnpm add zod-config zod # pnpm
 yarn add zod-config zod # yarn
 ```
 (You need to install Zod as well, if you don't have it already)
+
+
+## Table of contents:
+
+- [Quick Start](#quick-start)
+- [Default Adapter](#default-adapter)
+- [Built In Adapters](#built-in-adapters)
+  - [Env Adapter](#env-adapter)
+  - [JSON Adapter](#json-adapter)
+- [Combine multiple adapters](#combine-multiple-adapters)
+- [Callbacks](#callbacks)
+- [Contributing notes](#contributing-notes)
+
 
 ## Quick Start
 
@@ -50,10 +63,11 @@ This library provides some built in adapters to load the configuration from diff
 ### Table of contents:
 
 - [Default Adapter](#default-adapter)
-- [Env Adapter](#env-adapter)
-- [JSON Adapter](#json-adapter)
+- [Built In Adapters](#built-in-adapters)
+  - [Env Adapter](#env-adapter)
+  - [JSON Adapter](#json-adapter)
 - [Combine multiple adapters](#combine-multiple-adapters)
-
+- [Callbacks](#callbacks)
 
 ### Default Adapter
 
@@ -77,7 +91,9 @@ console.log(config.port)
 console.log(config.host)
 ```
 
-### Env Adapter
+### Built In Adapters
+
+#### Env Adapter
 
 Loads the configuration from `process.env` or a custom object, allowing filtering the prefix keys to load.
 
@@ -166,6 +182,26 @@ const config = await loadConfig({
   ],
 });
 ```
+
+### Callbacks
+
+You can use the callbacks to handle errors and success due to the async nature of the adapters.
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+
+loadConfig({
+  schema: schemaConfig,
+  onError: (error) => {
+    console.error('An error occurred while loading the configuration:', error);
+  },
+  onSuccess: (config) => {
+    console.log('Configuration loaded successfully:', config);
+  },
+});
+```
+
 
 ## Contributing notes
 
