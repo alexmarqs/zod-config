@@ -43,6 +43,7 @@ yarn add zod-config zod # yarn
 - [Combine multiple adapters](#combine-multiple-adapters)
 - [Callbacks](#callbacks)
 - [Contributing notes](#contributing-notes)
+- [On the web](#on-the-web)
 
 
 ## Quick Start
@@ -59,17 +60,6 @@ Zod Config provides a `loadConfig` function that takes a Zod Object schema and r
 From the package we also expose the types `Adapter` and `Config` in case you want to use them in your own adapters.
 
 This library provides some built in adapters to load the configuration from different sources via modules. You can easily import them from `zod-config/<built-in-adapter-module-name>` (see the examples below).
-
-### Table of contents:
-
-- [Default Adapter](#default-adapter)
-- [Built In Adapters](#built-in-adapters)
-  - [Env Adapter](#env-adapter)
-  - [JSON Adapter](#json-adapter)
-- [Combine multiple adapters](#combine-multiple-adapters)
-- [Callbacks](#callbacks)
-- [Contributing notes](#contributing-notes)
-- [On the web](#on-the-web)
 
 ### Default Adapter
 
@@ -128,7 +118,7 @@ const customConfig = await loadConfig({
 });
 ```
 
-### JSON Adapter
+#### JSON Adapter
 
 Loads the configuration from a JSON file.
 
