@@ -68,6 +68,8 @@ This library provides some built in adapters to load the configuration from diff
   - [JSON Adapter](#json-adapter)
 - [Combine multiple adapters](#combine-multiple-adapters)
 - [Callbacks](#callbacks)
+- [Contributing notes](#contributing-notes)
+- [On the web](#on-the-web)
 
 ### Default Adapter
 
@@ -206,3 +208,7 @@ loadConfig({
 ## Contributing notes
 
 The goal is to have a helper to load configuration data from several srouces. If you have any source in mind, feel free to open a PR to add it or just open an issue to discuss it. **More adapters are coming soon.**
+
+## On the web 
+
+This library is referenced in the **official Zod documentation** as part of the [ecosystem](https://zod.dev/?id=ecosystem) section "Powered by Zod", check it out [here](https://zod.dev/?id=powered-by-zod) 🥳!
