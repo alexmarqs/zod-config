@@ -161,7 +161,7 @@ npm install dotenv
 ```ts
 import { z } from 'zod';
 import { loadConfig } from 'zod-config';
-import { dotenvAdapter } from 'zod-config/dotenv-adapter';
+import { dotEnvAdapter } from 'zod-config/dotenv-adapter';
 
 const schemaConfig = z.object({
   port: z.string().regex(/^\d+$/),
@@ -172,13 +172,13 @@ const filePath = path.join(__dirname, '.env');
 
 const config = await loadConfig({
   schema: schemaConfig,
-  adapters: dotenvAdapter({ path: filePath }),
+  adapters: dotEnvAdapter({ path: filePath }),
 });
 
 // using filter prefix key
 const customConfig = await loadConfig({
   schema: schemaConfig,
-  adapters: dotenvAdapter({ 
+  adapters: dotEnvAdapter({ 
     path: filePath,
     prefixKey: 'MY_APP_',
   }),
