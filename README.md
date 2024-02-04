@@ -201,4 +201,4 @@ The goal is to have a helper to load configuration data from several srouces. If
 
 ## On the web 
 
-This library is referenced in the **official Zod documentation** as part of the [ecosystem](https://zod.dev/?id=ecosystem) section "Powered by Zod", check it out [here](https://zod.dev/?id=powered-by-zod) 🥳!
+This library is referenced in the official Zod documentation as part of the [ecosystem](https://zod.dev/?id=ecosystem) section "Powered by Zod", check it out [here](https://zod.dev/?id=powered-by-zod).
