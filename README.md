@@ -40,6 +40,7 @@ yarn add zod-config zod # yarn
 - [Built In Adapters](#built-in-adapters)
   - [Env Adapter](#env-adapter)
   - [JSON Adapter](#json-adapter)
+  - [Dotenv Adapter](#dotenv-adapter)
 - [Combine multiple adapters](#combine-multiple-adapters)
 - [Callbacks](#callbacks)
 - [Contributing notes](#contributing-notes)
@@ -120,7 +121,7 @@ const customConfig = await loadConfig({
 
 #### JSON Adapter
 
-Loads the configuration from a JSON file.
+Loads the configuration from a `json` file.
 
 ```ts
 import { z } from 'zod';
@@ -143,6 +144,41 @@ const config = await loadConfig({
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: jsonAdapter({ 
+    path: filePath,
+    prefixKey: 'MY_APP_',
+  }),
+});
+```
+
+#### Dotenv Adapter
+
+Loads the configuration from a `.env` file. In order to use this adapter, you need to install `dotenv` (peer dependency), if you don't have it already.
+
+```bash
+npm install dotenv
+```
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { dotenvAdapter } from 'zod-config/dotenv-adapter';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const filePath = path.join(__dirname, '.env');
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: dotenvAdapter({ path: filePath }),
+});
+
+// using filter prefix key
+const customConfig = await loadConfig({
+  schema: schemaConfig,
+  adapters: dotenvAdapter({ 
     path: filePath,
     prefixKey: 'MY_APP_',
   }),

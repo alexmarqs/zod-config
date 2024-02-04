@@ -1,10 +1,11 @@
-import { afterAll, describe, expect, it, vi, beforeAll } from "vitest";
-import { loadConfig } from "../src/lib/config";
+import { unlink, writeFile } from "fs/promises";
+import path from "path";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import { dotEnvAdapter } from "../src/lib/adapters/dotenv-adapter";
 import { envAdapter } from "../src/lib/adapters/env-adapter";
 import { jsonAdapter } from "../src/lib/adapters/json-adapter";
-import path from "path";
-import { writeFile, unlink } from "fs/promises";
+import { loadConfig } from "../src/lib/config";
 import { Adapter } from "../src/types";
 
 describe("Load config tests", () => {
@@ -54,8 +55,7 @@ describe("Load config tests", () => {
     const testFilePath = path.join(__dirname, "test.json");
 
     beforeAll(async () => {
-      const testFileData = { HOST: "localhost", PORT: "3000" };
-      await writeFile(testFilePath, JSON.stringify(testFileData));
+      await writeFile(testFilePath, JSON.stringify({ HOST: "localhost", PORT: "3000" }));
     });
 
     afterAll(async () => {
@@ -105,7 +105,7 @@ describe("Load config tests", () => {
         HOST: z.string(),
         PORT: z.number(),
       });
-      const consoleErrorSpy = vi.spyOn(console, "error");
+      const consoleErrorSpy = vi.spyOn(console, "warn");
 
       // when
       // then
@@ -117,7 +117,78 @@ describe("Load config tests", () => {
       }).catch((err) => {
         expectZodError(err);
         expect(consoleErrorSpy).toHaveBeenCalledWith(
-          "Error reading data from adapter json adapter: Failed to parse / read JSON file at not-exist.json: ENOENT: no such file or directory, open 'not-exist.json'",
+          "Cannot read data from json adapter: Failed to parse / read JSON file at not-exist.json: ENOENT: no such file or directory, open 'not-exist.json'",
+        );
+      });
+    });
+  });
+  describe("dotenv adapter", () => {
+    const testFilePath = path.join(__dirname, ".env.test");
+
+    beforeAll(async () => {
+      await writeFile(testFilePath, "HOST=localhost\nPORT=3000");
+    });
+
+    afterAll(async () => {
+      await unlink(testFilePath);
+    });
+
+    it("should return parsed data when schema is valid", async () => {
+      // given
+      const schema = z.object({
+        HOST: z.string(),
+        PORT: z.string().regex(/^\d+$/),
+      });
+
+      // when
+      const config = await loadConfig({
+        schema,
+        adapters: dotEnvAdapter({
+          path: testFilePath,
+        }),
+      });
+
+      // then
+      expect(config.HOST).toBe("localhost");
+      expect(config.PORT).toBe("3000");
+    });
+    it("should throw zod error when schema is invalid", async () => {
+      // given
+      const schema = z.object({
+        HOST: z.string(),
+        PORT: z.number(),
+      });
+
+      // when
+      // then
+      loadConfig({
+        schema,
+        adapters: dotEnvAdapter({
+          path: testFilePath,
+        }),
+      }).catch((err) => {
+        expectZodError(err);
+      });
+    });
+    it("should log error from adapter errors + throw zod error when schema is invalid", async () => {
+      // given
+      const schema = z.object({
+        HOST: z.string(),
+        PORT: z.number(),
+      });
+      const consoleErrorSpy = vi.spyOn(console, "warn");
+
+      // when
+      // then
+      loadConfig({
+        schema,
+        adapters: dotEnvAdapter({
+          path: ".env.not-exist",
+        }),
+      }).catch((err) => {
+        expectZodError(err);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+          "Cannot read data from dotenv adapter: Failed to parse / read .env file at .env.not-exist: ENOENT: no such file or directory, open '.env.not-exist'",
         );
       });
     });
@@ -222,7 +293,7 @@ describe("Load config tests", () => {
         APP_NAME: "app name",
       };
 
-      const consoleErrorSpy = vi.spyOn(console, "error");
+      const consoleErrorSpy = vi.spyOn(console, "warn");
 
       // when
       const config = await loadConfig({

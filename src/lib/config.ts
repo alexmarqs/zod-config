@@ -55,8 +55,8 @@ const getDataFromAdapters = async (adapters?: Adapter[]) => {
       try {
         return await adapter.read();
       } catch (error) {
-        console.error(
-          `Error reading data from adapter ${adapter.name}: ${
+        console.warn(
+          `Cannot read data from ${adapter.name}: ${
             error instanceof Error ? error.message : error
           }`,
         );

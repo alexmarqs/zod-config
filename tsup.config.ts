@@ -3,9 +3,10 @@ import { defineConfig } from "tsup";
 export default defineConfig([
   {
     entry: {
-      "index": "src/index.ts",
+      index: "src/index.ts",
       "json-adapter": "src/lib/adapters/json-adapter/index.ts",
       "env-adapter": "src/lib/adapters/env-adapter/index.ts",
+      "dotenv-adapter": "src/lib/adapters/dotenv-adapter/index.ts",
     },
     format: ["cjs", "esm"],
     target: "node14",
@@ -15,5 +16,5 @@ export default defineConfig([
     minify: true,
     dts: true,
     outDir: "dist",
-  }
+  },
 ]);
