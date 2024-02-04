@@ -92,7 +92,6 @@ out
 
 # Dist
 dist
-*-adapter/
 
 # Gatsby files
 .cache/
