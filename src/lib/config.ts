@@ -1,6 +1,7 @@
 import { AnyZodObject, z } from "zod";
 import { Adapter, Config } from "../types";
 import { deepMerge } from "./adapters/utils";
+import { Logger } from "./logger";
 
 /**
  * Load config from adapters.
@@ -15,10 +16,12 @@ export const loadConfig = async <T extends AnyZodObject>(
   config: Config<T>,
 ): Promise<z.infer<T>> => {
   const { schema, adapters, onError, onSuccess } = config;
+  const logger = config.logger ?? console;
 
   // Read data from adapters
   const data = await getDataFromAdapters(
     Array.isArray(adapters) ? adapters : adapters ? [adapters] : [],
+    logger,
   );
 
   // Validate data against schema
@@ -43,7 +46,7 @@ export const loadConfig = async <T extends AnyZodObject>(
   return result.data;
 };
 
-const getDataFromAdapters = async (adapters?: Adapter[]) => {
+const getDataFromAdapters = async (adapters: Adapter[], logger: Logger) => {
   // If no adapters are provided, we will read from process.env
   if (!adapters || adapters.length === 0) {
     return process.env;
@@ -55,7 +58,7 @@ const getDataFromAdapters = async (adapters?: Adapter[]) => {
       try {
         return await adapter.read();
       } catch (error) {
-        console.warn(
+        logger.warn(
           `Cannot read data from ${adapter.name}: ${
             error instanceof Error ? error.message : error
           }`,
