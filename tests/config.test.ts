@@ -6,7 +6,7 @@ import { dotEnvAdapter } from "../src/lib/adapters/dotenv-adapter";
 import { envAdapter } from "../src/lib/adapters/env-adapter";
 import { jsonAdapter } from "../src/lib/adapters/json-adapter";
 import { loadConfig } from "../src/lib/config";
-import { Adapter } from "../src/types";
+import { Adapter, Logger } from "../src/types";
 
 describe("Load config tests", () => {
   describe("default adapter", () => {
@@ -280,7 +280,7 @@ describe("Load config tests", () => {
       expect(config.PORT).toBe("3000");
       expect(config.APP_NAME).toBe("app name");
     });
-    it("should return parsed data from adapters when schema is valid even if one adapter fails", async () => {
+    it("should return parsed data from adapters when schema is valid even if one adapter fails (default logger)", async () => {
       // given
       const schema = z.object({
         HOST: z.string(),
@@ -308,6 +308,45 @@ describe("Load config tests", () => {
 
       // then
       expect(consoleErrorSpy).toHaveBeenCalledOnce();
+      expect(config.HOST).toBe("localhost");
+      expect(config.PORT).toBe("3000");
+      expect(config.APP_NAME).toBe("app name");
+    });
+    it("should return parsed data from adapters when schema is valid even if one adapter fails (custom logger)", async () => {
+      // given
+      const schema = z.object({
+        HOST: z.string(),
+        PORT: z.string().regex(/^\d+$/),
+        APP_NAME: z.string(),
+      });
+      process.env = {
+        HOST: "localhost",
+        PORT: "3000",
+        APP_NAME: "app name",
+      };
+
+      const customLogger: Logger = {
+        warn: () => {},
+      };
+
+      const customLoggerWarnSpy = vi.spyOn(customLogger, "warn");
+      const consoleErrorSpy = vi.spyOn(console, "warn");
+
+      // when
+      const config = await loadConfig({
+        schema,
+        adapters: [
+          envAdapter(),
+          jsonAdapter({
+            path: "not-exist.json",
+          }),
+        ],
+        logger: customLogger,
+      });
+
+      // then
+      expect(customLoggerWarnSpy).toHaveBeenCalledOnce();
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
       expect(config.HOST).toBe("localhost");
       expect(config.PORT).toBe("3000");
       expect(config.APP_NAME).toBe("app name");
