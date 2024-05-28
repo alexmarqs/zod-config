@@ -1,5 +1,5 @@
-import { AnyZodObject, z } from "zod";
-import { Adapter, Config, Logger } from "../types";
+import type { AnyZodObject, z } from "zod";
+import type { Adapter, Config, Logger } from "../types";
 import { deepMerge } from "./adapters/utils";
 
 /**
