@@ -1,8 +1,9 @@
-import { z } from "zod";
+import type { z } from "zod";
 
 export type Adapter = {
   name: string;
   read: () => Promise<z.infer<z.AnyZodObject>>;
+  silentFail?: boolean;
 };
 
 export type Config<T extends z.AnyZodObject = z.AnyZodObject> = {
