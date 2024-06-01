@@ -20,9 +20,7 @@
       },
       "recommended": true,
       "correctness": {
-        "noUnusedVariables": "error"
-      },
-      "nursery": {
+        "noUnusedVariables": "error",
         "noUnusedImports": "error"
       }
     }

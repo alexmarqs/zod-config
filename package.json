@@ -11,8 +11,8 @@
     "build": "tsup",
     "prepublishOnly": "pnpm build",
     "type-check": "tsc --noEmit",
-    "format": "pnpm dlx @biomejs/biome format ./src/**/*.ts --write",
-    "lint": "pnpm dlx @biomejs/biome lint ./src/**/*.ts",
+    "format": "biome format ./src --write",
+    "lint": "biome lint ./src",
     "test": "vitest run --silent",
     "test:watch": "vitest",
     "prebuild": "pnpm run type-check",
@@ -21,9 +21,7 @@
     "release:dry-run": "standard-version --skip.changelog --dry-run",
     "yalc:publish": "yalc publish"
   },
-  "files": [
-    "dist/**"
-  ],
+  "files": ["dist/**"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -52,15 +50,9 @@
   },
   "typesVersions": {
     "*": {
-      "env-adapter": [
-        "./dist/env-adapter.d.ts"
-      ],
-      "json-adapter": [
-        "./dist/json-adapter.d.ts"
-      ],
-      "dotenv-adapter": [
-        "./dist/dotenv-adapter.d.ts"
-      ]
+      "env-adapter": ["./dist/env-adapter.d.ts"],
+      "json-adapter": ["./dist/json-adapter.d.ts"],
+      "dotenv-adapter": ["./dist/dotenv-adapter.d.ts"]
     }
   },
   "publishConfig": {
@@ -74,18 +66,9 @@
     "url": "https://github.com/alexmarqs/zod-config/issues"
   },
   "homepage": "https://github.com/alexmarqs/zod-config#readme",
-  "keywords": [
-    "zod",
-    "config",
-    "env",
-    "json",
-    "dotenv",
-    "typescript",
-    "adapters",
-    "typesafe"
-  ],
+  "keywords": ["zod", "config", "env", "json", "dotenv", "typescript", "adapters", "typesafe"],
   "devDependencies": {
-    "@biomejs/biome": "1.4.1",
+    "@biomejs/biome": "1.7.3",
     "@types/node": "20.10.7",
     "dotenv": "16.4.1",
     "standard-version": "9.5.0",

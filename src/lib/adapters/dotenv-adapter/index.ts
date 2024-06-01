@@ -1,16 +1,17 @@
 import { parse } from "dotenv";
-import { readFile } from "fs/promises";
-import { Adapter } from "../../../types";
+import { readFile } from "node:fs/promises";
+import type { Adapter } from "../../../types";
 import { filterByPrefixKey } from "../utils";
 
 export type DotEnvAdapterProps = {
   path: string;
   prefixKey?: string;
+  silentFail?: boolean;
 };
 
 const ADAPTER_NAME = "dotenv adapter";
 
-export const dotEnvAdapter = ({ path, prefixKey }: DotEnvAdapterProps): Adapter => {
+export const dotEnvAdapter = ({ path, prefixKey, silentFail }: DotEnvAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
@@ -32,5 +33,6 @@ export const dotEnvAdapter = ({ path, prefixKey }: DotEnvAdapterProps): Adapter 
         );
       }
     },
+    silentFail,
   };
 };
