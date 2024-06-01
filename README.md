@@ -260,7 +260,7 @@ const config = await loadConfig({
 
 ### Silent mode
 
-By default we log warnings internally if an adapter fails. You can use the `silent` flag to avoid logs if adapter fails.
+If any adapter fails, we will still return the data from other adapters. However, by default, we log a warning internally if an adapter fails. You can use the `silent` flag to avoid logging the warning. This is useful when you have multiple adapters and you don't want to log a warning for each adapter that fails. Example for the built-in `envAdapter`:
 
 ```ts
 import { z } from 'zod';
