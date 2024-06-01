@@ -57,7 +57,7 @@ const getDataFromAdapters = async (adapters: Adapter[], logger: Logger) => {
       try {
         return await adapter.read();
       } catch (error) {
-        if (!adapter.silentFail) {
+        if (!adapter.silent) {
           logger.warn(
             `Cannot read data from ${adapter.name}: ${
               error instanceof Error ? error.message : error

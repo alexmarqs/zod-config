@@ -151,7 +151,7 @@ describe("Load config tests", () => {
         "Cannot read data from json adapter: Failed to parse / read JSON file at not-exist.json: ENOENT: no such file or directory, open 'not-exist.json'",
       );
     });
-    it("throw zod error when schema is invalid but not log error from adapter errors when silentFail is true", async () => {
+    it("throw zod error when schema is invalid but not log error from adapter errors when silent is true", async () => {
       // given
       const schema = z.object({
         HOST: z.string(),
@@ -167,7 +167,7 @@ describe("Load config tests", () => {
           schema,
           adapters: jsonAdapter({
             path: "not-exist.json",
-            silentFail: true,
+            silent: true,
           }),
         }),
       ).rejects.toThrowError(z.ZodError);
@@ -275,7 +275,7 @@ describe("Load config tests", () => {
         "Cannot read data from dotenv adapter: Failed to parse / read .env file at .env.not-exist: ENOENT: no such file or directory, open '.env.not-exist'",
       );
     });
-    it("throw zod error when schema is invalid but not log error from adapter errors when silentFail is true", async () => {
+    it("throw zod error when schema is invalid but not log error from adapter errors when silent is true", async () => {
       // given
       const schema = z.object({
         HOST: z.string(),
@@ -291,7 +291,7 @@ describe("Load config tests", () => {
           schema,
           adapters: dotEnvAdapter({
             path: ".env.not-exist",
-            silentFail: true,
+            silent: true,
           }),
         }),
       ).rejects.toThrowError(z.ZodError);

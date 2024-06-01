@@ -5,12 +5,12 @@ import { readFile } from "node:fs/promises";
 export type JsonAdapterProps = {
   path: string;
   prefixKey?: string;
-  silentFail?: boolean;
+  silent?: boolean;
 };
 
 const ADAPTER_NAME = "json adapter";
 
-export const jsonAdapter = ({ path, prefixKey, silentFail }: JsonAdapterProps): Adapter => {
+export const jsonAdapter = ({ path, prefixKey, silent }: JsonAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
@@ -32,6 +32,6 @@ export const jsonAdapter = ({ path, prefixKey, silentFail }: JsonAdapterProps): 
         );
       }
     },
-    silentFail,
+    silent,
   };
 };

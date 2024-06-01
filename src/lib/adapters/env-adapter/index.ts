@@ -4,12 +4,12 @@ import { filterByPrefixKey } from "../utils";
 export type EnvAdapterProps = {
   customEnv?: Record<string, any>;
   prefixKey?: string;
-  silentFail?: boolean;
+  silent?: boolean;
 };
 
 const ADAPTER_NAME = "env adapter";
 
-export const envAdapter = ({ customEnv, prefixKey, silentFail }: EnvAdapterProps = {}): Adapter => {
+export const envAdapter = ({ customEnv, prefixKey, silent }: EnvAdapterProps = {}): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
@@ -21,6 +21,6 @@ export const envAdapter = ({ customEnv, prefixKey, silentFail }: EnvAdapterProps
 
       return data;
     },
-    silentFail,
+    silent,
   };
 };

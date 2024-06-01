@@ -6,12 +6,12 @@ import { filterByPrefixKey } from "../utils";
 export type DotEnvAdapterProps = {
   path: string;
   prefixKey?: string;
-  silentFail?: boolean;
+  silent?: boolean;
 };
 
 const ADAPTER_NAME = "dotenv adapter";
 
-export const dotEnvAdapter = ({ path, prefixKey, silentFail }: DotEnvAdapterProps): Adapter => {
+export const dotEnvAdapter = ({ path, prefixKey, silent }: DotEnvAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
@@ -33,6 +33,6 @@ export const dotEnvAdapter = ({ path, prefixKey, silentFail }: DotEnvAdapterProp
         );
       }
     },
-    silentFail,
+    silent,
   };
 };
