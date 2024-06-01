@@ -56,10 +56,10 @@ Zod Config provides a `loadConfig` function that takes a Zod Object schema and r
 | Property | Type | Description | Required |
 | --- | --- | --- | --- |
 | `schema` | `AnyZodObject` | A Zod Object schema to validate the configuration. | `true` |
-| `adapters` | `Adapter[] or Adapter` | Adapter(s) to load the configuration from. If not provided, process.env will be used. The interface `Adapter` includes an optional flag `silent` to avoid logs if adapter fails. | `false` |
+| `adapters` | `Adapter[] or Adapter` | Adapter(s) to load the configuration from. If not provided, process.env will be used. | `false` |
 | `onError` | `(error: Error) => void` | A callback to be called when an error occurs. | `false` |
 | `onSuccess` | `(config: z.infer ) => void` | A callback to be called when the configuration is loaded successfully. | `false` |
-| `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. Currently we only log warnings internally however the `Logger` interface can be extended in the future if needed. | `false` |
+| `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. | `false` |
 
 From the package we also expose the types `Adapter`, `Config` and `Logger` in case you want to use them in your own adapters.
 
@@ -260,7 +260,7 @@ const config = await loadConfig({
 
 ### Silent mode
 
-You can use the `silent` flag in the adapters to avoid any internal logs if the adapter fails. Example with the built-in `envAdapter`:
+By default we log warnings internally if an adapter fails. You can use the `silent` flag to avoid logs if adapter fails.
 
 ```ts
 import { z } from 'zod';
