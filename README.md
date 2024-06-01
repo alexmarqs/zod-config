@@ -9,6 +9,7 @@
 <p align="center">
   <a href="https://github.com/alexmarqs/zod-config/actions/workflows/ci-cd.yaml" target="_blank"><img height=20 src="https://github.com/alexmarqs/zod-config/actions/workflows/ci-cd.yaml/badge.svg" /></a>
   <a href="https://opensource.org/licenses/MIT" target="_blank"><img height=20 src="https://img.shields.io/badge/License-MIT-yellow.svg" /></a>
+   <a href="https://www.npmjs.com/package/zod-config" target="_blank"><img height=20 src="https://img.shields.io/npm/dt/zod-config.svg" /></a>
 </a>
 <p align="center">
   <a href="https://www.npmjs.com/package/zod-config" target="_blank">NPM</a>
