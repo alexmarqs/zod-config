@@ -44,6 +44,7 @@ yarn add zod-config zod # yarn
 - [Combine multiple adapters](#combine-multiple-adapters)
 - [Callbacks](#callbacks)
 - [Custom Logger](#custom-logger)
+- [Silent mode](#silent-mode)
 - [Contributing notes](#contributing-notes)
 - [On the web](#on-the-web)
 
@@ -58,7 +59,7 @@ Zod Config provides a `loadConfig` function that takes a Zod Object schema and r
 | `adapters` | `Adapter[] or Adapter` | Adapter(s) to load the configuration from. If not provided, process.env will be used. The interface `Adapter` includes an optional flag `silent` to avoid logs if adapter fails. | `false` |
 | `onError` | `(error: Error) => void` | A callback to be called when an error occurs. | `false` |
 | `onSuccess` | `(config: z.infer ) => void` | A callback to be called when the configuration is loaded successfully. | `false` |
-| `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. Currently we only log warnings internally. The `Logger` interface can be extended in the future. | `false` |
+| `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. Currently we only log warnings internally however the `Logger` interface can be extended in the future if needed. | `false` |
 
 From the package we also expose the types `Adapter`, `Config` and `Logger` in case you want to use them in your own adapters.
 
@@ -118,14 +119,6 @@ const customConfig = await loadConfig({
       MY_APP_HOST: 'localhost',
       IGNORED_KEY: 'ignored',
     }})
-});
-
-// using silent flag to avoid logs if adapter fails
-const customSilentConfig= await loadConfig({
-  schema: schemaConfig,
-  adapters: envAdapter({ 
-    silent: true,
-  })
 });
 ```
 
@@ -242,7 +235,7 @@ loadConfig({
 
 ### Custom Logger
 
-You can provide a custom logger to be used to log messages. By default, it uses `console`. Currently we only log warnings internally. This interface can be extended in the future.
+You can provide a custom logger to be used to log messages. By default, it uses `console`.
 
 ```ts
 import { z } from 'zod';
@@ -262,6 +255,26 @@ const customLogger: Logger = {
 const config = await loadConfig({
   schema: schemaConfig,
   logger: customLogger,
+});
+```
+
+### Silent mode
+
+You can use the `silent` flag in the adapters to avoid any internal logs if the adapter fails. Example with the built-in `envAdapter`:
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { envAdapter } from 'zod-config/env-adapter';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: envAdapter({ silent: true }),
 });
 ```
 
