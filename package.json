@@ -53,7 +53,13 @@
       "types": "./dist/script-adapter.d.ts",
       "import": "./dist/script-adapter.mjs",
       "module": "./dist/script-adapter.mjs",
-      "require": "./dist/script-adapeter.js"
+      "require": "./dist/script-adapter.js"
+    },
+    "./directory-adapter": {
+      "types": "./dist/directory-adapter.d.ts",
+      "import": "./dist/directory-adapter.mjs",
+      "module": "./dist/directory-adapter.mjs",
+      "require": "./dist/directory-adapter.js"
     }
   },
   "typesVersions": {
