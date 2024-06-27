@@ -48,6 +48,12 @@
       "import": "./dist/dotenv-adapter.mjs",
       "module": "./dist/dotenv-adapter.mjs",
       "require": "./dist/dotenv-adapter.js"
+    },
+    "./script-adapter": {
+      "types": "./dist/script-adapter.d.ts",
+      "import": "./dist/script-adapter.mjs",
+      "module": "./dist/script-adapter.mjs",
+      "require": "./dist/script-adapeter.js"
     }
   },
   "typesVersions": {
