@@ -14,7 +14,7 @@ export const scriptAdapter = ({ path, prefixKey, silent }: ScriptAdapterProps): 
     name: ADAPTER_NAME,
     read: async () => {
       try {
-        const data = await import(path);
+        const { default: data } = await import(path)
 
         if (prefixKey) {
           return filterByPrefixKey(data, prefixKey);
