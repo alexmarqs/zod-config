@@ -7,6 +7,8 @@ export default defineConfig([
       "json-adapter": "src/lib/adapters/json-adapter/index.ts",
       "env-adapter": "src/lib/adapters/env-adapter/index.ts",
       "dotenv-adapter": "src/lib/adapters/dotenv-adapter/index.ts",
+      "script-adapter": "src/lib/adapters/script-adapter/index.ts",
+      "directory-adapter": "src/lib/adapters/directory-adapter/index.ts",
     },
     format: ["cjs", "esm"],
     target: "node14",
