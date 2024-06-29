@@ -5,6 +5,7 @@ import { z } from "zod";
 import { dotEnvAdapter } from "../src/lib/adapters/dotenv-adapter";
 import { envAdapter } from "../src/lib/adapters/env-adapter";
 import { jsonAdapter } from "../src/lib/adapters/json-adapter";
+import { scriptAdapter } from "../src/lib/adapters/script-adapter";
 import { loadConfig } from "../src/lib/config";
 import type { Adapter, Logger } from "../src/types";
 
@@ -344,6 +345,48 @@ describe("Load config tests", () => {
       // then
       expect(config.APP_NAME).toBe("app name");
       expect(config.PORT).toBe("3000");
+    });
+  });
+  describe.each([
+    {
+      fileName: "test.ts",
+      content: `export default { HOST: "localhost", PORT: "3000" };`,
+      expected: { HOST: "localhost", PORT: "3000" },
+    },
+    {
+      fileName: "test.js",
+      content: `module.exports = { HOST: "localhost", PORT: "9000" };`,
+      expected: { HOST: "localhost", PORT: "9000" },
+    },
+  ])("script adapter", ({ fileName, content, expected }) => {
+    const testFilePath = path.join(__dirname, fileName);
+
+    beforeAll(async () => {
+      await writeFile(testFilePath, content);
+    });
+
+    afterAll(async () => {
+      await unlink(testFilePath);
+    });
+
+    it("should return parsed data when schema is valid", async () => {
+      // given
+      const schema = z.object({
+        HOST: z.string(),
+        PORT: z.string().regex(/^\d+$/),
+      });
+
+      // when
+      const config = await loadConfig({
+        schema,
+        adapters: scriptAdapter({
+          path: testFilePath,
+        }),
+      });
+
+      // then
+      expect(config.HOST).toBe(expected.HOST);
+      expect(config.PORT).toBe(expected.PORT);
     });
   });
   describe("multiple adapters", () => {

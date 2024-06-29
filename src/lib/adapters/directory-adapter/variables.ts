@@ -71,7 +71,7 @@ export type ConfigResolutionVariables = {
   instanceName: string | null;
   hostname: string;
   shortHostname: string;
-}
+};
 
 export function resolveConfigResolutionVariables() {
   return {
@@ -79,5 +79,5 @@ export function resolveConfigResolutionVariables() {
     instanceName: resolveInstanceName(),
     hostname: resolveHostname(),
     shortHostname: resolveShortHostname(),
-  }
+  };
 }

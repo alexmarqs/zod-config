@@ -9,11 +9,11 @@ import { resolveConfigResolutionVariables } from "./variables";
 import { type ConfigResolutionResult, resolveConfigFiles } from "./resolution-and-load-order";
 
 export type DirectoryAdapterProps = {
-  paths: string | string[]
+  paths: string | string[];
   adapters: AdapterSpecifier[] | AdapterSpecifier;
   prefixKey?: string;
   silent?: boolean;
-}
+};
 
 type ConfigResolutionResultWithAdapter = ConfigResolutionResult & { adapter: Adapter };
 
@@ -26,7 +26,7 @@ export const directoryAdapter = ({
   silent,
 }: DirectoryAdapterProps): Adapter => {
   const extensionToAdapterFactoryMap = getExtensionToAdapterFactoryMap(
-    Array.isArray(adapters) ? adapters : [adapters]
+    Array.isArray(adapters) ? adapters : [adapters],
   );
 
   async function readUnsafely(): Promise<any> {
@@ -37,7 +37,7 @@ export const directoryAdapter = ({
       paths,
       allowedFilenames,
       extensionToAdapterFactoryMap,
-    })
+    });
 
     configResolutionResults.sort((a, b) => {
       const aNameIndex = allowedFilenames.indexOf(a.name);
@@ -45,35 +45,33 @@ export const directoryAdapter = ({
 
       if (aNameIndex !== bNameIndex) return aNameIndex - bNameIndex;
       if (a.dir === b.dir) return 0;
-      assert(Array.isArray(paths))
+      assert(Array.isArray(paths));
 
       const aDirIndex = paths.indexOf(a.dir);
       const bDirIndex = paths.indexOf(b.dir);
-      return aDirIndex - bDirIndex
-    })
+      return aDirIndex - bDirIndex;
+    });
 
-    const adapters: ConfigResolutionResultWithAdapter[] = configResolutionResults
-      .map(result => {
-        const factory = extensionToAdapterFactoryMap.get(result.ext)
-        assert(factory !== undefined)
-        return {
-          ...result,
-          adapter: factory(path.format(result))
-        };
-      })
+    const adapters: ConfigResolutionResultWithAdapter[] = configResolutionResults.map((result) => {
+      const factory = extensionToAdapterFactoryMap.get(result.ext);
+      assert(factory !== undefined);
+      return {
+        ...result,
+        adapter: factory(path.format(result)),
+      };
+    });
 
-    const adapterDataPromises = adapters
-      .map(async (result) => {
-        try {
-          return await result.adapter.read()
-        } catch (error) {
-          throw new Error(
-            `Cannot read data from ${result.adapter.name} for ${path.format(result)}: ${
-              error instanceof Error ? error.message : error
-            }`,
-          );
-        }
-      })
+    const adapterDataPromises = adapters.map(async (result) => {
+      try {
+        return await result.adapter.read();
+      } catch (error) {
+        throw new Error(
+          `Cannot read data from ${result.adapter.name} for ${path.format(result)}: ${
+            error instanceof Error ? error.message : error
+          }`,
+        );
+      }
+    });
 
     const adapterData = await Promise.all(adapterDataPromises);
     const mergedData = deepMerge({}, ...adapterData);
@@ -87,14 +85,12 @@ export const directoryAdapter = ({
 
   async function read(): Promise<any> {
     try {
-      return await readUnsafely()
+      return await readUnsafely();
     } catch (error) {
       throw new Error(
         `Failed to read config from some of the following directories:\n - ${
           Array.isArray(paths) ? paths.join("\n - ") : paths
-        }\nReason: ${
-          error instanceof Error ? error.message : error
-        }`,
+        }\nReason: ${error instanceof Error ? error.message : error}`,
       );
     }
   }
@@ -103,5 +99,5 @@ export const directoryAdapter = ({
     name: ADAPTER_NAME,
     read,
     silent,
-  }
-}
+  };
+};

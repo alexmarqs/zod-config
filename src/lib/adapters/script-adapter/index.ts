@@ -14,7 +14,7 @@ export const scriptAdapter = ({ path, prefixKey, silent }: ScriptAdapterProps): 
     name: ADAPTER_NAME,
     read: async () => {
       try {
-        const { default: data } = await import(path)
+        const { default: data } = await import(path);
 
         if (prefixKey) {
           return filterByPrefixKey(data, prefixKey);
@@ -23,9 +23,7 @@ export const scriptAdapter = ({ path, prefixKey, silent }: ScriptAdapterProps): 
         return data;
       } catch (error) {
         throw new Error(
-          `Failed to import() script at ${path}: ${
-            error instanceof Error ? error.message : error
-          }`,
+          `Failed to import() script at ${path}: ${error instanceof Error ? error.message : error}`,
         );
       }
     },
