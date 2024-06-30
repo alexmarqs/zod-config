@@ -22,17 +22,18 @@ async function resolveConfigFilesInDirectory({
   const baseNames = await readdir(path);
   const results: ConfigResolutionResult[] = [];
 
-  for (const baseName of baseNames) {
-    const dotIndex = baseName.lastIndexOf(".");
+  function splitBaseName(baseName: string): { fileName: string; extension: string } {
+    for (const extension of extensionToAdapterFactoryMap.keys()) {
+      if (!baseName.endsWith(extension)) continue;
 
-    if (dotIndex === -1) {
-      throw new Error(
-        `File ${baseName} does not have an extension. Please add an extension to the file.`,
-      );
+      const fileName = baseName.substring(0, baseName.length - extension.length);
+      return { fileName, extension };
     }
+    return { fileName: baseName, extension: "" };
+  }
 
-    const fileName = baseName.substring(0, dotIndex);
-    const extension = baseName.substring(dotIndex);
+  for (const baseName of baseNames) {
+    const { fileName, extension } = splitBaseName(baseName);
 
     // Skip files that are not allowed or do not have an adapter factory
     if (!allowedFilenames.includes(fileName)) continue;
