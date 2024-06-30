@@ -1,6 +1,6 @@
+import assert from "node:assert";
 import { readdir } from "node:fs/promises";
-
-import type { AdapterFactory } from "./adapter-specifiers";
+import { basename, extname } from "node:path";
 
 export type ConfigResolutionResult = {
   dir: string;
@@ -11,38 +11,29 @@ export type ConfigResolutionResult = {
 type ResolveConfigFilesInDirectoryProps = {
   path: string;
   allowedFilenames: string[];
-  extensionToAdapterFactoryMap: Map<string, AdapterFactory>;
+  allowedExtensions: string[];
 };
 
 async function resolveConfigFilesInDirectory({
   path,
   allowedFilenames,
-  extensionToAdapterFactoryMap,
+  allowedExtensions,
 }: ResolveConfigFilesInDirectoryProps): Promise<ConfigResolutionResult[]> {
-  const baseNames = await readdir(path);
+  const dirFiles = await readdir(path);
   const results: ConfigResolutionResult[] = [];
 
-  function splitBaseName(baseName: string): { fileName: string; extension: string } {
-    for (const extension of extensionToAdapterFactoryMap.keys()) {
-      if (!baseName.endsWith(extension)) continue;
+  for (const file of dirFiles) {
+    const fileExt = extname(file);
+    const fileName = basename(file, fileExt);
 
-      const fileName = baseName.substring(0, baseName.length - extension.length);
-      return { fileName, extension };
+    if (!allowedFilenames.includes(fileName) || !allowedExtensions.includes(fileExt)) {
+      continue;
     }
-    return { fileName: baseName, extension: "" };
-  }
-
-  for (const baseName of baseNames) {
-    const { fileName, extension } = splitBaseName(baseName);
-
-    // Skip files that are not allowed or do not have an adapter factory
-    if (!allowedFilenames.includes(fileName)) continue;
-    if (!extensionToAdapterFactoryMap.has(extension)) continue;
 
     results.push({
       dir: path,
       name: fileName,
-      ext: extension,
+      ext: fileExt,
     });
   }
 
@@ -52,19 +43,19 @@ async function resolveConfigFilesInDirectory({
 export type ResolveConfigFilesProps = {
   paths: string | string[];
   allowedFilenames: string[];
-  extensionToAdapterFactoryMap: Map<string, AdapterFactory>;
+  allowedExtensions: string[];
 };
 
 export async function resolveConfigFiles({
   paths,
   allowedFilenames,
-  extensionToAdapterFactoryMap,
+  allowedExtensions,
 }: ResolveConfigFilesProps): Promise<ConfigResolutionResult[]> {
   if (!Array.isArray(paths)) {
     return await resolveConfigFilesInDirectory({
       path: paths,
       allowedFilenames,
-      extensionToAdapterFactoryMap,
+      allowedExtensions,
     });
   }
 
@@ -73,9 +64,29 @@ export async function resolveConfigFiles({
       resolveConfigFilesInDirectory({
         path,
         allowedFilenames,
-        extensionToAdapterFactoryMap,
+        allowedExtensions,
       }),
     ),
   );
+
   return resultsPerDirectory.flat();
+}
+
+export function sortConfigResolutionResults(
+  configResolutionResults: ConfigResolutionResult[],
+  allowedFilenames: string[],
+  paths: string | string[],
+) {
+  configResolutionResults.sort((a, b) => {
+    const aNameIndex = allowedFilenames.indexOf(a.name);
+    const bNameIndex = allowedFilenames.indexOf(b.name);
+
+    if (aNameIndex !== bNameIndex) return aNameIndex - bNameIndex;
+    if (a.dir === b.dir) return 0;
+    assert(Array.isArray(paths));
+
+    const aDirIndex = paths.indexOf(a.dir);
+    const bDirIndex = paths.indexOf(b.dir);
+    return aDirIndex - bDirIndex;
+  });
 }

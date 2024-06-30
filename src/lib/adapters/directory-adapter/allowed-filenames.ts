@@ -1,14 +1,12 @@
-import type { ConfigResolutionVariables } from "./variables";
+import { resolveConfigResolutionVariables } from "./variables";
 
 /**
  * @see {https://github.com/node-config/node-config/wiki/Configuration-Files#file-load-order}
  */
-export function getAllowedFilenames({
-  deploymentName,
-  instanceName,
-  hostname,
-  shortHostname,
-}: ConfigResolutionVariables): string[] {
+export function getAllowedFilenames(): string[] {
+  const { instanceName, deploymentName, shortHostname, hostname } =
+    resolveConfigResolutionVariables();
+
   if (instanceName === null) {
     return [
       "default",
