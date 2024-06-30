@@ -10,7 +10,10 @@
     "strictNullChecks": true,                            /* When type checking, take into account 'null' and 'undefined'. */  
     "noEmit": true,                                      /* Disable emitting files from a compilation. */
     "outDir": "./dist",                                  /* Specify an output folder for all emitted files. */
-
+    "baseUrl": "./",                                     /* Sets a base directory from which to resolve bare specifier module names. */
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "src/**/*.spec.ts", "src/**/*.test.ts", "tests"]
