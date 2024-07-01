@@ -65,7 +65,9 @@
     "*": {
       "env-adapter": ["./dist/env-adapter.d.ts"],
       "json-adapter": ["./dist/json-adapter.d.ts"],
-      "dotenv-adapter": ["./dist/dotenv-adapter.d.ts"]
+      "dotenv-adapter": ["./dist/dotenv-adapter.d.ts"],
+      "script-adapter":  ["./dist/script-adapter.d.ts"],
+      "directory-adapter": ["./dist/directory-adapter.d.ts"]
     }
   },
   "publishConfig": {
