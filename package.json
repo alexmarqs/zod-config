@@ -11,9 +11,10 @@
     "build": "tsup",
     "prepublishOnly": "pnpm build",
     "type-check": "tsc --noEmit",
-    "format": "biome format ./src --write",
-    "lint": "biome lint ./src",
+    "format": "biome format ./src ./tests --write",
+    "lint": "biome lint ./src ./tests",
     "test": "vitest run --silent",
+    "test:debug": "vitest run",
     "test:watch": "vitest",
     "prebuild": "pnpm run type-check",
     "prerelease": "pnpm run build",
@@ -21,9 +22,7 @@
     "release:dry-run": "standard-version --skip.changelog --dry-run",
     "yalc:publish": "yalc publish"
   },
-  "files": [
-    "dist/**"
-  ],
+  "files": ["dist/**"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -48,19 +47,27 @@
       "import": "./dist/dotenv-adapter.mjs",
       "module": "./dist/dotenv-adapter.mjs",
       "require": "./dist/dotenv-adapter.js"
+    },
+    "./script-adapter": {
+      "types": "./dist/script-adapter.d.ts",
+      "import": "./dist/script-adapter.mjs",
+      "module": "./dist/script-adapter.mjs",
+      "require": "./dist/script-adapter.js"
+    },
+    "./directory-adapter": {
+      "types": "./dist/directory-adapter.d.ts",
+      "import": "./dist/directory-adapter.mjs",
+      "module": "./dist/directory-adapter.mjs",
+      "require": "./dist/directory-adapter.js"
     }
   },
   "typesVersions": {
     "*": {
-      "env-adapter": [
-        "./dist/env-adapter.d.ts"
-      ],
-      "json-adapter": [
-        "./dist/json-adapter.d.ts"
-      ],
-      "dotenv-adapter": [
-        "./dist/dotenv-adapter.d.ts"
-      ]
+      "env-adapter": ["./dist/env-adapter.d.ts"],
+      "json-adapter": ["./dist/json-adapter.d.ts"],
+      "dotenv-adapter": ["./dist/dotenv-adapter.d.ts"],
+      "script-adapter":  ["./dist/script-adapter.d.ts"],
+      "directory-adapter": ["./dist/directory-adapter.d.ts"]
     }
   },
   "publishConfig": {
@@ -74,16 +81,7 @@
     "url": "https://github.com/alexmarqs/zod-config/issues"
   },
   "homepage": "https://github.com/alexmarqs/zod-config#readme",
-  "keywords": [
-    "zod",
-    "config",
-    "env",
-    "json",
-    "dotenv",
-    "typescript",
-    "adapters",
-    "typesafe"
-  ],
+  "keywords": ["zod", "config", "env", "json", "dotenv", "typescript", "adapters", "typesafe"],
   "devDependencies": {
     "@biomejs/biome": "1.7.3",
     "@types/node": "20.10.7",
@@ -95,8 +93,8 @@
     "zod": "3.22.4"
   },
   "peerDependencies": {
-    "zod": "^3.x",
-    "dotenv": ">=15"
+    "dotenv": ">=15",
+    "zod": "^3.x"
   },
   "peerDependenciesMeta": {
     "dotenv": {

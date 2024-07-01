@@ -13,7 +13,8 @@
         "noExplicitAny": "off"
       },
       "performance": {
-        "noAccumulatingSpread": "off"
+        "noAccumulatingSpread": "off",
+        "noDelete": "off"
       },
       "complexity": {
         "noForEach": "off"
