@@ -11,8 +11,8 @@
     "build": "tsup",
     "prepublishOnly": "pnpm build",
     "type-check": "tsc --noEmit",
-    "format": "biome format ./src --write",
-    "lint": "biome lint ./src",
+    "format": "biome format ./src ./tests --write",
+    "lint": "biome lint ./src ./tests",
     "test": "vitest run --silent",
     "test:debug": "vitest run",
     "test:watch": "vitest",
@@ -91,8 +91,8 @@
     "zod": "3.22.4"
   },
   "peerDependencies": {
-    "zod": "^3.x",
-    "dotenv": ">=15"
+    "dotenv": ">=15",
+    "zod": "^3.x"
   },
   "peerDependenciesMeta": {
     "dotenv": {

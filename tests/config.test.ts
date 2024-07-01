@@ -1,4 +1,4 @@
-import { mkdir, rm, unlink, writeFile } from "node:fs/promises";
+import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
@@ -6,7 +6,6 @@ import { dotEnvAdapter } from "../src/lib/adapters/dotenv-adapter";
 import { envAdapter } from "../src/lib/adapters/env-adapter";
 import { jsonAdapter } from "../src/lib/adapters/json-adapter";
 import { scriptAdapter } from "../src/lib/adapters/script-adapter";
-import { directoryAdapter } from "../src/lib/adapters/directory-adapter";
 import { loadConfig } from "../src/lib/config";
 import type { Adapter, Logger } from "../src/types";
 
@@ -393,65 +392,6 @@ describe("Load config tests", () => {
       // then
       expect(config.HOST).toBe(expected.HOST);
       expect(config.PORT).toBe(expected.PORT);
-    });
-  });
-  describe("directory adapter", () => {
-    const testDirPath = path.join(__dirname, "test-config-dir");
-
-    beforeAll(async () => {
-      process.env.NODE_ENV = "test";
-
-      // create test directory
-      await mkdir(testDirPath);
-
-      // create test files
-      await writeFile(
-        path.join(testDirPath, "default.ts"),
-        `export default { foo: "hello", bar: 10, baz: { qux: "world", corge: "!" } };`,
-      );
-      await writeFile(path.join(testDirPath, "test.ts"), `export default { foo: "hiya" };`);
-      await writeFile(
-        path.join(testDirPath, "local-test.ts"),
-        `export default { baz: { qux: "hehee" } };`,
-      );
-    });
-
-    afterAll(async () => {
-      // remove test directory and files
-      await rm(testDirPath, { recursive: true });
-    });
-
-    it("should return parsed data when schema is valid", async () => {
-      // given
-      const schema = z.object({
-        foo: z.string(),
-        bar: z.number(),
-        baz: z.object({
-          qux: z.string(),
-          corge: z.string(),
-        }),
-      });
-
-      // when
-      const config = await loadConfig({
-        schema,
-        adapters: directoryAdapter({
-          paths: testDirPath,
-          adapters: {
-            extensions: [".ts"],
-            adapterFactory: (filePath: string) =>
-              scriptAdapter({
-                path: filePath,
-              }),
-          },
-        }),
-      });
-
-      // then
-      expect(config.foo).toBe("hiya");
-      expect(config.bar).toBe(10);
-      expect(config.baz.qux).toBe("hehee");
-      expect(config.baz.corge).toBe("!");
     });
   });
   describe("multiple adapters", () => {

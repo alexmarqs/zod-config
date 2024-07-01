@@ -1,20 +1,20 @@
 {
   "compilerOptions": {
-    "target": "ESNext",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
-    "module": "commonjs",                                /* Specify what module code is generated. */
-    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
-    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
-    "strict": true,                                      /* Enable all strict type-checking options. */
-    "strictFunctionTypes": true,                         /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
-    "skipLibCheck": true,                                /* Skip type checking all .d.ts files. */
-    "strictNullChecks": true,                            /* When type checking, take into account 'null' and 'undefined'. */  
-    "noEmit": true,                                      /* Disable emitting files from a compilation. */
-    "outDir": "./dist",                                  /* Specify an output folder for all emitted files. */
-    "baseUrl": "./",                                     /* Sets a base directory from which to resolve bare specifier module names. */
+    "target": "ESNext" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
+    "module": "commonjs" /* Specify what module code is generated. */,
+    "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */,
+    "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
+    "strict": true /* Enable all strict type-checking options. */,
+    "strictFunctionTypes": true /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */,
+    "skipLibCheck": true /* Skip type checking all .d.ts files. */,
+    "strictNullChecks": true /* When type checking, take into account 'null' and 'undefined'. */,
+    "noEmit": true /* Disable emitting files from a compilation. */,
+    "outDir": "./dist" /* Specify an output folder for all emitted files. */,
+    "baseUrl": "./" /* Sets a base directory from which to resolve bare specifier module names. */,
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "src/**/*.spec.ts", "src/**/*.test.ts", "tests"]
+  "include": ["src/**/*.ts", "tests"], // its fine to include tests here because we dont use tsc for final build + fix for vscode intellisense
+  "exclude": ["node_modules", "dist", "src/**/*.spec.ts", "src/**/*.test.ts"]
 }
