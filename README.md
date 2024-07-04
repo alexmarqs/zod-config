@@ -42,6 +42,8 @@ yarn add zod-config zod # yarn
   - [Env Adapter](#env-adapter)
   - [JSON Adapter](#json-adapter)
   - [Dotenv Adapter](#dotenv-adapter)
+  - [Script Adapter](#script-adapter)
+  - [Directory Adapter](#directory-adapter)
 - [Combine multiple adapters](#combine-multiple-adapters)
 - [Callbacks](#callbacks)
 - [Custom Logger](#custom-logger)
@@ -188,6 +190,96 @@ const customConfig = await loadConfig({
   }),
 });
 ```
+
+#### Script Adapter
+
+Loads configurations from TypeScript (`.ts`), JavaScript (`.js`), or JSON (.json) files. The `.ts` and `.js` files must export a default object with the configuration data.
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { scriptAdapter } from 'zod-config/script-adapter';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+// config.ts might contain: export default { port: '3000', host: 'localhost' }
+const filePath = path.join(__dirname, 'config.ts');
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: scriptAdapter({
+    path: filePath,
+  }),
+});
+```
+
+### Directory Adapter
+
+Loads configurations from a directory containing multiple configuration files (usually used in combination with the `scriptAdapter` and/or other file related adapter). Inspired by [node-config](https://github.com/node-config/node-config/wiki/Configuration-Files#file-load-order), the files in the config directory are loaded in the following order:
+
+```
+default.EXT
+default-{instance}.EXT
+{deployment}.EXT
+{deployment}-{instance}.EXT
+{short_hostname}.EXT
+{short_hostname}-{instance}.EXT
+{short_hostname}-{deployment}.EXT
+{short_hostname}-{deployment}-{instance}.EXT
+{hostname}.EXT
+{hostname}-{instance}.EXT
+{hostname}-{deployment}.EXT
+{hostname}-{deployment}-{instance}.EXT
+local.EXT
+local-{instance}.EXT
+local-{deployment}.EXT
+local-{deployment}-{instance}.EXT
+```
+
+Where `EXT` is the file extension (e.g., `ts`, `js`, `json`), `instance` is the `NODE_APP_INSTANCE` environment variable, `deployment` is the `NODE_CONFIG_ENV` or `NODE_ENV` environment variables, `hostname` is the `HOST`, `HOSTNAME` environment variables or `os.hostname()` and `short_hostname` is the first part of the hostname.
+
+This adapter can be useful when using version control to manage different configurations for different environments.
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { directoryAdapter } from 'zod-config/directory-adapter';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const directories = [path.join(__dirname, 'config-dir')];
+
+const config = await loadConfig({
+  schema,
+  adapters: directoryAdapter({
+    paths: directories,
+    adapters: [
+      {
+        // Restrict adapter to handle only ts files
+        extensions: [".ts"], 
+         // Use the scriptAdapter for handling .ts files
+        adapterFactory: (filePath: string) => 
+          scriptAdapter({
+            path: filePath,
+          }),
+      },
+      // {
+      //  Add here other adapters for other file types if needed
+      // }
+    ],
+  }),
+});
+```
+
+
+
+
 
 ### Combine multiple adapters
 
