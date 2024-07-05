@@ -22,9 +22,7 @@
     "release:dry-run": "standard-version --skip.changelog --dry-run",
     "yalc:publish": "yalc publish"
   },
-  "files": [
-    "dist/**"
-  ],
+  "files": ["dist/**"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -65,21 +63,11 @@
   },
   "typesVersions": {
     "*": {
-      "env-adapter": [
-        "./dist/env-adapter.d.ts"
-      ],
-      "json-adapter": [
-        "./dist/json-adapter.d.ts"
-      ],
-      "dotenv-adapter": [
-        "./dist/dotenv-adapter.d.ts"
-      ],
-      "script-adapter": [
-        "./dist/script-adapter.d.ts"
-      ],
-      "directory-adapter": [
-        "./dist/directory-adapter.d.ts"
-      ]
+      "env-adapter": ["./dist/env-adapter.d.ts"],
+      "json-adapter": ["./dist/json-adapter.d.ts"],
+      "dotenv-adapter": ["./dist/dotenv-adapter.d.ts"],
+      "script-adapter": ["./dist/script-adapter.d.ts"],
+      "directory-adapter": ["./dist/directory-adapter.d.ts"]
     }
   },
   "publishConfig": {
@@ -93,16 +81,7 @@
     "url": "https://github.com/alexmarqs/zod-config/issues"
   },
   "homepage": "https://github.com/alexmarqs/zod-config#readme",
-  "keywords": [
-    "zod",
-    "config",
-    "env",
-    "json",
-    "dotenv",
-    "typescript",
-    "adapters",
-    "typesafe"
-  ],
+  "keywords": ["zod", "config", "env", "json", "dotenv", "typescript", "adapters", "typesafe"],
   "devDependencies": {
     "@biomejs/biome": "1.7.3",
     "@types/node": "20.10.7",
