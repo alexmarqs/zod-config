@@ -193,7 +193,7 @@ const customConfig = await loadConfig({
 
 #### Script Adapter
 
-Loads configurations from TypeScript (`.ts`), JavaScript (`.js`), or JSON (.json) files. The `.ts` and `.js` files must export a default object with the configuration data.
+Loads configuration from TypeScript (`.ts`), JavaScript (`.js`), or JSON (.json) files. The `.ts` and `.js` files must export a default object with the configuration data.
 
 ```ts
 import { z } from 'zod';
@@ -218,7 +218,7 @@ const config = await loadConfig({
 
 ### Directory Adapter
 
-Loads configurations from a directory containing multiple configuration files (usually used in combination with the `scriptAdapter` and/or other file related adapter). Inspired by [node-config](https://github.com/node-config/node-config/wiki/Configuration-Files#file-load-order), the files in the config directory are loaded in the following order:
+Loads configuration from a directory containing multiple configuration files (usually used in combination with the `scriptAdapter` and/or other file related adapter). Inspired by [node-config](https://github.com/node-config/node-config/wiki/Configuration-Files#file-load-order), the files in the config directory are loaded in the following order:
 
 ```
 default.EXT
