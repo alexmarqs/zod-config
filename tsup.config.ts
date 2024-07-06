@@ -13,7 +13,7 @@ export default defineConfig([
     format: ["cjs", "esm"],
     target: "node14",
     splitting: false,
-    sourcemap: true,
+    sourcemap: false,
     clean: true,
     minify: true,
     dts: true,
