@@ -41,6 +41,7 @@ yarn add zod-config zod # yarn
 - [Built In Adapters](#built-in-adapters)
   - [Env Adapter](#env-adapter)
   - [JSON Adapter](#json-adapter)
+  - [YAML Adapter](#yaml-adapter)
   - [Dotenv Adapter](#dotenv-adapter)
   - [Script Adapter](#script-adapter)
   - [Directory Adapter](#directory-adapter)
@@ -150,6 +151,41 @@ const config = await loadConfig({
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: jsonAdapter({ 
+    path: filePath,
+    prefixKey: 'MY_APP_',
+  }),
+});
+```
+
+#### YAML Adapter
+
+Loads the configuration from a `yaml` file. In order to use this adapter, you need to install `yaml` (peer dependency), if you don't have it already.
+
+```bash
+npm install yaml
+```
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { yamlAdapter } from 'zod-config/yaml-adapter';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const filePath = path.join(__dirname, 'config.yaml');
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: yamlAdapter({ path: filePath }),
+});
+
+// using filter prefix key
+const customConfig = await loadConfig({
+  schema: schemaConfig,
+  adapters: yamlAdapter({ 
     path: filePath,
     prefixKey: 'MY_APP_',
   }),

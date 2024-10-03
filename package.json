@@ -61,6 +61,12 @@
       "import": "./dist/directory-adapter.mjs",
       "module": "./dist/directory-adapter.mjs",
       "require": "./dist/directory-adapter.js"
+    },
+    "./yaml-adapter": {
+      "types": "./dist/yaml-adapter.d.ts",
+      "import": "./dist/yaml-adapter.mjs",
+      "module": "./dist/yaml-adapter.mjs",
+      "require": "./dist/yaml-adapter.js"
     }
   },
   "typesVersions": {
@@ -79,6 +85,9 @@
       ],
       "directory-adapter": [
         "./dist/directory-adapter.d.ts"
+      ],
+      "yaml-adapter": [
+        "./dist/yaml-adapter.d.ts"
       ]
     }
   },
@@ -98,6 +107,7 @@
     "config",
     "env",
     "json",
+    "yaml",
     "dotenv",
     "typescript",
     "adapters",
@@ -115,14 +125,19 @@
   },
   "peerDependencies": {
     "dotenv": ">=15",
+    "yaml": "^2.x",
     "zod": "^3.x"
   },
   "peerDependenciesMeta": {
     "dotenv": {
       "optional": true
+    },
+    "yaml": {
+      "optional": true
     }
   },
   "engines": {
     "node": ">=14.0.0"
-  }
+  },
+  "packageManager": "pnpm@8.15.9"
 }
