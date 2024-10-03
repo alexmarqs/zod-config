@@ -1,6 +1,6 @@
 {
   "name": "zod-config",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Load configuration variables from multiple sources with flexible adapters, ensuring type safety with Zod.",
   "author": "Alexandre Marques",
   "license": "MIT",
