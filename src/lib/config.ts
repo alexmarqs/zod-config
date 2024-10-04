@@ -24,7 +24,7 @@ export const loadConfig = async <T extends AnyZodObject>(
   );
 
   // Validate data against schema
-  const result = schema.safeParse(data);
+  const result = await schema.safeParseAsync(data);
 
   if (!result.success) {
     // If onError callback is provided, we will call it with the error

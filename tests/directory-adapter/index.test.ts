@@ -95,13 +95,15 @@ describe.each<DirectoryTestContext>([
         schema,
         adapters: directoryAdapter({
           paths: directories,
-          adapters: {
-            extensions: [".ts"],
-            adapterFactory: (filePath: string) =>
-              scriptAdapter({
-                path: filePath,
-              }),
-          },
+          adapters: [
+            {
+              extensions: [".ts"],
+              adapterFactory: (filePath: string) =>
+                scriptAdapter({
+                  path: filePath,
+                }),
+            },
+          ],
         }),
       });
 
