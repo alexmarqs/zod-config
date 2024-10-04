@@ -350,7 +350,7 @@ describe("Load config tests", () => {
   describe.each([
     {
       fileName: "test.ts",
-      content: `export default { HOST: "localhost", PORT: "3000" };`,
+      content: `export default { HOST: "localhost", PORT: "3000" } satisfies Record<string, string>;`,
       expected: { HOST: "localhost", PORT: "3000" },
     },
     {
