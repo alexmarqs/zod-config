@@ -20,7 +20,7 @@
 
 - 👮‍♂️ **Type safety**. Zod Config uses [Zod](https://zod.dev/);
 - 🤌 **Tiny**. Zod Config is a tiny library with no dependencies, tree-shaking friendly;
-- ✨ **Flexible**. Combine multiple adapters to load the configuration from different sources. We deeply merge the configuration from different sources, following the order of the adapters provided; Create your own adapters easily; Use the callback functions to handle errors and success due to the async nature of the adapters;
+- ✨ **Flexible**. [Combine multiple adapters](#combine-multiple-adapters) to load the configuration from different sources. We deeply merge the configuration from different sources, following the order of the adapters provided; Create your own adapters easily; Use the callback functions to handle errors and success due to the async nature of the adapters;
 - 🪴 **Easy to use**. Zod Config is designed to be easy to use, with a simple API;
 
 
