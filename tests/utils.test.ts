@@ -80,10 +80,16 @@ describe("deepMerge", () => {
     const result = deepMerge(obj1, obj2);
     expect(result).toEqual({ a: [3, 4] });
   });
-  it("should skip undefined or null values", () => {
+  it("should not override with undefined values", () => {
     const obj1 = { a: 1, b: 2 };
-    const obj2 = { a: undefined, b: null, c: [] };
+    const obj2 = { a: undefined, c: [] };
     const result = deepMerge(obj1, obj2);
     expect(result).toEqual({ a: 1, b: 2, c: [] });
+  });
+  it("should override with null values", () => {
+    const obj1 = { a: 1, b: 2 }; 
+    const obj2 = { a: null, c: [] };
+    const result = deepMerge(obj1, obj2);
+    expect(result).toEqual({ a: null, b: 2, c: [] });
   });
 });

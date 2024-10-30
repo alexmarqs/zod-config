@@ -26,25 +26,26 @@ export function deepMerge(target: any, ...sources: any[]) {
     return target;
   }
 
-  if (isMergebleObject(target) && isMergebleObject(source)) {
+  if (isMergeableObject(target) && isMergeableObject(source)) {
     Object.keys(source).forEach((key) => {
-      if (isMergebleObject(source[key])) {
-        if (!target[key]) {
-          target[key] = {};
-        }
+      if (source[key] === undefined) return;
 
-        deepMerge(target[key], source[key]);
-      } else {
-        if (source[key] !== undefined && source[key] !== null) {
-          target[key] = source[key];
-        }
+      if (!isMergeableObject(source[key])) {
+        target[key] = source[key];
+        return;
       }
+
+      if (!target[key]) {
+        target[key] = {};
+      }
+
+      deepMerge(target[key], source[key]);
     });
   }
 
   return deepMerge(target, ...sources);
 }
 
-export function isMergebleObject(item: any) {
+export function isMergeableObject(item: any) {
   return item && typeof item === "object" && !Array.isArray(item);
 }
