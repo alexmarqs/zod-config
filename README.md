@@ -315,7 +315,9 @@ const config = await loadConfig({
 
 ### Combine multiple adapters
 
-You can combine multiple adapters to load the configuration from different sources. We **deeply merge the configuration from different sources**, following the order of the adapters provided.
+You can combine multiple adapters to load the configuration from different sources. We **deeply merge the configuration from different sources**, following the order of the adapters provided. 
+
+> ⚠️ **Warning**: When combining multiple adapters, `null` values from subsequent adapters will override existing values. This behavior can be used intentionally to reset configuration values.
 
 ```ts
 import { z } from 'zod';
