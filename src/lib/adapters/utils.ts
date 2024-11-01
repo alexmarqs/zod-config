@@ -14,7 +14,10 @@ export const filterByPrefixKey = (
     }, {});
 };
 
-export function deepMerge(target: unknown, ...sources: unknown[]) {
+export function deepMerge(
+  target: Partial<Record<string, unknown>>,
+  ...sources: unknown[]
+): Partial<Record<string, unknown>> {
   if (!sources.length) {
     return target;
   }
@@ -34,11 +37,13 @@ export function deepMerge(target: unknown, ...sources: unknown[]) {
         return;
       }
 
-      if (!target[key]) {
-        target[key] = {};
+      let subTarget = target[key]
+      if (!isMergeableObject(subTarget)) {
+        target[key] = subTarget = {}
+        return
       }
 
-      deepMerge(target[key], source[key]);
+      deepMerge(subTarget, source[key]);
     });
   }
 
