@@ -1,21 +1,23 @@
 export const filterByPrefixKey = (
-  data: { [key: string]: any } | undefined | null,
+  data: unknown,
   prefixKey: string,
 ) => {
-  if (!data) {
-    return {};
-  }
+  if (data == null) return {}
+  if (!isMergeableObject(data)) throw new TypeError(`Cannot filter ${data} by prefix key as it is not a record-like object`)
 
   return Object.keys(data)
     .filter((key) => key.startsWith(prefixKey))
-    .reduce<{ [key: string]: any }>((acc, key) => {
+    .reduce<Partial<Record<string, unknown>>>((acc, key) => {
       acc[key] = data[key];
 
       return acc;
     }, {});
 };
 
-export function deepMerge(target: any, ...sources: any[]) {
+export function deepMerge(
+  target: Partial<Record<string, unknown>>,
+  ...sources: unknown[]
+): Partial<Record<string, unknown>> {
   if (!sources.length) {
     return target;
   }
@@ -35,17 +37,25 @@ export function deepMerge(target: any, ...sources: any[]) {
         return;
       }
 
-      if (!target[key]) {
-        target[key] = {};
+      const subTarget = target[key]
+      if (!isMergeableObject(subTarget)) {
+        target[key] = deepMerge({}, source[key])
+        return
       }
 
-      deepMerge(target[key], source[key]);
+      deepMerge(subTarget, source[key]);
     });
   }
 
   return deepMerge(target, ...sources);
 }
 
-export function isMergeableObject(item: any) {
-  return item && typeof item === "object" && !Array.isArray(item);
+export function isMergeableObject(item: unknown): item is Partial<Record<string, unknown>> {
+  if (!item) return false
+  if (typeof item !== "object") return false
+  // ES6 class instances, Maps, Sets, Arrays, etc. are not considered records
+  if (Object.getPrototypeOf(item) === Object.prototype) return true
+  // Some library/Node.js functions return records with null prototype
+  if (Object.getPrototypeOf(item) === null) return true
+  return false
 }
