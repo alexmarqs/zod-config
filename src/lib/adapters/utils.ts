@@ -1,10 +1,9 @@
 export const filterByPrefixKey = (
-  data: Partial<Record<string, unknown>> | undefined | null,
+  data: unknown,
   prefixKey: string,
 ) => {
-  if (!data) {
-    return {};
-  }
+  if (data == null) return {}
+  if (!isMergeableObject(data)) throw new TypeError(`Cannot filter ${data} by prefix key as it is not a record-like object`)
 
   return Object.keys(data)
     .filter((key) => key.startsWith(prefixKey))
