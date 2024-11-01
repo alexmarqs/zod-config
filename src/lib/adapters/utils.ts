@@ -37,9 +37,9 @@ export function deepMerge(
         return;
       }
 
-      let subTarget = target[key]
+      const subTarget = target[key]
       if (!isMergeableObject(subTarget)) {
-        target[key] = subTarget = {}
+        target[key] = deepMerge({}, source[key])
         return
       }
 
