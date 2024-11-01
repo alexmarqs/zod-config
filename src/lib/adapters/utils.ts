@@ -1,5 +1,5 @@
 export const filterByPrefixKey = (
-  data: { [key: string]: any } | undefined | null,
+  data: Partial<Record<string, unknown>> | undefined | null,
   prefixKey: string,
 ) => {
   if (!data) {
@@ -8,14 +8,14 @@ export const filterByPrefixKey = (
 
   return Object.keys(data)
     .filter((key) => key.startsWith(prefixKey))
-    .reduce<{ [key: string]: any }>((acc, key) => {
+    .reduce<Partial<Record<string, unknown>>>((acc, key) => {
       acc[key] = data[key];
 
       return acc;
     }, {});
 };
 
-export function deepMerge(target: any, ...sources: any[]) {
+export function deepMerge(target: unknown, ...sources: unknown[]) {
   if (!sources.length) {
     return target;
   }
@@ -46,7 +46,7 @@ export function deepMerge(target: any, ...sources: any[]) {
   return deepMerge(target, ...sources);
 }
 
-export function isMergeableObject(item: unknown): item is Record<string, unknown> {
+export function isMergeableObject(item: unknown): item is Partial<Record<string, unknown>> {
   if (!item) return false
   if (typeof item !== "object") return false
   // ES6 class instances, Maps, Sets, Arrays, etc. are not considered records
