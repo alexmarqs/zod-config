@@ -1,4 +1,4 @@
-import { deepMerge, filterByPrefixKey } from "../src/lib/adapters/utils";
+import { deepMerge, filterByPrefixKey, isMergeableObject } from "../src/lib/adapters/utils";
 import { describe, it, expect } from "vitest";
 
 describe("filterByPrefixKey", () => {
@@ -91,5 +91,28 @@ describe("deepMerge", () => {
     const obj2 = { a: null, c: [] };
     const result = deepMerge(obj1, obj2);
     expect(result).toEqual({ a: null, b: 2, c: [] });
+  });
+});
+
+describe("isMergeableObject", () => {
+  it("should return true for plain objects", () => {
+    expect(isMergeableObject({})).toBe(true);
+    expect(isMergeableObject({ a: 1 })).toBe(true);
+  });
+
+  it("should return false for non-mergeable values", () => {
+    // null and undefined
+    expect(isMergeableObject(null)).toBe(false);
+    expect(isMergeableObject(undefined)).toBe(false);
+
+    // primitives
+    expect(isMergeableObject(10)).toBe(false);
+    expect(isMergeableObject("string")).toBe(false);
+    expect(isMergeableObject(true)).toBe(false);
+
+    // built-in objects and collections
+    expect(isMergeableObject([])).toBe(false);
+    expect(isMergeableObject(new Map())).toBe(false);
+    expect(isMergeableObject(new Set())).toBe(false);
   });
 });
