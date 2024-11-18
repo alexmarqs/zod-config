@@ -117,19 +117,30 @@
     "@biomejs/biome": "1.7.3",
     "@types/node": "20.10.7",
     "dotenv": "16.4.1",
+    "jiti": "^2.1.2",
     "standard-version": "9.5.0",
-    "tsup": "6.7.0",
+    "tsup": "8.3.0",
+    "tsx": "^4.19.1",
     "typescript": "5.1.3",
-    "vitest": "1.1.3",
+    "vitest": "2.1.2",
+    "yaml": "^2.x",
     "zod": "3.22.4"
   },
   "peerDependencies": {
     "dotenv": ">=15",
+    "jiti": "^2.x",
+    "tsx": "^4.x",
     "yaml": "^2.x",
     "zod": "^3.x"
   },
   "peerDependenciesMeta": {
     "dotenv": {
+      "optional": true
+    },
+    "jiti": {
+      "optional": true
+    },
+    "tsx": {
       "optional": true
     },
     "yaml": {
@@ -139,5 +150,5 @@
   "engines": {
     "node": ">=14.0.0"
   },
-  "packageManager": "pnpm@8.15.9"
+  "packageManager": "pnpm@8.15.9+sha512.499434c9d8fdd1a2794ebf4552b3b25c0a633abcee5bb15e7b5de90f32f47b513aca98cd5cfd001c31f0db454bc3804edccd578501e4ca293a6816166bbd9f81"
 }
