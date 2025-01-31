@@ -42,6 +42,7 @@ yarn add zod-config zod # yarn
   - [Env Adapter](#env-adapter)
   - [JSON Adapter](#json-adapter)
   - [YAML Adapter](#yaml-adapter)
+  - [TOML Adapter](#toml-adapter)
   - [Dotenv Adapter](#dotenv-adapter)
   - [Script Adapter](#script-adapter)
   - [Directory Adapter](#directory-adapter)
@@ -186,6 +187,41 @@ const config = await loadConfig({
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: yamlAdapter({ 
+    path: filePath,
+    prefixKey: 'MY_APP_',
+  }),
+});
+```
+
+#### TOML Adapter
+
+Loads the configuration from a `toml` file. In order to use this adapter, you need to install `smol-toml` (peer dependency), if you don't have it already.
+
+```bash
+npm install smol-toml
+```
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { tomlAdapter } from 'zod-config/toml-adapter';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const filePath = path.join(__dirname, 'config.toml');
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: tomlAdapter({ path: filePath }),
+});
+
+// using filter prefix key
+const customConfig = await loadConfig({
+  schema: schemaConfig,
+  adapters: tomlAdapter({ 
     path: filePath,
     prefixKey: 'MY_APP_',
   }),
@@ -404,7 +440,6 @@ const config = await loadConfig({
   adapters: envAdapter({ silent: true }),
 });
 ```
-
 
 
 ## Contributing notes

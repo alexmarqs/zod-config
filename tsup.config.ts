@@ -10,6 +10,7 @@ export default defineConfig([
       "script-adapter": "src/lib/adapters/script-adapter/index.ts",
       "directory-adapter": "src/lib/adapters/directory-adapter/index.ts",
       "yaml-adapter": "src/lib/adapters/yaml-adapter/index.ts",
+      "toml-adapter": "src/lib/adapters/toml-adapter/index.ts",
     },
     format: ["cjs", "esm"],
     target: "node14",
