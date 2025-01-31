@@ -67,6 +67,12 @@
       "import": "./dist/yaml-adapter.mjs",
       "module": "./dist/yaml-adapter.mjs",
       "require": "./dist/yaml-adapter.js"
+    },
+    "./toml-adapter": {
+      "types": "./dist/toml-adapter.d.ts",
+      "import": "./dist/toml-adapter.mjs",
+      "module": "./dist/toml-adapter.mjs",
+      "require": "./dist/toml-adapter.js"
     }
   },
   "typesVersions": {
@@ -88,6 +94,9 @@
       ],
       "yaml-adapter": [
         "./dist/yaml-adapter.d.ts"
+      ],
+      "toml-adapter": [
+        "./dist/toml-adapter.d.ts"
       ]
     }
   },
@@ -108,6 +117,7 @@
     "env",
     "json",
     "yaml",
+    "toml",
     "dotenv",
     "typescript",
     "adapters",
@@ -117,10 +127,12 @@
     "@biomejs/biome": "1.7.3",
     "@types/node": "20.10.7",
     "dotenv": "16.4.1",
+    "smol-toml": "1.3.1",
     "standard-version": "9.5.0",
     "tsup": "6.7.0",
     "typescript": "5.1.3",
     "vitest": "1.1.3",
+    "yaml": "2.7.0",
     "zod": "3.22.4"
   },
   "peerDependencies": {
@@ -133,6 +145,9 @@
       "optional": true
     },
     "yaml": {
+      "optional": true
+    },
+    "smol-toml": {
       "optional": true
     }
   },
