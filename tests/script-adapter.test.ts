@@ -78,10 +78,7 @@ describe("combining multiple script adapters", () => {
   });
 
   afterAll(async () => {
-    await Promise.all([
-      unlink(testFilePath1),
-      unlink(testFilePath2),
-    ]);
+    await Promise.all([unlink(testFilePath1), unlink(testFilePath2)]);
   });
 
   it("should successfully parse, merge and return type-safe data", async () => {
@@ -91,7 +88,7 @@ describe("combining multiple script adapters", () => {
       PORT: z.string().regex(/^\d+$/),
       TEST_RECORD: z.object({
         key: z.string(),
-        value: z.string()
+        value: z.string(),
       }),
       TEST_MAP: z.map(z.string(), z.string()).optional(),
     });
@@ -99,19 +96,16 @@ describe("combining multiple script adapters", () => {
     // when
     const config = await loadConfig({
       schema,
-      adapters: [
-        scriptAdapter({ path: testFilePath1 }),
-        scriptAdapter({ path: testFilePath2 }),
-      ],
+      adapters: [scriptAdapter({ path: testFilePath1 }), scriptAdapter({ path: testFilePath2 })],
     });
 
     // then
     expect(config.HOST).toBe("app name2"); // second adapter overrides the first one
     expect(config.PORT).toBe("1234"); // second adapter overrides the first one
     expect(config.TEST_MAP).toEqual(new Map([["key", "value2"]])); // MAP is not mergeable so only the last one is loaded
-    expect(config.TEST_RECORD).toEqual({ 
-      key: "key2",    // from second adapter
-      value: "value1" // preserved from first adapter
+    expect(config.TEST_RECORD).toEqual({
+      key: "key2", // from second adapter
+      value: "value1", // preserved from first adapter
     }); // records are merged between adapters
   });
 });
