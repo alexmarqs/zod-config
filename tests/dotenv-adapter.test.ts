@@ -36,6 +36,26 @@ describe("dotenv adapter", () => {
     expect(config.HOST).toBe("localhost");
     expect(config.PORT).toBe("3000");
   });
+  it("should return parsed data when schema is valid with regex key", async () => {
+    // given
+    const schema = z.object({
+      HOST: z.string(),
+    });
+
+    // when
+    const config = await loadConfig({
+      schema,
+      adapters: dotEnvAdapter({
+        path: testFilePath,
+        regex: /^HOST$/,
+      }),
+    });
+
+    // then
+    expect(config).toEqual({
+      HOST: "localhost",
+    });
+  });
   it("should throw zod error when schema is invalid", async () => {
     // given
     const schema = z.object({

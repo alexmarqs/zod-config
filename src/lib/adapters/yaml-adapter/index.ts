@@ -1,17 +1,15 @@
-import type { Adapter } from "../../../types";
-import { filterByPrefixKey } from "../utils";
+import type { Adapter, BaseAdapterProps } from "../../../types";
+import { filteredData } from "../utils";
 import { readFile } from "node:fs/promises";
 import YAML from "yaml";
 
-export type YamlAdapterProps = {
+export type YamlAdapterProps = BaseAdapterProps & {
   path: string;
-  prefixKey?: string;
-  silent?: boolean;
 };
 
 const ADAPTER_NAME = "yaml adapter";
 
-export const yamlAdapter = ({ path, prefixKey, silent }: YamlAdapterProps): Adapter => {
+export const yamlAdapter = ({ path, prefixKey, regex, silent }: YamlAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
@@ -20,11 +18,7 @@ export const yamlAdapter = ({ path, prefixKey, silent }: YamlAdapterProps): Adap
 
         const parsedData = YAML.parse(data) || {};
 
-        if (prefixKey) {
-          return filterByPrefixKey(parsedData, prefixKey);
-        }
-
-        return parsedData;
+        return filteredData(parsedData, { prefixKey, regex });
       } catch (error) {
         throw new Error(
           `Failed to parse / read YAML file at ${path}: ${

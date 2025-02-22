@@ -1,26 +1,20 @@
-import type { Adapter } from "../../../types";
-import { filterByPrefixKey } from "../utils";
+import type { Adapter, BaseAdapterProps } from "../../../types";
+import { filteredData } from "../utils";
 
-export type ScriptAdapterProps = {
+export type ScriptAdapterProps = BaseAdapterProps & {
   path: string;
-  prefixKey?: string;
-  silent?: boolean;
 };
 
 const ADAPTER_NAME = "script adapter";
 
-export const scriptAdapter = ({ path, prefixKey, silent }: ScriptAdapterProps): Adapter => {
+export const scriptAdapter = ({ path, prefixKey, regex, silent }: ScriptAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
       try {
         const { default: data } = await import(path);
 
-        if (prefixKey) {
-          return filterByPrefixKey(data, prefixKey);
-        }
-
-        return data;
+        return filteredData(data, { prefixKey, regex });
       } catch (error) {
         throw new Error(
           `Failed to import() script at ${path}: ${error instanceof Error ? error.message : error}`,

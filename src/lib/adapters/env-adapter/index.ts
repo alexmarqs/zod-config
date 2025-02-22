@@ -1,25 +1,24 @@
-import type { Adapter } from "../../../types";
-import { filterByPrefixKey } from "../utils";
+import type { Adapter, BaseAdapterProps } from "../../../types";
+import { filteredData } from "../utils";
 
-export type EnvAdapterProps = {
+export type EnvAdapterProps = BaseAdapterProps & {
   customEnv?: Record<string, any>;
-  prefixKey?: string;
-  silent?: boolean;
 };
 
 const ADAPTER_NAME = "env adapter";
 
-export const envAdapter = ({ customEnv, prefixKey, silent }: EnvAdapterProps = {}): Adapter => {
+export const envAdapter = ({
+  customEnv,
+  prefixKey,
+  regex,
+  silent,
+}: EnvAdapterProps = {}): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
       const data = customEnv || process.env || {};
 
-      if (prefixKey) {
-        return filterByPrefixKey(data, prefixKey);
-      }
-
-      return data;
+      return filteredData(data, { prefixKey, regex });
     },
     silent,
   };

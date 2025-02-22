@@ -1,16 +1,14 @@
-import type { Adapter } from "../../../types";
-import { filterByPrefixKey } from "../utils";
+import type { Adapter, BaseAdapterProps } from "../../../types";
+import { filteredData } from "../utils";
 import { readFile } from "node:fs/promises";
 import { parse as tomlParse } from "smol-toml";
 
-export type TomlAdapterProps = {
+export type TomlAdapterProps = BaseAdapterProps & {
   path: string;
-  prefixKey?: string;
-  silent?: boolean;
 };
 const ADAPTER_NAME = "toml adapter";
 
-export const tomlAdapter = ({ path, prefixKey, silent }: TomlAdapterProps): Adapter => {
+export const tomlAdapter = ({ path, prefixKey, regex, silent }: TomlAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
@@ -19,11 +17,7 @@ export const tomlAdapter = ({ path, prefixKey, silent }: TomlAdapterProps): Adap
 
         const parsedData = tomlParse(data) || {};
 
-        if (prefixKey) {
-          return filterByPrefixKey(parsedData, prefixKey);
-        }
-
-        return parsedData;
+        return filteredData(parsedData, { prefixKey, regex });
       } catch (error) {
         throw new Error(
           `Failed to parse / read TOML file at ${path}: ${

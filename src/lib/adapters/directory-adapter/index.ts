@@ -1,8 +1,8 @@
 import assert from "node:assert";
 import path from "node:path";
 
-import { deepMerge, filterByPrefixKey } from "../utils";
-import type { Adapter } from "../../../types";
+import { deepMerge, filteredData } from "../utils";
+import type { Adapter, BaseAdapterProps } from "../../../types";
 import { getExtensionToAdapterFactoryMap, type AdapterSpecifier } from "./adapter-specifiers";
 import { getAllowedFilenames } from "./allowed-filenames";
 import {
@@ -11,11 +11,9 @@ import {
   sortConfigResolutionResults,
 } from "./resolution-and-load-order";
 
-export type DirectoryAdapterProps = {
+export type DirectoryAdapterProps = BaseAdapterProps & {
   paths: string | string[];
   adapters: AdapterSpecifier[] | AdapterSpecifier;
-  prefixKey?: string;
-  silent?: boolean;
 };
 
 type ConfigResolutionResultWithAdapter = ConfigResolutionResult & { adapter: Adapter };
@@ -27,6 +25,7 @@ export const directoryAdapter = ({
   adapters: adaptersSpecifiers,
   prefixKey,
   silent,
+  regex,
 }: DirectoryAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
@@ -73,11 +72,7 @@ export const directoryAdapter = ({
         const adapterData = await Promise.all(adapterDataPromises);
         const mergedData = deepMerge({}, ...adapterData);
 
-        if (prefixKey) {
-          return filterByPrefixKey(mergedData, prefixKey);
-        }
-
-        return mergedData;
+        return filteredData(mergedData, { prefixKey, regex });
       } catch (error) {
         throw new Error(
           `Failed to read config from some of the following directories:\n - ${

@@ -1,5 +1,81 @@
-import { deepMerge, filterByPrefixKey, isMergeableObject } from "../src/lib/adapters/utils";
+import {
+  deepMerge,
+  filterByPrefixKey,
+  filterByRegex,
+  isMergeableObject,
+} from "../src/lib/adapters/utils";
 import { describe, it, expect } from "vitest";
+
+describe("filterByRegex", () => {
+  it("should return an object with keys that match the regex #1", () => {
+    // given
+    const data = {
+      APP_NAME: "my-app",
+      TEST_NAME: "my-test",
+    };
+
+    // starts with TEST_
+    const regex = /^TEST_/;
+
+    // when
+    const filteredData = filterByRegex(data, regex);
+
+    // then
+    expect(filteredData).toEqual({
+      TEST_NAME: "my-test",
+    });
+  });
+  it("should return an object with keys that match the regex #2", () => {
+    // given
+    const data = {
+      REACT_APP_NAME: "my-app",
+      REACT_APP_TEST_NAME: "my-test",
+      APP_NAME: "my-app",
+      TEST_APP: "my-test",
+    };
+
+    // contains _APP_ in the middle of the key
+    const regex = /_APP_/;
+
+    // when
+    const filteredData = filterByRegex(data, regex);
+
+    // then
+    expect(filteredData).toEqual({
+      REACT_APP_NAME: "my-app",
+      REACT_APP_TEST_NAME: "my-test",
+    });
+  });
+
+  it("should return an empty object if no keys match the regex", () => {
+    // given
+    const data = {
+      APP_NAME: "my-app",
+      TEST_NAME: "my-test",
+    };
+
+    // no keys match the regex
+    const regex = /NOT_MATCHING/;
+
+    // when
+    const filteredData = filterByRegex(data, regex);
+
+    // then
+    expect(filteredData).toEqual({});
+  });
+
+  it("should return an empty object if the input object is empty", () => {
+    // given
+    const data = {};
+    const regex = /NOT_MATCHING/;
+
+    // when
+    const filteredData = filterByRegex(data, regex);
+
+    // then
+    expect(filteredData).toEqual({});
+  });
+});
 
 describe("filterByPrefixKey", () => {
   it("should return an object with keys that start with the prefix", () => {
@@ -87,7 +163,7 @@ describe("deepMerge", () => {
     expect(result).toEqual({ a: 1, b: 2, c: [] });
   });
   it("should override with null values", () => {
-    const obj1 = { a: 1, b: 2 }; 
+    const obj1 = { a: 1, b: 2 };
     const obj2 = { a: null, c: [] };
     const result = deepMerge(obj1, obj2);
     expect(result).toEqual({ a: null, b: 2, c: [] });

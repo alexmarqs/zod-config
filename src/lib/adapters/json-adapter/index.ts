@@ -1,16 +1,14 @@
-import type { Adapter } from "../../../types";
-import { filterByPrefixKey } from "../utils";
+import type { Adapter, BaseAdapterProps } from "../../../types";
+import { filteredData } from "../utils";
 import { readFile } from "node:fs/promises";
 
-export type JsonAdapterProps = {
+export type JsonAdapterProps = BaseAdapterProps & {
   path: string;
-  prefixKey?: string;
-  silent?: boolean;
 };
 
 const ADAPTER_NAME = "json adapter";
 
-export const jsonAdapter = ({ path, prefixKey, silent }: JsonAdapterProps): Adapter => {
+export const jsonAdapter = ({ path, prefixKey, regex, silent }: JsonAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
@@ -19,11 +17,7 @@ export const jsonAdapter = ({ path, prefixKey, silent }: JsonAdapterProps): Adap
 
         const parsedData = JSON.parse(data) || {};
 
-        if (prefixKey) {
-          return filterByPrefixKey(parsedData, prefixKey);
-        }
-
-        return parsedData;
+        return filteredData(parsedData, { prefixKey, regex });
       } catch (error) {
         throw new Error(
           `Failed to parse / read JSON file at ${path}: ${

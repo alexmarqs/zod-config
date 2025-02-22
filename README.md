@@ -96,7 +96,7 @@ console.log(config.host)
 
 #### Env Adapter
 
-Loads the configuration from `process.env` or a custom object, allowing filtering the prefix keys to load.
+Loads the configuration from `process.env` or a custom object, allowing filtering the keys using a regex.
 
 ```ts
 import { z } from 'zod';
@@ -114,11 +114,11 @@ const config = await loadConfig({
   adapters: envAdapter(),
 });
 
-// using custom env + filter prefix key
+// using custom env + filter regex
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: envAdapter({ 
-    prefixKey: 'MY_APP_',
+    regex: /^MY_APP_/,
     customEnv: {
       MY_APP_PORT: '3000',
       MY_APP_HOST: 'localhost',
@@ -148,12 +148,12 @@ const config = await loadConfig({
   adapters: jsonAdapter({ path: filePath }),
 });
 
-// using filter prefix key
+// using filter regex
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: jsonAdapter({ 
     path: filePath,
-    prefixKey: 'MY_APP_',
+    regex: /^MY_APP_/,
   }),
 });
 ```
@@ -183,12 +183,12 @@ const config = await loadConfig({
   adapters: yamlAdapter({ path: filePath }),
 });
 
-// using filter prefix key
+// using filter regex
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: yamlAdapter({ 
     path: filePath,
-    prefixKey: 'MY_APP_',
+    regex: /^MY_APP_/,
   }),
 });
 ```
@@ -218,12 +218,12 @@ const config = await loadConfig({
   adapters: tomlAdapter({ path: filePath }),
 });
 
-// using filter prefix key
+// using filter regex
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: tomlAdapter({ 
     path: filePath,
-    prefixKey: 'MY_APP_',
+    regex: /^MY_APP_/,
   }),
 });
 ```
@@ -253,12 +253,12 @@ const config = await loadConfig({
   adapters: dotEnvAdapter({ path: filePath }),
 });
 
-// using filter prefix key
+// using filter regex
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: dotEnvAdapter({ 
     path: filePath,
-    prefixKey: 'MY_APP_',
+    regex: /^MY_APP_/,
   }),
 });
 ```

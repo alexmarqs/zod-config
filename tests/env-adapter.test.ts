@@ -50,4 +50,28 @@ describe("env adapter", () => {
     expect(config.APP_NAME).toBe("app name");
     expect(config.PORT).toBe("3000");
   });
+  it("should return parsed data when schema is valid with regex key", async () => {
+    // given
+    const schema = z.object({
+      APP_NAME: z.string(),
+    });
+
+    process.env = {
+      APP_NAME: "app name",
+      PORT: "3000",
+    };
+
+    // when
+    const config = await loadConfig({
+      schema,
+      adapters: envAdapter({
+        regex: /^APP_/,
+      }),
+    });
+
+    // then
+    expect(config).toEqual({
+      APP_NAME: "app name",
+    });
+  });
 });
