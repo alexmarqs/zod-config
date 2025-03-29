@@ -22,9 +22,7 @@
     "release:dry-run": "standard-version --skip.changelog --dry-run",
     "yalc:publish": "yalc publish"
   },
-  "files": [
-    "dist/**"
-  ],
+  "files": ["dist/**"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -77,27 +75,13 @@
   },
   "typesVersions": {
     "*": {
-      "env-adapter": [
-        "./dist/env-adapter.d.ts"
-      ],
-      "json-adapter": [
-        "./dist/json-adapter.d.ts"
-      ],
-      "dotenv-adapter": [
-        "./dist/dotenv-adapter.d.ts"
-      ],
-      "script-adapter": [
-        "./dist/script-adapter.d.ts"
-      ],
-      "directory-adapter": [
-        "./dist/directory-adapter.d.ts"
-      ],
-      "yaml-adapter": [
-        "./dist/yaml-adapter.d.ts"
-      ],
-      "toml-adapter": [
-        "./dist/toml-adapter.d.ts"
-      ]
+      "env-adapter": ["./dist/env-adapter.d.ts"],
+      "json-adapter": ["./dist/json-adapter.d.ts"],
+      "dotenv-adapter": ["./dist/dotenv-adapter.d.ts"],
+      "script-adapter": ["./dist/script-adapter.d.ts"],
+      "directory-adapter": ["./dist/directory-adapter.d.ts"],
+      "yaml-adapter": ["./dist/yaml-adapter.d.ts"],
+      "toml-adapter": ["./dist/toml-adapter.d.ts"]
     }
   },
   "publishConfig": {
@@ -138,6 +122,7 @@
   "peerDependencies": {
     "dotenv": ">=15",
     "yaml": "^2.x",
+    "smol-toml": "^1.x",
     "zod": "^3.x"
   },
   "peerDependenciesMeta": {
