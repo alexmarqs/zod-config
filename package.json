@@ -110,6 +110,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.7.3",
     "@types/node": "20.10.7",
+    "@zod/core": "0.8.0",
     "dotenv": "16.4.1",
     "smol-toml": "1.3.1",
     "standard-version": "9.5.0",
@@ -117,13 +118,13 @@
     "typescript": "5.1.3",
     "vitest": "3.0.9",
     "yaml": "2.7.0",
-    "zod": "3.22.4"
+    "zod": "4.0.0-beta.20250418T202744"
   },
   "peerDependencies": {
+    "@zod/core": "^0.x",
     "dotenv": ">=15",
-    "yaml": "^2.x",
     "smol-toml": "^1.x",
-    "zod": "^3.x"
+    "yaml": "^2.x"
   },
   "peerDependenciesMeta": {
     "dotenv": {
