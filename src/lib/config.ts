@@ -12,7 +12,7 @@ import { safeParseAsync } from "@zod/core";
  * @param config
  * @returns parsed config
  */
-export const loadConfig = async <T extends z.$ZodObject>(
+export const loadConfig = async <T extends z.$ZodType<object, object>>(
   config: Config<T>,
 ): Promise<z.infer<T>> => {
   const { schema, adapters, onError, onSuccess } = config;
