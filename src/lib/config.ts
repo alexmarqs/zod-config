@@ -1,6 +1,7 @@
-import type { AnyZodObject, z } from "zod";
+import type * as z from "@zod/core";
 import type { Adapter, Config, Logger } from "../types";
 import { deepMerge } from "./adapters/utils";
+import { safeParseAsync } from "@zod/core";
 
 /**
  * Load config from adapters.
@@ -11,21 +12,18 @@ import { deepMerge } from "./adapters/utils";
  * @param config
  * @returns parsed config
  */
-export const loadConfig = async <T extends AnyZodObject>(
+export const loadConfig = async <T extends z.$ZodObject>(
   config: Config<T>,
 ): Promise<z.infer<T>> => {
   const { schema, adapters, onError, onSuccess } = config;
   const logger = config.logger ?? console;
-
   // Read data from adapters
   const data = await getDataFromAdapters(
     Array.isArray(adapters) ? adapters : adapters ? [adapters] : [],
     logger,
   );
-
   // Validate data against schema
-  const result = await schema.safeParseAsync(data);
-
+  const result = await safeParseAsync(schema, data);
   if (!result.success) {
     // If onError callback is provided, we will call it with the error
     if (onError) {

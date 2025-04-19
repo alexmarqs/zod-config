@@ -1,9 +1,9 @@
-import type { z } from "zod";
+import type * as z from "@zod/core";
 
 /**
  * Adapter type
  */
-export type Adapter<T extends z.AnyZodObject = z.AnyZodObject> = {
+export type Adapter<T extends z.$ZodObject = z.$ZodObject> = {
   /**
    * Name of the adapter
    */
@@ -21,7 +21,7 @@ export type Adapter<T extends z.AnyZodObject = z.AnyZodObject> = {
 /**
  * Config type
  */
-export type Config<T extends z.AnyZodObject = z.AnyZodObject> = {
+export type Config<T extends z.$ZodObject = z.$ZodObject> = {
   /**
    * Schema to validate the config against
    */
@@ -37,7 +37,7 @@ export type Config<T extends z.AnyZodObject = z.AnyZodObject> = {
   /**
    * Function to call on error
    */
-  onError?: (error: z.ZodError<z.infer<T>>) => void;
+  onError?: (error: z.$ZodError<z.infer<T>>) => void;
   /**
    * Logger to use
    */

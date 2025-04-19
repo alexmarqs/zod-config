@@ -31,7 +31,8 @@ npm install zod-config zod # npm
 pnpm add zod-config zod # pnpm
 yarn add zod-config zod # yarn
 ```
-(You need to install Zod as well, if you don't have it already)
+
+(When you install zod or @zod/mini, your package manager will automatically install @zod/core too. So this peer dependency will be met as long as you have one of these packages installed.)
 
 
 ## Table of contents:

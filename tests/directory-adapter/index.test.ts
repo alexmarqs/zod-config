@@ -1,6 +1,6 @@
 import { rm, writeFile, mkdir } from "node:fs/promises";
 import { afterEach, vi, describe, it, beforeEach, beforeAll, afterAll, expect } from "vitest";
-import { type AnyZodObject, z } from "zod";
+import { z } from "zod";
 
 import { directoryAdapter } from "@/lib/adapters/directory-adapter";
 import { scriptAdapter } from "@/lib/adapters/script-adapter";
@@ -26,7 +26,7 @@ afterEach(() => {
 });
 
 type DirectoryTestContext = {
-  schema: AnyZodObject;
+  schema: z.core.$ZodObject<any, any>;
   directories: string[];
   files: Array<{ fileName: string; content: string }>;
   environments: Array<{
