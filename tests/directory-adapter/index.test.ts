@@ -26,7 +26,7 @@ afterEach(() => {
 });
 
 type DirectoryTestContext = {
-  schema: z.core.$ZodObject<any, any>;
+  schema: z.core.$ZodObject;
   directories: string[];
   files: Array<{ fileName: string; content: string }>;
   environments: Array<{
