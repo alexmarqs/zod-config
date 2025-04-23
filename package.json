@@ -20,6 +20,8 @@
     "prerelease": "pnpm run build",
     "release": "standard-version --skip.changelog",
     "release:dry-run": "standard-version --skip.changelog --dry-run",
+    "release:rc": "pnpm release -- --prerelease rc",
+    "release:rc:dry-run": "pnpm release:rc -- --dry-run",
     "yalc:publish": "yalc publish"
   },
   "files": ["dist/**"],
@@ -110,7 +112,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.7.3",
     "@types/node": "20.10.7",
-    "@zod/core": "0.8.0",
+    "@zod/core": "0.8.1",
     "dotenv": "16.4.1",
     "smol-toml": "1.3.1",
     "standard-version": "9.5.0",
@@ -118,7 +120,7 @@
     "typescript": "5.1.3",
     "vitest": "3.0.9",
     "yaml": "2.7.0",
-    "zod": "4.0.0-beta.20250418T202744"
+    "zod": "4.0.0-beta.20250420T053007"
   },
   "peerDependencies": {
     "@zod/core": "^0.x",

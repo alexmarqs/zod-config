@@ -12,8 +12,8 @@ devDependencies:
     specifier: 20.10.7
     version: 20.10.7
   '@zod/core':
-    specifier: 0.8.0
-    version: 0.8.0
+    specifier: 0.8.1
+    version: 0.8.1
   dotenv:
     specifier: 16.4.1
     version: 16.4.1
@@ -36,8 +36,8 @@ devDependencies:
     specifier: 2.7.0
     version: 2.7.0
   zod:
-    specifier: 4.0.0-beta.20250418T202744
-    version: 4.0.0-beta.20250418T202744
+    specifier: 4.0.0-beta.20250420T053007
+    version: 4.0.0-beta.20250420T053007
 
 packages:
 
@@ -886,8 +886,8 @@ packages:
       tinyrainbow: 2.0.0
     dev: true
 
-  /@zod/core@0.8.0:
-    resolution: {integrity: sha512-c93EH8NXxc08ATS+yuDfjrHVsUi6KNcAM+JE8UZuZsfJuYraP+pg7WhurS/CwDB3FG2NuTpXnozyRpwAHItFhA==}
+  /@zod/core@0.8.1:
+    resolution: {integrity: sha512-djj8hPhxIHcG8ptxITaw/Bout5HJZ9NyRbKr95Eilqwt9R0kvITwUQGDU+n+MVdsBIka5KwztmZSLti22F+P0A==}
     dev: true
 
   /JSONStream@1.3.5:
@@ -3091,8 +3091,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /zod@4.0.0-beta.20250418T202744:
-    resolution: {integrity: sha512-LFBAGnymB/lmgrvO/6RrcYbkvxulIxaVHyrNWyZ0MTDIxr6IrXAXfZ0pzmBB3E7FlmOEX08n6LPIIZuHcxfwUA==}
+  /zod@4.0.0-beta.20250420T053007:
+    resolution: {integrity: sha512-5pp8Q0PNDaNcUptGiBE9akyioJh3RJpagIxrLtAVMR9IxwcSZiOsJD/1/98CyhItdTlI2H91MfhhLzRlU+fifA==}
     dependencies:
-      '@zod/core': 0.8.0
+      '@zod/core': 0.8.1
     dev: true
