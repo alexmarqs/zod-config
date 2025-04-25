@@ -16,7 +16,7 @@
 </p>
 
 
-> **Zod 4 support**: Available using the pre-release (release candidate) versions `zod-config@rc` (zod-config@1.0.0-rc.x).
+> **Zod 4 support**: Available using the pre-release (release candidate) versions `zod-config@rc`.
 
 ## Features
 
