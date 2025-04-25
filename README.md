@@ -1,4 +1,3 @@
-
 <p align="center">
   <img src="https://github.com/alexmarqs/zod-config/blob/main/.github/assets/logo.png?raw=true" width="200px" align="center" alt="Zod logo" />
   <h1 align="center">Zod Config</h1>
@@ -15,6 +14,9 @@
   <a href="https://www.npmjs.com/package/zod-config" target="_blank">NPM</a>
 </a>
 </p>
+
+
+> **Zod 4 support**: Available using the pre-release (release candidate) versions `zod-config@rc` (zod-config@1.0.0-rc.x).
 
 ## Features
 
