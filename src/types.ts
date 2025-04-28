@@ -11,7 +11,7 @@ export type Adapter<T extends z.AnyZodObject = z.AnyZodObject> = {
   /**
    * Read the config
    */
-  read: () => Promise<z.infer<T>> | z.infer<T>;
+  read: () => Promise<z.infer<T>>;
   /**
    * Whether to suppress errors
    */

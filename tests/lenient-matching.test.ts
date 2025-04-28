@@ -65,5 +65,5 @@ describe("loadConfig()", () => {
 
 // candidate for the library?
 function inlineAdapter(source: Record<string, unknown>) {
-    return { name: 'inline', read: () => source };
+    return { name: 'inline', read: async () => source };
 }
