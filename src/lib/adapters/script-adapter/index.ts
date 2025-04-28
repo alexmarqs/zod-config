@@ -1,5 +1,5 @@
 import type { Adapter, BaseAdapterProps } from "../../../types";
-import { filteredData } from "../utils";
+import { filteredData } from "../../utils";
 
 export type ScriptAdapterProps = BaseAdapterProps & {
   path: string;

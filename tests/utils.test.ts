@@ -3,7 +3,7 @@ import {
   filterByPrefixKey,
   filterByRegex,
   isMergeableObject,
-} from "../src/lib/adapters/utils";
+} from "../src/lib/utils";
 import { describe, it, expect } from "vitest";
 
 describe("filterByRegex", () => {

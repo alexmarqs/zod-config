@@ -443,6 +443,28 @@ const config = await loadConfig({
 });
 ```
 
+### Lenient matching
+
+If the source of your adapters uses a different casing compared to the schema you are using, you can enable the `lenientMatching` option.
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { envAdapter } from 'zod-config/env-adapter';
+
+const schemaConfig = z.object({
+  myHost: z.string(),
+});
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  lenientMatching: true,
+  adapters: envAdapter(),
+});
+```
+
+In this example, keys such as `MYHOST` or `MY_HOST` coming from the `envAdapter` are correctly recognized and transformed into `myHost`.
+
 
 ## Contributing notes
 

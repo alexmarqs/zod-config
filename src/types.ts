@@ -11,7 +11,7 @@ export type Adapter<T extends z.AnyZodObject = z.AnyZodObject> = {
   /**
    * Read the config
    */
-  read: () => Promise<z.infer<T>>;
+  read: () => Promise<z.infer<T>> | z.infer<T>;
   /**
    * Whether to suppress errors
    */
@@ -42,6 +42,10 @@ export type Config<T extends z.AnyZodObject = z.AnyZodObject> = {
    * Logger to use
    */
   logger?: Logger;
+  /**
+   * To match object keys with different casing more lenient against the schema.
+   */
+  lenientMatching?: boolean;
 };
 
 /**
