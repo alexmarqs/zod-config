@@ -1,6 +1,6 @@
 import type { AnyZodObject, z } from "zod";
 import type { Adapter, Config, Logger } from "../types";
-import { deepMerge, applyLenientMatching } from "./utils";
+import { deepMerge, applyKeyMatching } from "./utils";
 
 /**
  * Load config from adapters.
@@ -23,7 +23,7 @@ export const loadConfig = async <T extends AnyZodObject>(
     logger,
   );
 
-  const matchedData = config.lenientMatching ? applyLenientMatching(data, schema.shape) : data;
+  const matchedData = applyKeyMatching(data, schema.shape, config.keyMatching ?? 'strict');
 
   // Validate data against schema
   const result = await schema.safeParseAsync(matchedData);

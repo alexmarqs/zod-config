@@ -43,9 +43,9 @@ export type Config<T extends z.AnyZodObject = z.AnyZodObject> = {
    */
   logger?: Logger;
   /**
-   * To match object keys with different casing more lenient against the schema.
+   * How to handle casing differences.
    */
-  lenientMatching?: boolean;
+  keyMatching?: KeyMatching;
 };
 
 /**
@@ -76,3 +76,5 @@ export type BaseAdapterProps = {
    */
   silent?: boolean;
 };
+
+export type KeyMatching = 'lenient' | 'strict'
