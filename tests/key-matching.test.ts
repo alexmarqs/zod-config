@@ -17,7 +17,7 @@ describe("loadConfig()", () => {
         const config = await loadConfig({
             logger: mockedLogger,
             schema: MyConfig,
-            lenientMatching: true,
+            keyMatching: 'lenient',
             adapters: [
                 inlineAdapter({ FOO: { NESTED_PROP: "Foo!", otherProp: "Test" } }),
             ],
@@ -32,7 +32,7 @@ describe("loadConfig()", () => {
         });
     });
 
-    it("lenient matching should preserve order of adapter", async () => {
+    it("key matching should preserve order of adapters", async () => {
         const MyConfig = z.object({
             foo: z.object({
                 enabled: z.boolean().default(true),
@@ -45,18 +45,19 @@ describe("loadConfig()", () => {
         const config = await loadConfig({
             logger: mockedLogger,
             schema: MyConfig,
-            lenientMatching: true,
+            keyMatching: 'lenient',
             adapters: [
                 inlineAdapter({ FOO: { nestedProp: "Foo!", otherProp: "Test" } }),
                 inlineAdapter({ FOO: { NESTED_PROP: "Override1", otherProp: "Override1" } }),
                 inlineAdapter({ foo: { NESTED_PROP: "Override2", otherProp: "Override2" } }),
+                inlineAdapter({ FOO: { NESTED_PROP: "Override3" } }),
             ],
         });
 
         expect(config).toEqual({
             foo: {
                 enabled: true,
-                nestedProp: "Override2",
+                nestedProp: "Override3",
                 OTHER_PROP: "Override2",
             },
         });

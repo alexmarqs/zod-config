@@ -1,5 +1,5 @@
-import type { AnyZodObject, z } from "zod";
-import type { Adapter, Config, Logger } from "../types";
+import { AnyZodObject, z } from "zod";
+import type { Adapter, Config, KeyMatching, Logger } from "../types";
 import { deepMerge, applyKeyMatching } from "./utils";
 
 /**
@@ -21,12 +21,12 @@ export const loadConfig = async <T extends AnyZodObject>(
   const data = await getDataFromAdapters(
     Array.isArray(adapters) ? adapters : adapters ? [adapters] : [],
     logger,
+    config.schema,
+    config.keyMatching ?? "strict",
   );
 
-  const matchedData = applyKeyMatching(data, schema.shape, config.keyMatching ?? 'strict');
-
   // Validate data against schema
-  const result = await schema.safeParseAsync(matchedData);
+  const result = await schema.safeParseAsync(data);
 
   if (!result.success) {
     // If onError callback is provided, we will call it with the error
@@ -47,7 +47,12 @@ export const loadConfig = async <T extends AnyZodObject>(
   return result.data;
 };
 
-const getDataFromAdapters = async (adapters: Adapter[], logger: Logger) => {
+const getDataFromAdapters = async (
+  adapters: Adapter[],
+  logger: Logger,
+  schema: AnyZodObject,
+  keyMatching: KeyMatching,
+) => {
   // If no adapters are provided, we will read from process.env
   if (!adapters || adapters.length === 0) {
     return process.env;
@@ -57,7 +62,9 @@ const getDataFromAdapters = async (adapters: Adapter[], logger: Logger) => {
   const promiseResult = await Promise.all(
     adapters.map(async (adapter) => {
       try {
-        return await adapter.read();
+        return await adapter
+          .read()
+          .then((data) => applyKeyMatching(data, schema.shape, keyMatching));
       } catch (error) {
         if (!adapter.silent) {
           logger.warn(
