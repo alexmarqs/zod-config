@@ -10,7 +10,6 @@ describe("Lenient key matching tests", () => {
         enabled: z.boolean().default(true),
         nestedProp: z.string(),
         OTHER_PROP: z.string(),
-        databaseUrl: z.string(),
       }),
     });
 
@@ -21,7 +20,7 @@ describe("Lenient key matching tests", () => {
       keyMatching: "lenient",
       adapters: [
         inlineAdapter({
-          FOO: { NESTED_PROP: "Foo!", otherProp: "Test", "database.url": "https://example.com" },
+          FOO: { NESTED_PROP: "Foo!", otherProp: "Test" },
         }),
       ],
     });
@@ -31,7 +30,6 @@ describe("Lenient key matching tests", () => {
         enabled: true,
         nestedProp: "Foo!",
         OTHER_PROP: "Test",
-        databaseUrl: "https://example.com",
       },
     });
   });
@@ -63,6 +61,76 @@ describe("Lenient key matching tests", () => {
         enabled: true,
         nestedProp: "Override3",
         OTHER_PROP: "Override2",
+      },
+    });
+  });
+
+  it("should handle complex nested structures with various key formats", async () => {
+    const ComplexConfig = z.object({
+      apiSettings: z.object({
+        baseUrl: z.string(),
+        timeoutMs: z.number(),
+        retryCount: z.number(),
+        headers: z.record(z.string()),
+      }),
+      databaseConfig: z.object({
+        connectionString: z.string(),
+        poolSize: z.number(),
+        migrations: z.object({
+          enableAuto: z.boolean(),
+          scriptsPath: z.string(),
+        }),
+      }),
+      featureFlags: z.record(z.boolean()),
+    });
+
+    const config = await loadConfig({
+      schema: ComplexConfig,
+      keyMatching: "lenient",
+      adapters: [
+        inlineAdapter({
+          API_SETTINGS: {
+            "base-url": "https://api.example.com",
+            TIMEOUT_MS: 5000,
+            retry_count: 3,
+            headers: { "x-api-key": "test-key" },
+          },
+          database_config: {
+            ConnectionString: "postgres://localhost:5432/mydb",
+            "POOL-SIZE": 10,
+            MIGRATIONS: {
+              enable_auto: true,
+              "scripts.path": "/migrations",
+            },
+          },
+          "FEATURE.FLAGS": {
+            newUI: true,
+            BETA_FEATURES: false,
+            "experimental-api": true,
+          },
+        }),
+      ],
+    });
+
+    expect(config).toEqual({
+      apiSettings: {
+        baseUrl: "https://api.example.com",
+        timeoutMs: 5000,
+        retryCount: 3,
+        headers: { "x-api-key": "test-key" },
+      },
+      databaseConfig: {
+        connectionString: "postgres://localhost:5432/mydb",
+        poolSize: 10,
+        migrations: {
+          enableAuto: true,
+          scriptsPath: "/migrations",
+        },
+      },
+      featureFlags: {
+        newUI: true,
+        BETA_FEATURES: false,
+        "experimental-api": true,
       },
     });
   });
