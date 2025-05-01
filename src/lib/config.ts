@@ -1,4 +1,4 @@
-import { AnyZodObject, z } from "zod";
+import type { AnyZodObject, z } from "zod";
 import type { Adapter, Config, KeyMatching, Logger } from "../types";
 import { deepMerge, applyKeyMatching } from "./utils";
 

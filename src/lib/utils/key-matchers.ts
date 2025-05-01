@@ -1,11 +1,11 @@
 import { type AnyZodObject, ZodObject, type ZodRawShape } from "zod";
 import { isMergeableObject } from "@/lib/utils/is-mergeable-object";
-import { KeyMatching } from "@/types";
+import type { KeyMatching } from "@/types";
 
 type KeyMatcher = (valueKey: string, shapeKey: string) => boolean;
 
 export const KEY_MATCHERS: Record<KeyMatching, KeyMatcher> = {
-  strict: compareBy(it => it),
+  strict: compareBy((it) => it),
   lenient: compareBy(alphaNumericalLower),
 };
 
@@ -19,16 +19,14 @@ export function applyKeyMatching(
 ): Record<string, unknown> {
   return Object.fromEntries(
     Object.entries(data).map(([key, value]) => {
-      const matchedKey =
-        Object.keys(shape).find((it) => KEY_MATCHERS[keyMatcher](it, key)) ??
-        key;
+      const matchedKey = Object.keys(shape).find((it) => KEY_MATCHERS[keyMatcher](it, key)) ?? key;
 
       const zodType = shape[matchedKey];
       if (isMergeableObject(value) && isZodObject(zodType)) {
         return [matchedKey, applyKeyMatching(value, zodType.shape, keyMatcher)];
-      } else {
-        return [matchedKey, value];
       }
+
+      return [matchedKey, value];
     }),
   );
 }
@@ -38,7 +36,7 @@ function isZodObject(input: unknown): input is AnyZodObject {
 }
 
 function compareBy<T, R>(selector: (it: T) => R): (a: T, b: T) => boolean {
-    return (a: T, b: T) => selector(a) === selector(b);
+  return (a: T, b: T) => selector(a) === selector(b);
 }
 
 function alphaNumericalLower(key: string) {
