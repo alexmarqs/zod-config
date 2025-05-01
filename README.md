@@ -443,7 +443,7 @@ const config = await loadConfig({
 });
 ```
 
-### Lenient matching
+### Lenient key matching
 
 If the source of your adapters uses a different casing compared to the schema you are using, you can enable the `lenientMatching` option.
 
@@ -458,7 +458,7 @@ const schemaConfig = z.object({
 
 const config = await loadConfig({
   schema: schemaConfig,
-  lenientMatching: true,
+  keyMatching: 'lenient',
   adapters: envAdapter(),
 });
 ```
