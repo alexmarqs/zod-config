@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import path from "node:path";
 
-import { deepMerge, filteredData } from "../utils";
+import { deepMerge, filteredData } from "../../utils";
 import type { Adapter, BaseAdapterProps } from "../../../types";
 import { getExtensionToAdapterFactoryMap, type AdapterSpecifier } from "./adapter-specifiers";
 import { getAllowedFilenames } from "./allowed-filenames";

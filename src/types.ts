@@ -42,6 +42,10 @@ export type Config<T extends z.AnyZodObject = z.AnyZodObject> = {
    * Logger to use
    */
   logger?: Logger;
+  /**
+   * How to handle casing differences.
+   */
+  keyMatching?: KeyMatching;
 };
 
 /**
@@ -72,3 +76,5 @@ export type BaseAdapterProps = {
    */
   silent?: boolean;
 };
+
+export type KeyMatching = 'lenient' | 'strict'

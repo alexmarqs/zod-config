@@ -1,7 +1,7 @@
 import { parse } from "dotenv";
 import { readFile } from "node:fs/promises";
 import type { Adapter, BaseAdapterProps } from "../../../types";
-import { filteredData } from "../utils";
+import { filteredData } from "../../utils";
 
 export type DotEnvAdapterProps = BaseAdapterProps & {
   path: string;
