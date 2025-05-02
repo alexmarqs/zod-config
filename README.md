@@ -446,7 +446,7 @@ const config = await loadConfig({
 
 ### Lenient key matching
 
-If the source of your adapters uses a different casing or formatting compared to the schema you are using, you can enable the `lenientMatching` option. This is useful when working with environment variables that typically use UPPER_SNAKE_CASE or when integrating with different systems that use varying naming conventions. By default, the key matching is `strict`, meaning that the keys must match exactly.
+If the source of your adapters uses a different casing or formatting compared to the schema you are using, you can enable the key matching `lenient` option. This is useful when working with environment variables that typically use UPPER_SNAKE_CASE or when integrating with different systems that use varying naming conventions. By default, the key matching is `strict`, meaning that the keys must match exactly.
 
 ```ts
 import { z } from 'zod';
@@ -464,8 +464,7 @@ const config = await loadConfig({
 });
 ```
 
-In this example:
-- The key `MYHOST`, `MY_HOST`, or `my-host` from the adapter would be correctly matched to `myHost` in your schema
+In this example, the key `MYHOST`, `MY_HOST`, or `my-host` from the adapter would be correctly matched to `myHost` in your schema. 
 
 The lenient matching works by comparing keys after:
 1. Removing all non-alphanumeric characters (like underscores, hyphens, dots)
