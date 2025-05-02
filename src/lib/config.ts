@@ -62,9 +62,9 @@ const getDataFromAdapters = async (
   const promiseResult = await Promise.all(
     adapters.map(async (adapter) => {
       try {
-        return await adapter
-          .read()
-          .then((data) => applyKeyMatching(data, schema.shape, keyMatching));
+        const data = await adapter.read();
+
+        return applyKeyMatching(data, schema.shape, keyMatching);
       } catch (error) {
         if (!adapter.silent) {
           logger.warn(
