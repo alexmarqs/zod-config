@@ -68,6 +68,7 @@ Zod Config provides a `loadConfig` function that takes a Zod Object schema and r
 | `onError` | `(error: Error) => void` | A callback to be called when an error occurs. | `false` |
 | `onSuccess` | `(config: z.infer ) => void` | A callback to be called when the configuration is loaded successfully. | `false` |
 | `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. | `false` |
+| `keyMatching` | `'strict'` / `'lenient'` | How to match keys between the schema and the data of the adapters. By default, it uses `strict`. | `false` |
 
 From the package we also expose the types `Adapter`, `Config` and `Logger` in case you want to use them in your own adapters.
 
