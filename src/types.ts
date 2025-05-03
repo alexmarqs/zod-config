@@ -77,4 +77,4 @@ export type BaseAdapterProps = {
   silent?: boolean;
 };
 
-export type KeyMatching = 'lenient' | 'strict'
+export type KeyMatching = "lenient" | "strict";
