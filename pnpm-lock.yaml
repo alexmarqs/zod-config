@@ -36,8 +36,8 @@ devDependencies:
     specifier: 2.7.0
     version: 2.7.0
   zod:
-    specifier: 4.0.0-beta.20250420T053007
-    version: 4.0.0-beta.20250420T053007
+    specifier: 4.0.0-beta.20250503T014749
+    version: 4.0.0-beta.20250503T014749
 
 packages:
 
@@ -888,10 +888,6 @@ packages:
 
   /@zod/core@0.10.1:
     resolution: {integrity: sha512-EmgYiJLMfZ3Dop9Wp7SadkEGYxbjGvrB/qRCT6PhGft9Eh1TbtNQYO9wEBgw4RE9JsmkolZ5Ah+tHu0EwoIy5g==}
-    dev: true
-
-  /@zod/core@0.8.1:
-    resolution: {integrity: sha512-djj8hPhxIHcG8ptxITaw/Bout5HJZ9NyRbKr95Eilqwt9R0kvITwUQGDU+n+MVdsBIka5KwztmZSLti22F+P0A==}
     dev: true
 
   /JSONStream@1.3.5:
@@ -3095,8 +3091,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /zod@4.0.0-beta.20250420T053007:
-    resolution: {integrity: sha512-5pp8Q0PNDaNcUptGiBE9akyioJh3RJpagIxrLtAVMR9IxwcSZiOsJD/1/98CyhItdTlI2H91MfhhLzRlU+fifA==}
+  /zod@4.0.0-beta.20250503T014749:
+    resolution: {integrity: sha512-ND9JjNpf2IaTZlHr4xgvWbOmzOwjDzrlCqBlhpnYSpXcx6DFzmLJrWhCZc4xgNGieD7MCx/ZoWIHDGZzmg/gnA==}
     dependencies:
-      '@zod/core': 0.8.1
+      '@zod/core': 0.10.1
     dev: true
