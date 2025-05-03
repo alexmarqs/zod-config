@@ -12,8 +12,8 @@ devDependencies:
     specifier: 20.10.7
     version: 20.10.7
   '@zod/core':
-    specifier: 0.8.1
-    version: 0.8.1
+    specifier: 0.10.1
+    version: 0.10.1
   dotenv:
     specifier: 16.4.1
     version: 16.4.1
@@ -884,6 +884,10 @@ packages:
       '@vitest/pretty-format': 3.0.9
       loupe: 3.1.3
       tinyrainbow: 2.0.0
+    dev: true
+
+  /@zod/core@0.10.1:
+    resolution: {integrity: sha512-EmgYiJLMfZ3Dop9Wp7SadkEGYxbjGvrB/qRCT6PhGft9Eh1TbtNQYO9wEBgw4RE9JsmkolZ5Ah+tHu0EwoIy5g==}
     dev: true
 
   /@zod/core@0.8.1:
