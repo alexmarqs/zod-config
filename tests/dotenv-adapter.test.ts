@@ -63,6 +63,33 @@ describe("dotenv adapter", () => {
     expect(config.HOST).toBe("LOCALHOST");
     expect(config.PORT).toBe("12345");
   });
+  it("should throw zod error when schema is valid but data is invalid due to side effects .preprocess", async () => {
+    // given
+    const schema = z.preprocess(
+      () => {
+        return {
+          HOST: "LOCALHOST",
+          PORT: "12345",
+        };
+      },
+      z.object({
+        HOST: z.string(),
+        PORT: z.string().regex(/^\d+$/),
+      }),
+    );
+
+    // when
+    const config = await loadConfig({
+      schema,
+      adapters: dotEnvAdapter({
+        path: testFilePath,
+      }),
+    });
+
+    // then
+    expect(config.HOST).toBe("LOCALHOST");
+    expect(config.PORT).toBe("12345");
+  });
   it("should return parsed data when schema is valid with regex key", async () => {
     // given
     const schema = z.object({

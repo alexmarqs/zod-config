@@ -14,7 +14,7 @@ export const KEY_MATCHERS: Record<KeyMatching, KeyMatcher> = {
  */
 export function applyKeyMatching(
   data: object,
-  schema: z.$ZodObject | z.$ZodPipe<z.$ZodObject>,
+  schema: z.$ZodType<unknown>,
   keyMatcher: keyof typeof KEY_MATCHERS,
 ): object {
   // short circuit if strict or empty data
@@ -32,7 +32,10 @@ export function applyKeyMatching(
 
       const zodType = shape[matchedKey];
 
-      if (isMergeableObject(value) && (isZodObject(zodType) || isZodPipeObject(zodType))) {
+      if (
+        isMergeableObject(value) &&
+        (isZodObject(zodType) || isZodPipeLeftObject(zodType) || isZodPipeRightObject(zodType))
+      ) {
         return [matchedKey, applyKeyMatching(value, zodType, keyMatcher)];
       }
 
@@ -45,8 +48,12 @@ function isZodObject(input: unknown): input is z.$ZodObject {
   return input instanceof z.$ZodObject;
 }
 
-function isZodPipeObject(input: unknown): input is z.$ZodPipe<z.$ZodObject> {
+function isZodPipeLeftObject(input: unknown): input is z.$ZodPipe<z.$ZodObject, z.$ZodTransform> {
   return input instanceof z.$ZodPipe && isZodObject(input._zod.def.in);
+}
+
+function isZodPipeRightObject(input: unknown): input is z.$ZodPipe<z.$ZodTransform, z.$ZodObject> {
+  return input instanceof z.$ZodPipe && isZodObject(input._zod.def.out);
 }
 
 function compareBy<T, R>(selector: (it: T) => R): (a: T, b: T) => boolean {
@@ -57,14 +64,18 @@ function alphaNumericalLower(key: string) {
   return key.replace(/[^a-z0-9]/gi, "").toLowerCase();
 }
 
-function getShape(schema: z.$ZodObject | z.$ZodPipe<z.$ZodObject>): z.$ZodShape {
+function getShape(schema: z.$ZodType<unknown>) {
   if (isZodObject(schema)) {
     return schema._zod.def.shape;
   }
 
-  if (isZodPipeObject(schema)) {
+  if (isZodPipeLeftObject(schema)) {
     return schema._zod.def.in._zod.def.shape;
   }
 
-  throw new Error("Invalid schema to get shape from");
+  if (isZodPipeRightObject(schema)) {
+    return schema._zod.def.out._zod.def.shape;
+  }
+
+  throw new Error("Not supported schema to get shape from");
 }

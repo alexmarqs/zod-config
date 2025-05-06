@@ -191,75 +191,75 @@ describe("Lenient key matching tests", () => {
     });
   });
 
-  // it("should work with nested transforms", async () => {
-  //   const DatabaseConfig = z.object({
-  //     credentials: z
-  //       .object({
-  //         username: z.string(),
-  //         password: z.string(),
-  //       })
-  //       .transform((creds) => ({
-  //         ...creds,
-  //         encoded: Buffer.from(`${creds.username}:${creds.password}`).toString("base64"),
-  //       })),
-  //     settings: z.object({
-  //       host: z.string(),
-  //       port: z.string().transform((val) => Number.parseInt(val, 10)),
-  //     }),
-  //   });
+  it("should work with nested transforms", async () => {
+    const DatabaseConfig = z.object({
+      credentials: z
+        .object({
+          username: z.string(),
+          password: z.string(),
+        })
+        .transform((creds) => ({
+          ...creds,
+          encoded: Buffer.from(`${creds.username}:${creds.password}`).toString("base64"),
+        })),
+      settings: z.object({
+        host: z.preprocess(() => "preprocess-db.example.com", z.string()),
+        port: z.string().transform((val) => Number.parseInt(val, 10)),
+      }),
+    });
 
-  //   const config = await loadConfig({
-  //     schema: DatabaseConfig,
-  //     keyMatching: "lenient",
-  //     adapters: [
-  //       inlineAdapter({
-  //         CREDENTIALS: {
-  //           "USER-NAME": "admin",
-  //           PASSWORD: "secret123",
-  //         },
-  //         settings: {
-  //           HOST: "db.example.com",
-  //           port: "5432",
-  //         },
-  //       }),
-  //     ],
-  //   });
+    const config = await loadConfig({
+      schema: DatabaseConfig,
+      keyMatching: "lenient",
+      adapters: [
+        inlineAdapter({
+          CREDENTIALS: {
+            "USER-NAME": "admin",
+            PASSWORD: "secret123",
+          },
+          settings: {
+            HOST: "db.example.com",
+            port: "5432",
+          },
+        }),
+      ],
+    });
 
-  //   expect(config).toEqual({
-  //     credentials: {
-  //       username: "admin",
-  //       password: "secret123",
-  //       encoded: "YWRtaW46c2VjcmV0MTIz", // Base64 of "admin:secret123"
-  //     },
-  //     settings: {
-  //       host: "db.example.com",
-  //       port: 5432,
-  //     },
-  //   });
-  // });
+    expect(config).toEqual({
+      credentials: {
+        username: "admin",
+        password: "secret123",
+        encoded: "YWRtaW46c2VjcmV0MTIz", // Base64 of "admin:secret123"
+      },
+      settings: {
+        host: "preprocess-db.example.com",
+        port: 5432,
+      },
+    });
+  });
 
-  // it("should handle async transforms with lenient matching", async () => {
-  //   const AsyncConfig = z.object({
-  //     userId: z.string().transform(async (val) => val.toUpperCase()),
-  //     lastLogin: z.string().transform(async (val) => new Date(val).toISOString()),
-  //   });
+  it("should handle async transforms with lenient matching", async () => {
+    const AsyncConfig = z.object({
+      userId: z.string().transform(async (val) => val.toUpperCase()),
+      lastLogin: z.string().transform(async (val) => new Date(val).toISOString()),
+    });
 
-  //   const config = await loadConfig({
-  //     schema: AsyncConfig,
-  //     keyMatching: "lenient",
-  //     adapters: [
-  //       inlineAdapter({
-  //         user_id: "user123",
-  //         "LAST-LOGIN": "2023-01-01T12:00:00Z",
-  //       }),
-  //     ],
-  //   });
+    const config = await loadConfig({
+      schema: AsyncConfig,
+      keyMatching: "lenient",
+      adapters: [
+        inlineAdapter({
+          user_id: "user123",
+          "LAST-LOGIN": "2023-01-01T12:00:00Z",
+        }),
+      ],
+    });
 
-  //   expect(config).toEqual({
-  //     userId: "USER123",
-  //     lastLogin: new Date("2023-01-01T12:00:00Z").toISOString(),
-  //   });
-  // });
+    expect(config).toEqual({
+      userId: "USER123",
+      lastLogin: new Date("2023-01-01T12:00:00Z").toISOString(),
+    });
+  });
 });
 
 function inlineAdapter(source: Record<string, unknown>) {

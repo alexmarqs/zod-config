@@ -1,14 +1,9 @@
 import type * as z from "@zod/core";
 
 /**
- * Zod config schema type
- */
-export type ZodConfigSchema = z.$ZodObject | z.$ZodPipe<z.$ZodObject, z.$ZodTransform>;
-
-/**
  * Adapter type
  */
-export type Adapter<D extends z.$ZodObject = z.$ZodObject> = {
+export type Adapter<D extends z.$ZodType<object> = z.$ZodType<object>> = {
   /**
    * Name of the adapter
    */
@@ -26,7 +21,7 @@ export type Adapter<D extends z.$ZodObject = z.$ZodObject> = {
 /**
  * Config type
  */
-export type Config<S extends ZodConfigSchema = ZodConfigSchema> = {
+export type Config<S extends z.$ZodType<object> = z.$ZodType<object>> = {
   /**
    * Schema to validate the config against
    */
