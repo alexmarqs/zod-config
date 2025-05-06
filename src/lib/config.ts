@@ -1,6 +1,6 @@
 import type * as z from "@zod/core";
-import type { Adapter, Config, Logger } from "../types";
-import { deepMerge } from "./adapters/utils";
+import type { Adapter, Config, KeyMatching, Logger, ZodConfigSchema } from "../types";
+import { deepMerge, applyKeyMatching } from "./utils";
 import { safeParseAsync } from "@zod/core";
 
 /**
@@ -12,16 +12,20 @@ import { safeParseAsync } from "@zod/core";
  * @param config
  * @returns parsed config
  */
-export const loadConfig = async <T extends z.$ZodType<object, object>>(
+export const loadConfig = async <T extends ZodConfigSchema>(
   config: Config<T>,
 ): Promise<z.infer<T>> => {
-  const { schema, adapters, onError, onSuccess } = config;
+  const { schema, adapters, onError, onSuccess, keyMatching } = config;
   const logger = config.logger ?? console;
+
   // Read data from adapters
   const data = await getDataFromAdapters(
     Array.isArray(adapters) ? adapters : adapters ? [adapters] : [],
     logger,
+    schema,
+    keyMatching ?? "strict",
   );
+
   // Validate data against schema
   const result = await safeParseAsync(schema, data);
   if (!result.success) {
@@ -43,7 +47,12 @@ export const loadConfig = async <T extends z.$ZodType<object, object>>(
   return result.data;
 };
 
-const getDataFromAdapters = async (adapters: Adapter[], logger: Logger) => {
+const getDataFromAdapters = async (
+  adapters: Adapter[],
+  logger: Logger,
+  schema: ZodConfigSchema,
+  keyMatching: KeyMatching,
+) => {
   // If no adapters are provided, we will read from process.env
   if (!adapters || adapters.length === 0) {
     return process.env;
@@ -53,7 +62,8 @@ const getDataFromAdapters = async (adapters: Adapter[], logger: Logger) => {
   const promiseResult = await Promise.all(
     adapters.map(async (adapter) => {
       try {
-        return await adapter.read();
+        const data = await adapter.read();
+        return applyKeyMatching(data, schema, keyMatching);
       } catch (error) {
         if (!adapter.silent) {
           logger.warn(

@@ -6,6 +6,7 @@ import { directoryAdapter } from "@/lib/adapters/directory-adapter";
 import { scriptAdapter } from "@/lib/adapters/script-adapter";
 import * as variables from "@/lib/adapters/directory-adapter/variables";
 import { loadConfig } from "@/index";
+import type { ZodConfigSchema } from "@/types";
 
 vi.mock("@/lib/adapters/directory-adapter/variables", async (importOriginal) => {
   const original =
@@ -26,7 +27,7 @@ afterEach(() => {
 });
 
 type DirectoryTestContext = {
-  schema: z.ZodType<object, object>;
+  schema: ZodConfigSchema;
   directories: string[];
   files: Array<{ fileName: string; content: string }>;
   environments: Array<{

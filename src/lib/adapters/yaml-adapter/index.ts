@@ -1,5 +1,5 @@
 import type { Adapter, BaseAdapterProps } from "../../../types";
-import { filteredData } from "../utils";
+import { filteredData } from "../../utils";
 import { readFile } from "node:fs/promises";
 import YAML from "yaml";
 

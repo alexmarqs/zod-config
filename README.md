@@ -1,4 +1,3 @@
-
 <p align="center">
   <img src="https://github.com/alexmarqs/zod-config/blob/main/.github/assets/logo.png?raw=true" width="200px" align="center" alt="Zod logo" />
   <h1 align="center">Zod Config</h1>
@@ -15,6 +14,9 @@
   <a href="https://www.npmjs.com/package/zod-config" target="_blank">NPM</a>
 </a>
 </p>
+
+
+> **Zod 4 support**: Available using the pre-release (release candidate) versions `zod-config@rc`.
 
 ## Features
 
@@ -51,6 +53,7 @@ yarn add zod-config zod # yarn
 - [Callbacks](#callbacks)
 - [Custom Logger](#custom-logger)
 - [Silent mode](#silent-mode)
+- [Lenient key matching](#lenient-key-matching)
 - [Contributing notes](#contributing-notes)
 - [On the web](#on-the-web)
 
@@ -66,6 +69,7 @@ Zod Config provides a `loadConfig` function that takes a Zod Object schema and r
 | `onError` | `(error: Error) => void` | A callback to be called when an error occurs. | `false` |
 | `onSuccess` | `(config: z.infer ) => void` | A callback to be called when the configuration is loaded successfully. | `false` |
 | `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. | `false` |
+| `keyMatching` | `'strict'` / `'lenient'` | How to match keys between the schema and the data of the adapters. By default, it uses `strict`. | `false` |
 
 From the package we also expose the types `Adapter`, `Config` and `Logger` in case you want to use them in your own adapters.
 
@@ -442,6 +446,31 @@ const config = await loadConfig({
 });
 ```
 
+### Lenient key matching
+
+If the source of your adapters uses a different casing or formatting compared to the schema you are using, you can enable the key matching `lenient` option. This is useful when working with environment variables that typically use UPPER_SNAKE_CASE or when integrating with different systems that use varying naming conventions. By default, the key matching is `strict`, meaning that the keys must match exactly.
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { envAdapter } from 'zod-config/env-adapter';
+
+const schemaConfig = z.object({
+  myHost: z.string(),
+});
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  keyMatching: 'lenient',
+  adapters: envAdapter(),
+});
+```
+
+In this example, the key `MYHOST`, `MY_HOST`, or `my-host` from the adapter would be correctly matched to `myHost` in your schema. 
+
+The lenient matching works by comparing keys after:
+1. Removing all non-alphanumeric characters (like underscores, hyphens, dots)
+2. Converting to lowercase
 
 ## Contributing notes
 

@@ -1,9 +1,14 @@
 import type * as z from "@zod/core";
 
 /**
+ * Zod config schema type
+ */
+export type ZodConfigSchema = z.$ZodObject | z.$ZodPipe<z.$ZodObject, z.$ZodTransform>;
+
+/**
  * Adapter type
  */
-export type Adapter<T extends z.$ZodType<object, object> = z.$ZodType<object, object>> = {
+export type Adapter<D extends z.$ZodObject = z.$ZodObject> = {
   /**
    * Name of the adapter
    */
@@ -11,7 +16,7 @@ export type Adapter<T extends z.$ZodType<object, object> = z.$ZodType<object, ob
   /**
    * Read the config
    */
-  read: () => Promise<z.infer<T>>;
+  read: () => Promise<z.infer<D>>;
   /**
    * Whether to suppress errors
    */
@@ -21,11 +26,11 @@ export type Adapter<T extends z.$ZodType<object, object> = z.$ZodType<object, ob
 /**
  * Config type
  */
-export type Config<T extends z.$ZodType<object, object> = z.$ZodType<object, object>> = {
+export type Config<S extends ZodConfigSchema = ZodConfigSchema> = {
   /**
    * Schema to validate the config against
    */
-  schema: T;
+  schema: S;
   /**
    * Adapters to use
    */
@@ -33,15 +38,19 @@ export type Config<T extends z.$ZodType<object, object> = z.$ZodType<object, obj
   /**
    * Function to call on success
    */
-  onSuccess?: (data: z.infer<T>) => void;
+  onSuccess?: (data: z.infer<S>) => void;
   /**
    * Function to call on error
    */
-  onError?: (error: z.$ZodError<z.infer<T>>) => void;
+  onError?: (error: z.$ZodError<z.infer<S>>) => void;
   /**
    * Logger to use
    */
   logger?: Logger;
+  /**
+   * How to handle casing differences.
+   */
+  keyMatching?: KeyMatching;
 };
 
 /**
@@ -72,3 +81,5 @@ export type BaseAdapterProps = {
    */
   silent?: boolean;
 };
+
+export type KeyMatching = "lenient" | "strict";

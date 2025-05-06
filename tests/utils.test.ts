@@ -1,9 +1,4 @@
-import {
-  deepMerge,
-  filterByPrefixKey,
-  filterByRegex,
-  isMergeableObject,
-} from "../src/lib/adapters/utils";
+import { deepMerge, filterByPrefixKey, filterByRegex, isMergeableObject } from "../src/lib/utils";
 import { describe, it, expect } from "vitest";
 
 describe("filterByRegex", () => {
