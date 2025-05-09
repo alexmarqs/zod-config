@@ -8,7 +8,7 @@ export type TomlAdapterProps = BaseAdapterProps & {
 };
 const ADAPTER_NAME = "toml adapter";
 
-export const tomlAdapter = ({ path, prefixKey, regex, silent }: TomlAdapterProps): Adapter => {
+export const tomlAdapter = ({ path, regex, silent }: TomlAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
@@ -17,7 +17,7 @@ export const tomlAdapter = ({ path, prefixKey, regex, silent }: TomlAdapterProps
 
         const parsedData = tomlParse(data) || {};
 
-        return filteredData(parsedData, { prefixKey, regex });
+        return filteredData(parsedData, { regex });
       } catch (error) {
         throw new Error(
           `Failed to parse / read TOML file at ${path}: ${

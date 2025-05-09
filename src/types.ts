@@ -67,12 +67,7 @@ export type Logger = {
  */
 export type BaseAdapterProps = {
   /**
-   * Prefix key to filter keys by
-   * @deprecated Use regex instead
-   */
-  prefixKey?: string;
-  /**
-   * Regular expression to filter keys by: if used, prefixKey will be ignored
+   * Regular expression to filter keys
    */
   regex?: RegExp;
   /**

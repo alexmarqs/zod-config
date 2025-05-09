@@ -8,7 +8,7 @@ export type JsonAdapterProps = BaseAdapterProps & {
 
 const ADAPTER_NAME = "json adapter";
 
-export const jsonAdapter = ({ path, prefixKey, regex, silent }: JsonAdapterProps): Adapter => {
+export const jsonAdapter = ({ path, regex, silent }: JsonAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
@@ -17,7 +17,7 @@ export const jsonAdapter = ({ path, prefixKey, regex, silent }: JsonAdapterProps
 
         const parsedData = JSON.parse(data) || {};
 
-        return filteredData(parsedData, { prefixKey, regex });
+        return filteredData(parsedData, { regex });
       } catch (error) {
         throw new Error(
           `Failed to parse / read JSON file at ${path}: ${

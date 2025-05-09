@@ -9,7 +9,7 @@ export type YamlAdapterProps = BaseAdapterProps & {
 
 const ADAPTER_NAME = "yaml adapter";
 
-export const yamlAdapter = ({ path, prefixKey, regex, silent }: YamlAdapterProps): Adapter => {
+export const yamlAdapter = ({ path, regex, silent }: YamlAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
@@ -18,7 +18,7 @@ export const yamlAdapter = ({ path, prefixKey, regex, silent }: YamlAdapterProps
 
         const parsedData = YAML.parse(data) || {};
 
-        return filteredData(parsedData, { prefixKey, regex });
+        return filteredData(parsedData, { regex });
       } catch (error) {
         throw new Error(
           `Failed to parse / read YAML file at ${path}: ${
