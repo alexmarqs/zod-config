@@ -20,11 +20,6 @@
     "prerelease": "pnpm run build",
     "release": "standard-version --skip.changelog",
     "release:dry-run": "standard-version --skip.changelog --dry-run",
-    "release:rc": "standard-version --skip.changelog --prerelease rc",
-    "release:rc:dry-run": "standard-version --skip.changelog --prerelease rc --dry-run",
-    "release:major": "standard-version --skip.changelog --release-as major",
-    "release:major:rc": "standard-version --skip.changelog --release-as major --prerelease rc",
-    "release:major:rc:dry-run": "standard-version --skip.changelog --release-as major --prerelease rc --dry-run",
     "yalc:publish": "yalc publish"
   },
   "files": ["dist/**"],
