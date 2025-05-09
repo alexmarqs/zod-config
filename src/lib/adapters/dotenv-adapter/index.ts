@@ -9,7 +9,7 @@ export type DotEnvAdapterProps = BaseAdapterProps & {
 
 const ADAPTER_NAME = "dotenv adapter";
 
-export const dotEnvAdapter = ({ path, prefixKey, regex, silent }: DotEnvAdapterProps): Adapter => {
+export const dotEnvAdapter = ({ path, regex, silent }: DotEnvAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
@@ -18,7 +18,7 @@ export const dotEnvAdapter = ({ path, prefixKey, regex, silent }: DotEnvAdapterP
 
         const parsedData = parse(data) || {};
 
-        return filteredData(parsedData, { prefixKey, regex });
+        return filteredData(parsedData, { regex });
       } catch (error) {
         throw new Error(
           `Failed to parse / read .env file at ${path}: ${

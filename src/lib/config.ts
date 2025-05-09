@@ -1,6 +1,7 @@
-import type { AnyZodObject, z } from "zod";
+import type * as z from "@zod/core";
 import type { Adapter, Config, KeyMatching, Logger } from "../types";
-import { deepMerge, applyKeyMatching } from "./utils";
+import { applyKeyMatching, deepMerge, getShape } from "./utils";
+import { safeParseAsync } from "@zod/core";
 
 /**
  * Load config from adapters.
@@ -11,23 +12,22 @@ import { deepMerge, applyKeyMatching } from "./utils";
  * @param config
  * @returns parsed config
  */
-export const loadConfig = async <T extends AnyZodObject>(
+export const loadConfig = async <T extends z.$ZodType<Record<string, unknown>>>(
   config: Config<T>,
 ): Promise<z.infer<T>> => {
-  const { schema, adapters, onError, onSuccess } = config;
+  const { schema, adapters, onError, onSuccess, keyMatching } = config;
   const logger = config.logger ?? console;
 
   // Read data from adapters
   const data = await getDataFromAdapters(
     Array.isArray(adapters) ? adapters : adapters ? [adapters] : [],
     logger,
-    config.schema,
-    config.keyMatching ?? "strict",
+    schema,
+    keyMatching ?? "strict",
   );
 
   // Validate data against schema
-  const result = await schema.safeParseAsync(data);
-
+  const result = await safeParseAsync(schema, data);
   if (!result.success) {
     // If onError callback is provided, we will call it with the error
     if (onError) {
@@ -50,7 +50,7 @@ export const loadConfig = async <T extends AnyZodObject>(
 const getDataFromAdapters = async (
   adapters: Adapter[],
   logger: Logger,
-  schema: AnyZodObject,
+  schema: z.$ZodType<Record<string, unknown>>,
   keyMatching: KeyMatching,
 ) => {
   // If no adapters are provided, we will read from process.env
@@ -64,7 +64,17 @@ const getDataFromAdapters = async (
       try {
         const data = await adapter.read();
 
-        return applyKeyMatching(data, schema.shape, keyMatching);
+        if (keyMatching === "strict") {
+          return data;
+        }
+
+        const shape = getShape(schema);
+
+        if (!shape) {
+          return data;
+        }
+
+        return applyKeyMatching(data, shape, keyMatching);
       } catch (error) {
         if (!adapter.silent) {
           logger.warn(

@@ -23,7 +23,6 @@ const ADAPTER_NAME = "directory adapter";
 export const directoryAdapter = ({
   paths,
   adapters: adaptersSpecifiers,
-  prefixKey,
   silent,
   regex,
 }: DirectoryAdapterProps): Adapter => {
@@ -72,7 +71,7 @@ export const directoryAdapter = ({
         const adapterData = await Promise.all(adapterDataPromises);
         const mergedData = deepMerge({}, ...adapterData);
 
-        return filteredData(mergedData, { prefixKey, regex });
+        return filteredData(mergedData, { regex });
       } catch (error) {
         throw new Error(
           `Failed to read config from some of the following directories:\n - ${

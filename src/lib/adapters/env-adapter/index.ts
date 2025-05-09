@@ -9,7 +9,7 @@ const ADAPTER_NAME = "env adapter";
 
 export const envAdapter = ({
   customEnv,
-  prefixKey,
+
   regex,
   silent,
 }: EnvAdapterProps = {}): Adapter => {
@@ -18,7 +18,7 @@ export const envAdapter = ({
     read: async () => {
       const data = customEnv || process.env || {};
 
-      return filteredData(data, { prefixKey, regex });
+      return filteredData(data, { regex });
     },
     silent,
   };

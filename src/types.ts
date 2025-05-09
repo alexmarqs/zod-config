@@ -1,9 +1,11 @@
-import type { z } from "zod";
+import type * as z from "@zod/core";
 
 /**
  * Adapter type
  */
-export type Adapter<T extends z.AnyZodObject = z.AnyZodObject> = {
+export type Adapter<
+  D extends z.$ZodType<Record<string, unknown>> = z.$ZodType<Record<string, unknown>>,
+> = {
   /**
    * Name of the adapter
    */
@@ -11,7 +13,7 @@ export type Adapter<T extends z.AnyZodObject = z.AnyZodObject> = {
   /**
    * Read the config
    */
-  read: () => Promise<z.infer<T>>;
+  read: () => Promise<z.infer<D>>;
   /**
    * Whether to suppress errors
    */
@@ -21,11 +23,13 @@ export type Adapter<T extends z.AnyZodObject = z.AnyZodObject> = {
 /**
  * Config type
  */
-export type Config<T extends z.AnyZodObject = z.AnyZodObject> = {
+export type Config<
+  S extends z.$ZodType<Record<string, unknown>> = z.$ZodType<Record<string, unknown>>,
+> = {
   /**
    * Schema to validate the config against
    */
-  schema: T;
+  schema: S;
   /**
    * Adapters to use
    */
@@ -33,11 +37,11 @@ export type Config<T extends z.AnyZodObject = z.AnyZodObject> = {
   /**
    * Function to call on success
    */
-  onSuccess?: (data: z.infer<T>) => void;
+  onSuccess?: (data: z.infer<S>) => void;
   /**
    * Function to call on error
    */
-  onError?: (error: z.ZodError<z.infer<T>>) => void;
+  onError?: (error: z.$ZodError<z.infer<S>>) => void;
   /**
    * Logger to use
    */
@@ -63,12 +67,7 @@ export type Logger = {
  */
 export type BaseAdapterProps = {
   /**
-   * Prefix key to filter keys by
-   * @deprecated Use regex instead
-   */
-  prefixKey?: string;
-  /**
-   * Regular expression to filter keys by: if used, prefixKey will be ignored
+   * Regular expression to filter keys
    */
   regex?: RegExp;
   /**

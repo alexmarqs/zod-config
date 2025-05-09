@@ -71,7 +71,7 @@ describe("Lenient key matching tests", () => {
         baseUrl: z.string(),
         timeoutMs: z.number(),
         retryCount: z.number(),
-        headers: z.record(z.string()),
+        headers: z.record(z.string(), z.string()),
       }),
       databaseConfig: z.object({
         connectionString: z.string(),
@@ -81,7 +81,7 @@ describe("Lenient key matching tests", () => {
           scriptsPath: z.string(),
         }),
       }),
-      featureFlags: z.record(z.boolean()),
+      featureFlags: z.record(z.string(), z.boolean()),
     });
 
     const config = await loadConfig({
@@ -132,6 +132,132 @@ describe("Lenient key matching tests", () => {
         BETA_FEATURES: false,
         "experimental-api": true,
       },
+    });
+  });
+
+  it("should work with nested transforms", async () => {
+    const ConfigWithTransforms = z.object({
+      apiKey: z.string().transform((val) => val.trim()),
+      maxRetries: z.string().transform((val) => Number.parseInt(val, 10)),
+      isEnabled: z.string().transform((val) => val.toLowerCase() === "true"),
+    });
+
+    const config = await loadConfig({
+      schema: ConfigWithTransforms,
+      keyMatching: "lenient",
+      adapters: [
+        inlineAdapter({
+          "api-key": " secret-key-123 ",
+          MAX_RETRIES: "5",
+          IS_ENABLED: "TRUE",
+        }),
+      ],
+    });
+
+    expect(config).toEqual({
+      apiKey: "secret-key-123",
+      maxRetries: 5,
+      isEnabled: true,
+    });
+  });
+
+  it("should work with top level object transforms", async () => {
+    const ServerConfig = z
+      .object({
+        host: z.string(),
+        port: z.string(),
+      })
+      .transform((data) => ({
+        serverUrl: `http://${data.host}:${data.port}`,
+        host: data.host,
+        port: Number.parseInt(data.port, 10),
+      }));
+
+    const config = await loadConfig({
+      schema: ServerConfig,
+      keyMatching: "lenient",
+      adapters: [
+        inlineAdapter({
+          HOST: "localhost",
+          PORT: "3000",
+        }),
+      ],
+    });
+
+    expect(config).toEqual({
+      serverUrl: "http://localhost:3000",
+      host: "localhost",
+      port: 3000,
+    });
+  });
+
+  it("should work with nested transforms", async () => {
+    const DatabaseConfig = z.object({
+      credentials: z
+        .object({
+          username: z.string(),
+          password: z.string(),
+        })
+        .transform((creds) => ({
+          ...creds,
+          encoded: Buffer.from(`${creds.username}:${creds.password}`).toString("base64"),
+        })),
+      settings: z.object({
+        host: z.preprocess(() => "preprocess-db.example.com", z.string()),
+        port: z.string().transform((val) => Number.parseInt(val, 10)),
+      }),
+    });
+
+    const config = await loadConfig({
+      schema: DatabaseConfig,
+      keyMatching: "lenient",
+      adapters: [
+        inlineAdapter({
+          CREDENTIALS: {
+            "USER-NAME": "admin",
+            PASSWORD: "secret123",
+          },
+          settings: {
+            HOST: "db.example.com",
+            port: "5432",
+          },
+        }),
+      ],
+    });
+
+    expect(config).toEqual({
+      credentials: {
+        username: "admin",
+        password: "secret123",
+        encoded: "YWRtaW46c2VjcmV0MTIz", // Base64 of "admin:secret123"
+      },
+      settings: {
+        host: "preprocess-db.example.com",
+        port: 5432,
+      },
+    });
+  });
+
+  it("should handle async transforms with lenient matching", async () => {
+    const AsyncConfig = z.object({
+      userId: z.string().transform(async (val) => val.toUpperCase()),
+      lastLogin: z.string().transform(async (val) => new Date(val).toISOString()),
+    });
+
+    const config = await loadConfig({
+      schema: AsyncConfig,
+      keyMatching: "lenient",
+      adapters: [
+        inlineAdapter({
+          user_id: "user123",
+          "LAST-LOGIN": "2023-01-01T12:00:00Z",
+        }),
+      ],
+    });
+
+    expect(config).toEqual({
+      userId: "USER123",
+      lastLogin: new Date("2023-01-01T12:00:00Z").toISOString(),
     });
   });
 });
