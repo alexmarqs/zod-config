@@ -10,33 +10,49 @@ export const KEY_MATCHERS: Record<KeyMatching, KeyMatcher> = {
 };
 
 /**
+ * Maximum depth of nested objects to transform.
+ * This is to prevent infinite loops in case of circular references.
+ */
+const MAX_DEPTH = 100;
+
+/**
  * Returns the data, with all the nested keys transformed to match the shape of the schema.
  */
 export function applyKeyMatching(
-  data: object,
-  schema: z.$ZodType<unknown>,
+  data: Record<string, unknown>,
+  shape: z.$ZodShape,
   keyMatcher: keyof typeof KEY_MATCHERS,
-): object {
-  // short circuit if strict or empty data
-  if (keyMatcher === "strict" || !data || Object.keys(data).length === 0) {
+  depth = 0,
+  maxDepth = MAX_DEPTH,
+): Record<string, unknown> {
+  // prevent infinite loops, check for empty data or shape
+  if (
+    depth >= maxDepth ||
+    !data ||
+    !shape ||
+    Object.keys(data).length === 0 ||
+    Object.keys(shape).length === 0
+  ) {
     return data;
   }
 
-  // get the shape of the schema
-  const shape = getShape(schema);
+  const matcher = KEY_MATCHERS[keyMatcher];
 
   // custom key matching
   return Object.fromEntries(
     Object.entries(data).map(([key, value]) => {
-      const matchedKey = Object.keys(shape).find((it) => KEY_MATCHERS[keyMatcher](it, key)) ?? key;
+      const matchedKey = Object.keys(shape).find((it) => matcher(it, key)) ?? key;
+
+      if (!isMergeableObject(value)) {
+        return [matchedKey, value];
+      }
 
       const zodType = shape[matchedKey];
 
-      if (
-        isMergeableObject(value) &&
-        (isZodObject(zodType) || isZodPipeLeftObject(zodType) || isZodPipeRightObject(zodType))
-      ) {
-        return [matchedKey, applyKeyMatching(value, zodType, keyMatcher)];
+      const childShape = getShape(zodType);
+
+      if (childShape) {
+        return [matchedKey, applyKeyMatching(value, childShape, keyMatcher, depth + 1)];
       }
 
       return [matchedKey, value];
@@ -44,15 +60,23 @@ export function applyKeyMatching(
   );
 }
 
+function alphaNumericalLower(key: string) {
+  return key.replace(/[^a-z0-9]/gi, "").toLowerCase();
+}
+
 function isZodObject(input: unknown): input is z.$ZodObject {
   return input instanceof z.$ZodObject;
 }
 
-function isZodPipeLeftObject(input: unknown): input is z.$ZodPipe<z.$ZodObject, z.$ZodTransform> {
+function isZodPipeTransformObject(
+  input: unknown,
+): input is z.$ZodPipe<z.$ZodObject, z.$ZodTransform> {
   return input instanceof z.$ZodPipe && isZodObject(input._zod.def.in);
 }
 
-function isZodPipeRightObject(input: unknown): input is z.$ZodPipe<z.$ZodTransform, z.$ZodObject> {
+function isZodPipePreprocessObject(
+  input: unknown,
+): input is z.$ZodPipe<z.$ZodTransform, z.$ZodObject> {
   return input instanceof z.$ZodPipe && isZodObject(input._zod.def.out);
 }
 
@@ -60,22 +84,9 @@ function compareBy<T, R>(selector: (it: T) => R): (a: T, b: T) => boolean {
   return (a: T, b: T) => selector(a) === selector(b);
 }
 
-function alphaNumericalLower(key: string) {
-  return key.replace(/[^a-z0-9]/gi, "").toLowerCase();
-}
-
-function getShape(schema: z.$ZodType<unknown>) {
-  if (isZodObject(schema)) {
-    return schema._zod.def.shape;
-  }
-
-  if (isZodPipeLeftObject(schema)) {
-    return schema._zod.def.in._zod.def.shape;
-  }
-
-  if (isZodPipeRightObject(schema)) {
-    return schema._zod.def.out._zod.def.shape;
-  }
-
-  throw new Error("Not supported schema to get shape from");
+export function getShape(schema: z.$ZodType<unknown>): z.$ZodShape | undefined {
+  if (isZodObject(schema)) return schema._zod.def.shape;
+  if (isZodPipeTransformObject(schema)) return schema._zod.def.in._zod.def.shape;
+  if (isZodPipePreprocessObject(schema)) return schema._zod.def.out._zod.def.shape;
+  return undefined;
 }

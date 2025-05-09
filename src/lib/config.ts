@@ -1,6 +1,6 @@
 import type * as z from "@zod/core";
 import type { Adapter, Config, KeyMatching, Logger } from "../types";
-import { deepMerge, applyKeyMatching } from "./utils";
+import { applyKeyMatching, deepMerge, getShape } from "./utils";
 import { safeParseAsync } from "@zod/core";
 
 /**
@@ -12,7 +12,7 @@ import { safeParseAsync } from "@zod/core";
  * @param config
  * @returns parsed config
  */
-export const loadConfig = async <T extends z.$ZodType<object>>(
+export const loadConfig = async <T extends z.$ZodType<Record<string, unknown>>>(
   config: Config<T>,
 ): Promise<z.infer<T>> => {
   const { schema, adapters, onError, onSuccess, keyMatching } = config;
@@ -50,7 +50,7 @@ export const loadConfig = async <T extends z.$ZodType<object>>(
 const getDataFromAdapters = async (
   adapters: Adapter[],
   logger: Logger,
-  schema: z.$ZodType<object>,
+  schema: z.$ZodType<Record<string, unknown>>,
   keyMatching: KeyMatching,
 ) => {
   // If no adapters are provided, we will read from process.env
@@ -63,7 +63,18 @@ const getDataFromAdapters = async (
     adapters.map(async (adapter) => {
       try {
         const data = await adapter.read();
-        return applyKeyMatching(data, schema, keyMatching);
+
+        if (keyMatching === "strict") {
+          return data;
+        }
+
+        const shape = getShape(schema);
+
+        if (!shape) {
+          return data;
+        }
+
+        return applyKeyMatching(data, shape, keyMatching);
       } catch (error) {
         if (!adapter.silent) {
           logger.warn(
