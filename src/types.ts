@@ -1,11 +1,26 @@
-import type * as z from "@zod/core";
+import type * as z3 from "zod/v3";
+import type * as z from "zod/v4/core";
+
+export type SchemaConfig = z3.AnyZodObject | z.$ZodType<Record<string, unknown>>;
+
+export type ShapeConfig = z3.ZodRawShape | z.$ZodShape;
+
+export type DataConfig<S extends SchemaConfig> = S extends z3.ZodType<infer T>
+  ? T
+  : S extends z.$ZodType<infer U>
+    ? U
+    : never;
+
+export type ErrorConfig<S extends SchemaConfig> = S extends z3.ZodType<infer T>
+  ? z3.ZodError<T>
+  : S extends z.$ZodType<infer U>
+    ? z.$ZodError<U>
+    : never;
 
 /**
  * Adapter type
  */
-export type Adapter<
-  D extends z.$ZodType<Record<string, unknown>> = z.$ZodType<Record<string, unknown>>,
-> = {
+export type Adapter<D extends SchemaConfig = SchemaConfig> = {
   /**
    * Name of the adapter
    */
@@ -13,7 +28,7 @@ export type Adapter<
   /**
    * Read the config
    */
-  read: () => Promise<z.infer<D>>;
+  read: () => Promise<DataConfig<D>>;
   /**
    * Whether to suppress errors
    */
@@ -23,9 +38,7 @@ export type Adapter<
 /**
  * Config type
  */
-export type Config<
-  S extends z.$ZodType<Record<string, unknown>> = z.$ZodType<Record<string, unknown>>,
-> = {
+export type Config<S extends SchemaConfig = SchemaConfig> = {
   /**
    * Schema to validate the config against
    */
@@ -37,11 +50,11 @@ export type Config<
   /**
    * Function to call on success
    */
-  onSuccess?: (data: z.infer<S>) => void;
+  onSuccess?: (data: DataConfig<S>) => void;
   /**
    * Function to call on error
    */
-  onError?: (error: z.$ZodError<z.infer<S>>) => void;
+  onError?: (error: ErrorConfig<S>) => void;
   /**
    * Logger to use
    */

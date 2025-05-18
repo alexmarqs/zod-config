@@ -1,6 +1,6 @@
 import { rm, writeFile, mkdir } from "node:fs/promises";
 import { afterEach, vi, describe, it, beforeEach, beforeAll, afterAll, expect } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 import { directoryAdapter } from "@/lib/adapters/directory-adapter";
 import { scriptAdapter } from "@/lib/adapters/script-adapter";

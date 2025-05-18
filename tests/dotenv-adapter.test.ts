@@ -4,7 +4,7 @@ import type { Logger } from "@/types";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 describe("dotenv adapter", () => {
   const testFilePath = path.join(__dirname, ".env.test");
@@ -126,7 +126,7 @@ describe("dotenv adapter", () => {
           path: testFilePath,
         }),
       }),
-    ).rejects.toThrowError(z.ZodError);
+    ).rejects.toThrowError(z.core.$ZodError);
   });
   it("should log error from adapter errors + throw zod error when schema is invalid", async () => {
     // given
@@ -145,8 +145,7 @@ describe("dotenv adapter", () => {
           path: ".env.not-exist",
         }),
       }),
-    ).rejects.toThrowError(z.ZodError);
-
+    ).rejects.toThrowError(z.core.$ZodError);
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       "Cannot read data from dotenv adapter: Failed to parse / read .env file at .env.not-exist: ENOENT: no such file or directory, open '.env.not-exist'",
     );
@@ -174,8 +173,7 @@ describe("dotenv adapter", () => {
         }),
         logger: customLogger,
       }),
-    ).rejects.toThrowError(z.ZodError);
-
+    ).rejects.toThrowError(z.core.$ZodError);
     expect(customLoggerWarnSpy).toHaveBeenCalledWith(
       "Cannot read data from dotenv adapter: Failed to parse / read .env file at .env.not-exist: ENOENT: no such file or directory, open '.env.not-exist'",
     );
@@ -199,8 +197,7 @@ describe("dotenv adapter", () => {
           silent: true,
         }),
       }),
-    ).rejects.toThrowError(z.ZodError);
-
+    ).rejects.toThrowError(z.core.$ZodError);
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 });

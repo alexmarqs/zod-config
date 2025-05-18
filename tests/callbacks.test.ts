@@ -1,7 +1,7 @@
 import { loadConfig } from "@/lib/config";
 import {} from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 describe("callbacks", () => {
   it("should call onError when schema is invalid", async () => {

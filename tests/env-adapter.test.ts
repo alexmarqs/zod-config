@@ -2,7 +2,7 @@ import { envAdapter } from "@/lib/adapters/env-adapter";
 import { loadConfig } from "@/lib/config";
 import {} from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 describe("env adapter", () => {
   it("should return parsed data when schema is valid", async () => {

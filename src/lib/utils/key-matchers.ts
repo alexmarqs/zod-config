@@ -1,6 +1,7 @@
-import * as z from "@zod/core";
+import { type AnyZodObject, ZodObject, type ZodRawShape, type ZodTypeAny } from "zod/v3";
+import * as z from "zod/v4/core";
 import { isMergeableObject } from "@/lib/utils/is-mergeable-object";
-import type { KeyMatching } from "@/types";
+import type { KeyMatching, ShapeConfig } from "@/types";
 
 type KeyMatcher = (valueKey: string, shapeKey: string) => boolean;
 
@@ -20,7 +21,7 @@ const MAX_DEPTH = 100;
  */
 export function applyKeyMatching(
   data: Record<string, unknown>,
-  shape: z.$ZodShape,
+  shape: ShapeConfig,
   keyMatcher: keyof typeof KEY_MATCHERS,
   depth = 0,
   maxDepth = MAX_DEPTH,
@@ -49,7 +50,7 @@ export function applyKeyMatching(
 
       const zodType = shape[matchedKey];
 
-      const childShape = getShape(zodType);
+      const childShape = getSchemaShape(zodType);
 
       if (childShape) {
         return [matchedKey, applyKeyMatching(value, childShape, keyMatcher, depth + 1)];
@@ -66,6 +67,10 @@ function alphaNumericalLower(key: string) {
 
 function isZodObject(input: unknown): input is z.$ZodObject {
   return input instanceof z.$ZodObject;
+}
+
+function isZodObjectV3(input: unknown): input is AnyZodObject {
+  return input instanceof ZodObject;
 }
 
 function isZodPipeTransformObject(
@@ -90,3 +95,20 @@ export function getShape(schema: z.$ZodType<unknown>): z.$ZodShape | undefined {
   if (isZodPipePreprocessObject(schema)) return schema._zod.def.out._zod.def.shape;
   return undefined;
 }
+
+export function getShapeV3(schema: ZodTypeAny): ZodRawShape | undefined {
+  if (isZodObjectV3(schema)) return schema.shape;
+  return undefined;
+}
+
+export const getSchemaShape = (schema: z.$ZodType<unknown> | ZodTypeAny | undefined) => {
+  if (!schema) {
+    return undefined;
+  }
+
+  if ("_zod" in schema) {
+    return getShape(schema);
+  }
+
+  return getShapeV3(schema);
+};

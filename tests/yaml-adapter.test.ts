@@ -4,7 +4,7 @@ import type { Logger } from "@/types";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 import YAML from "yaml";
 
 describe("yaml adapter", () => {
@@ -53,7 +53,7 @@ describe("yaml adapter", () => {
           path: testFilePath,
         }),
       }),
-    ).rejects.toThrowError(z.ZodError);
+    ).rejects.toThrowError(z.core.$ZodError);
   });
   it("should log error from adapter errors + throw zod error when schema is invalid", async () => {
     // given
@@ -72,7 +72,7 @@ describe("yaml adapter", () => {
           path: "not-exist.yaml",
         }),
       }),
-    ).rejects.toThrowError(z.ZodError);
+    ).rejects.toThrowError(z.core.$ZodError);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       "Cannot read data from yaml adapter: Failed to parse / read YAML file at not-exist.yaml: ENOENT: no such file or directory, open 'not-exist.yaml'",
@@ -101,7 +101,7 @@ describe("yaml adapter", () => {
         }),
         logger: customLogger,
       }),
-    ).rejects.toThrowError(z.ZodError);
+    ).rejects.toThrowError(z.core.$ZodError);
 
     expect(customLoggerWarnSpy).toHaveBeenCalledWith(
       "Cannot read data from yaml adapter: Failed to parse / read YAML file at not-exist.yaml: ENOENT: no such file or directory, open 'not-exist.yaml'",
@@ -126,7 +126,7 @@ describe("yaml adapter", () => {
           silent: true,
         }),
       }),
-    ).rejects.toThrowError(z.ZodError);
+    ).rejects.toThrowError(z.core.$ZodError);
 
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });

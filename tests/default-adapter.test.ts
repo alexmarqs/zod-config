@@ -1,6 +1,6 @@
 import { loadConfig } from "@/lib/config";
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 describe("default adapter", () => {
   it("should return parsed data when schema is valid", async () => {
@@ -41,6 +41,6 @@ describe("default adapter", () => {
       loadConfig({
         schema,
       }),
-    ).rejects.toThrowError(z.ZodError);
+    ).rejects.toThrowError(z.core.$ZodError);
   });
 });

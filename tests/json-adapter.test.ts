@@ -4,7 +4,7 @@ import type { Logger } from "@/types";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 describe("json adapter", () => {
   const testFilePath = path.join(__dirname, "test-json-adapter.json");
@@ -52,7 +52,7 @@ describe("json adapter", () => {
           path: testFilePath,
         }),
       }),
-    ).rejects.toThrowError(z.ZodError);
+    ).rejects.toThrowError(z.core.$ZodError);
   });
   it("should log error from adapter errors + throw zod error when schema is invalid", async () => {
     // given
@@ -71,8 +71,7 @@ describe("json adapter", () => {
           path: "not-exist.json",
         }),
       }),
-    ).rejects.toThrowError(z.ZodError);
-
+    ).rejects.toThrowError(z.core.$ZodError);
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       "Cannot read data from json adapter: Failed to parse / read JSON file at not-exist.json: ENOENT: no such file or directory, open 'not-exist.json'",
     );
@@ -100,8 +99,7 @@ describe("json adapter", () => {
         }),
         logger: customLogger,
       }),
-    ).rejects.toThrowError(z.ZodError);
-
+    ).rejects.toThrowError(z.core.$ZodError);
     expect(customLoggerWarnSpy).toHaveBeenCalledWith(
       "Cannot read data from json adapter: Failed to parse / read JSON file at not-exist.json: ENOENT: no such file or directory, open 'not-exist.json'",
     );
@@ -125,8 +123,7 @@ describe("json adapter", () => {
           silent: true,
         }),
       }),
-    ).rejects.toThrowError(z.ZodError);
-
+    ).rejects.toThrowError(z.core.$ZodError);
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 });

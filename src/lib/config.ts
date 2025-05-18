@@ -1,7 +1,14 @@
-import type * as z from "@zod/core";
-import type { Adapter, Config, KeyMatching, Logger } from "../types";
-import { applyKeyMatching, deepMerge, getShape } from "./utils";
-import { safeParseAsync } from "@zod/core";
+import type {
+  Adapter,
+  Config,
+  DataConfig,
+  ErrorConfig,
+  KeyMatching,
+  Logger,
+  SchemaConfig,
+} from "../types";
+import { applyKeyMatching, deepMerge, getSchemaShape } from "./utils";
+import { safeParseAsync } from "zod/v4/core";
 
 /**
  * Load config from adapters.
@@ -12,9 +19,9 @@ import { safeParseAsync } from "@zod/core";
  * @param config
  * @returns parsed config
  */
-export const loadConfig = async <T extends z.$ZodType<Record<string, unknown>>>(
+export const loadConfig = async <T extends SchemaConfig>(
   config: Config<T>,
-): Promise<z.infer<T>> => {
+): Promise<DataConfig<T>> => {
   const { schema, adapters, onError, onSuccess, keyMatching } = config;
   const logger = config.logger ?? console;
 
@@ -26,31 +33,38 @@ export const loadConfig = async <T extends z.$ZodType<Record<string, unknown>>>(
     keyMatching ?? "strict",
   );
 
-  // Validate data against schema
-  const result = await safeParseAsync(schema, data);
-  if (!result.success) {
-    // If onError callback is provided, we will call it with the error
-    if (onError) {
-      onError(result.error);
+  let result = undefined;
 
-      return {};
+  // Validate data against schema
+  if ("_zod" in schema) {
+    // v4
+    result = await safeParseAsync(schema, data);
+  } else {
+    // v3
+    result = await schema.safeParseAsync(data);
+  }
+
+  if (!result.success) {
+    if (onError) {
+      onError(result.error as ErrorConfig<T>);
+
+      return {} as DataConfig<T>;
     }
 
     throw result.error;
   }
 
-  // If onSuccess callback is provided, we will call it with the parsed data
   if (onSuccess) {
-    onSuccess(result.data);
+    onSuccess(result.data as DataConfig<T>);
   }
 
-  return result.data;
+  return result.data as DataConfig<T>;
 };
 
 const getDataFromAdapters = async (
   adapters: Adapter[],
   logger: Logger,
-  schema: z.$ZodType<Record<string, unknown>>,
+  schema: SchemaConfig,
   keyMatching: KeyMatching,
 ) => {
   // If no adapters are provided, we will read from process.env
@@ -68,7 +82,7 @@ const getDataFromAdapters = async (
           return data;
         }
 
-        const shape = getShape(schema);
+        const shape = getSchemaShape(schema);
 
         if (!shape) {
           return data;

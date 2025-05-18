@@ -3,7 +3,7 @@ import { loadConfig } from "@/lib/config";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 describe.each([
   {
