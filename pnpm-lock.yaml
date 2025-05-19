@@ -33,8 +33,8 @@ devDependencies:
     specifier: 2.7.0
     version: 2.7.0
   zod:
-    specifier: next
-    version: 3.25.0-beta.20250519T051133
+    specifier: ^3.25.0
+    version: 3.25.3
 
 packages:
 
@@ -3084,6 +3084,6 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /zod@3.25.0-beta.20250519T051133:
-    resolution: {integrity: sha512-kiLlHJfDDF2JJ2RcCvxhysRDnrSEHtOuHMLtG+PESvLEScEujB8ccvZ6KgvBxS1ifwpjlL/hkjqwvDzKKoryjQ==}
+  /zod@3.25.3:
+    resolution: {integrity: sha512-VGZqnyYNrl8JpEJRZaFPqeVNIuqgXNu4cXZ5cOb6zEUO1OxKbRnWB4UdDIXMmiERWncs0yDQukssHov8JUxykQ==}
     dev: true
