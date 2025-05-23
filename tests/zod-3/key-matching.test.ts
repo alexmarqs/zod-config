@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 import { loadConfig } from "@/index";
+import { inlineAdapter } from "../fixtures/utils-fixtures";
 
 describe("Lenient key matching tests", () => {
   it("should perform lenient matching", async () => {
@@ -71,7 +72,7 @@ describe("Lenient key matching tests", () => {
         baseUrl: z.string(),
         timeoutMs: z.number(),
         retryCount: z.number(),
-        headers: z.record(z.string()),
+        headers: z.record(z.string(), z.string()),
       }),
       databaseConfig: z.object({
         connectionString: z.string(),
@@ -81,7 +82,7 @@ describe("Lenient key matching tests", () => {
           scriptsPath: z.string(),
         }),
       }),
-      featureFlags: z.record(z.boolean()),
+      featureFlags: z.record(z.string(), z.boolean()),
     });
 
     const config = await loadConfig({
@@ -134,8 +135,53 @@ describe("Lenient key matching tests", () => {
       },
     });
   });
-});
 
-function inlineAdapter(source: Record<string, unknown>) {
-  return { name: "inline", read: async () => source };
-}
+  it("should work with nested transforms", async () => {
+    const ConfigWithTransforms = z.object({
+      apiKey: z.string().transform((val) => val.trim()),
+      maxRetries: z.string().transform((val) => Number.parseInt(val, 10)),
+      isEnabled: z.string().transform((val) => val.toLowerCase() === "true"),
+    });
+
+    const config = await loadConfig({
+      schema: ConfigWithTransforms,
+      keyMatching: "lenient",
+      adapters: [
+        inlineAdapter({
+          "api-key": " secret-key-123 ",
+          MAX_RETRIES: "5",
+          IS_ENABLED: "TRUE",
+        }),
+      ],
+    });
+
+    expect(config).toEqual({
+      apiKey: "secret-key-123",
+      maxRetries: 5,
+      isEnabled: true,
+    });
+  });
+
+  it("should handle async transforms with lenient matching", async () => {
+    const AsyncConfig = z.object({
+      userId: z.string().transform(async (val) => val.toUpperCase()),
+      lastLogin: z.string().transform(async (val) => new Date(val).toISOString()),
+    });
+
+    const config = await loadConfig({
+      schema: AsyncConfig,
+      keyMatching: "lenient",
+      adapters: [
+        inlineAdapter({
+          user_id: "user123",
+          "LAST-LOGIN": "2023-01-01T12:00:00Z",
+        }),
+      ],
+    });
+
+    expect(config).toEqual({
+      userId: "USER123",
+      lastLogin: new Date("2023-01-01T12:00:00Z").toISOString(),
+    });
+  });
+});

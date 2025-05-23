@@ -5,7 +5,7 @@ import type { Logger } from "@/types";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v3";
 
 describe("multiple adapters", () => {
   const testFilePath = path.join(__dirname, "test-multiple-adapters.json");

@@ -1,17 +1,16 @@
-import { yamlAdapter } from "@/lib/adapters/yaml-adapter";
+import { dotEnvAdapter } from "@/lib/adapters/dotenv-adapter";
 import { loadConfig } from "@/lib/config";
 import type { Logger } from "@/types";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
-import YAML from "yaml";
+import { z } from "zod/v3";
 
-describe("yaml adapter", () => {
-  const testFilePath = path.join(__dirname, "test-yaml-adapter.yaml");
+describe("dotenv adapter", () => {
+  const testFilePath = path.join(__dirname, ".env.test");
 
   beforeAll(async () => {
-    await writeFile(testFilePath, YAML.stringify({ HOST: "localhost", PORT: "3000" }));
+    await writeFile(testFilePath, "HOST=localhost\nPORT=3000");
   });
 
   afterAll(async () => {
@@ -28,7 +27,7 @@ describe("yaml adapter", () => {
     // when
     const config = await loadConfig({
       schema,
-      adapters: yamlAdapter({
+      adapters: dotEnvAdapter({
         path: testFilePath,
       }),
     });
@@ -36,6 +35,27 @@ describe("yaml adapter", () => {
     // then
     expect(config.HOST).toBe("localhost");
     expect(config.PORT).toBe("3000");
+  });
+
+  it("should return parsed data when schema is valid with regex key", async () => {
+    // given
+    const schema = z.object({
+      HOST: z.string(),
+    });
+
+    // when
+    const config = await loadConfig({
+      schema,
+      adapters: dotEnvAdapter({
+        path: testFilePath,
+        regex: /^HOST$/,
+      }),
+    });
+
+    // then
+    expect(config).toEqual({
+      HOST: "localhost",
+    });
   });
   it("should throw zod error when schema is invalid", async () => {
     // given
@@ -49,7 +69,7 @@ describe("yaml adapter", () => {
     expect(
       loadConfig({
         schema,
-        adapters: yamlAdapter({
+        adapters: dotEnvAdapter({
           path: testFilePath,
         }),
       }),
@@ -68,14 +88,13 @@ describe("yaml adapter", () => {
     await expect(
       loadConfig({
         schema,
-        adapters: yamlAdapter({
-          path: "not-exist.yaml",
+        adapters: dotEnvAdapter({
+          path: ".env.not-exist",
         }),
       }),
     ).rejects.toThrowError(z.ZodError);
-
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Cannot read data from yaml adapter: Failed to parse / read YAML file at not-exist.yaml: ENOENT: no such file or directory, open 'not-exist.yaml'",
+      "Cannot read data from dotenv adapter: Failed to parse / read .env file at .env.not-exist: ENOENT: no such file or directory, open '.env.not-exist'",
     );
   });
   it("should log error from adapter errors (custom logger) + throw zod error when schema is invalid", async () => {
@@ -96,15 +115,14 @@ describe("yaml adapter", () => {
     await expect(
       loadConfig({
         schema,
-        adapters: yamlAdapter({
-          path: "not-exist.yaml",
+        adapters: dotEnvAdapter({
+          path: ".env.not-exist",
         }),
         logger: customLogger,
       }),
     ).rejects.toThrowError(z.ZodError);
-
     expect(customLoggerWarnSpy).toHaveBeenCalledWith(
-      "Cannot read data from yaml adapter: Failed to parse / read YAML file at not-exist.yaml: ENOENT: no such file or directory, open 'not-exist.yaml'",
+      "Cannot read data from dotenv adapter: Failed to parse / read .env file at .env.not-exist: ENOENT: no such file or directory, open '.env.not-exist'",
     );
   });
   it("throw zod error when schema is invalid but not log error from adapter errors when silent is true", async () => {
@@ -121,13 +139,12 @@ describe("yaml adapter", () => {
     expect(
       loadConfig({
         schema,
-        adapters: yamlAdapter({
-          path: "not-exist.yaml",
+        adapters: dotEnvAdapter({
+          path: ".env.not-exist",
           silent: true,
         }),
       }),
     ).rejects.toThrowError(z.ZodError);
-
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 });

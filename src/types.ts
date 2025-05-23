@@ -1,9 +1,42 @@
-import type { z } from "zod";
+import type * as z3 from "zod/v3";
+import type * as z from "zod/v4/core";
+
+/*
+  This is a type that represents the schema of the config.
+  It can be a zod v3 schema or a zod v4 schema.
+*/
+export type SchemaConfig = z3.AnyZodObject | z.$ZodType<Record<string, unknown>>;
+
+/*
+  This is a type that represents the shape of the config.
+  It can be a zod v3 shape or a zod v4 shape.
+*/
+export type ShapeConfig = z3.ZodRawShape | z.$ZodShape;
+
+/*
+  This is a type that represents the data of the config.
+  It can be a zod v3 data or a zod v4 data.
+*/
+export type InferredDataConfig<S extends SchemaConfig> = S extends z3.ZodType<infer T>
+  ? T
+  : S extends z.$ZodType<infer U>
+    ? U
+    : never;
+
+/*
+  This is a type that represents the error of the config.
+  It can be a zod v3 error or a zod v4 error.
+*/
+export type InferredErrorConfig<S extends SchemaConfig> = S extends z3.ZodType<infer T>
+  ? z3.ZodError<T>
+  : S extends z.$ZodType<infer U>
+    ? z.$ZodError<U>
+    : never;
 
 /**
  * Adapter type
  */
-export type Adapter<T extends z.AnyZodObject = z.AnyZodObject> = {
+export type Adapter<D extends SchemaConfig = SchemaConfig> = {
   /**
    * Name of the adapter
    */
@@ -11,7 +44,7 @@ export type Adapter<T extends z.AnyZodObject = z.AnyZodObject> = {
   /**
    * Read the config
    */
-  read: () => Promise<z.infer<T>>;
+  read: () => Promise<InferredDataConfig<D>>;
   /**
    * Whether to suppress errors
    */
@@ -21,11 +54,11 @@ export type Adapter<T extends z.AnyZodObject = z.AnyZodObject> = {
 /**
  * Config type
  */
-export type Config<T extends z.AnyZodObject = z.AnyZodObject> = {
+export type Config<S extends SchemaConfig = SchemaConfig> = {
   /**
    * Schema to validate the config against
    */
-  schema: T;
+  schema: S;
   /**
    * Adapters to use
    */
@@ -33,11 +66,11 @@ export type Config<T extends z.AnyZodObject = z.AnyZodObject> = {
   /**
    * Function to call on success
    */
-  onSuccess?: (data: z.infer<T>) => void;
+  onSuccess?: (data: InferredDataConfig<S>) => void;
   /**
    * Function to call on error
    */
-  onError?: (error: z.ZodError<z.infer<T>>) => void;
+  onError?: (error: InferredErrorConfig<S>) => void;
   /**
    * Logger to use
    */
@@ -63,12 +96,7 @@ export type Logger = {
  */
 export type BaseAdapterProps = {
   /**
-   * Prefix key to filter keys by
-   * @deprecated Use regex instead
-   */
-  prefixKey?: string;
-  /**
-   * Regular expression to filter keys by: if used, prefixKey will be ignored
+   * Regular expression to filter keys
    */
   regex?: RegExp;
   /**

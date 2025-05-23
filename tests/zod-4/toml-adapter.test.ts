@@ -1,16 +1,35 @@
-import { jsonAdapter } from "@/lib/adapters/json-adapter";
+import { tomlAdapter } from "@/lib/adapters/toml-adapter";
 import { loadConfig } from "@/lib/config";
 import type { Logger } from "@/types";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 
-describe("json adapter", () => {
-  const testFilePath = path.join(__dirname, "test-json-adapter.json");
+describe("toml adapter", () => {
+  const testFilePath = path.join(__dirname, "test-toml-adapter.toml");
 
   beforeAll(async () => {
-    await writeFile(testFilePath, JSON.stringify({ HOST: "localhost", PORT: "3000" }));
+    await writeFile(
+      testFilePath,
+      `
+name = "my-worker"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+API_KEY = "secret123"
+DEBUG = true
+
+[[kv_namespaces]]
+binding = "MY_KV"
+id = "xxx111xxx"
+preview_id = "xxx222xxx"
+
+[triggers]
+crons = ["0 0 * * *"]
+`,
+    );
   });
 
   afterAll(async () => {
@@ -20,21 +39,47 @@ describe("json adapter", () => {
   it("should return parsed data when schema is valid", async () => {
     // given
     const schema = z.object({
-      HOST: z.string(),
-      PORT: z.string().regex(/^\d+$/),
+      name: z.string(),
+      main: z.string(),
+      compatibility_date: z.string(),
+      vars: z.object({
+        API_KEY: z.string(),
+        DEBUG: z.boolean(),
+      }),
+      kv_namespaces: z.array(
+        z.object({
+          binding: z.string(),
+          id: z.string(),
+          preview_id: z.string(),
+        }),
+      ),
+      triggers: z.object({
+        crons: z.array(z.string()),
+      }),
     });
 
     // when
     const config = await loadConfig({
       schema,
-      adapters: jsonAdapter({
+      adapters: tomlAdapter({
         path: testFilePath,
       }),
     });
 
     // then
-    expect(config.HOST).toBe("localhost");
-    expect(config.PORT).toBe("3000");
+    expect(config.name).toBe("my-worker");
+    expect(config.main).toBe("src/index.ts");
+    expect(config.compatibility_date).toBe("2024-01-01");
+    expect(config.vars.API_KEY).toBe("secret123");
+    expect(config.vars.DEBUG).toBe(true);
+    expect(config.kv_namespaces).toEqual([
+      {
+        binding: "MY_KV",
+        id: "xxx111xxx",
+        preview_id: "xxx222xxx",
+      },
+    ]);
+    expect(config.triggers.crons).toEqual(["0 0 * * *"]);
   });
   it("should throw zod error when schema is invalid", async () => {
     // given
@@ -48,11 +93,11 @@ describe("json adapter", () => {
     expect(
       loadConfig({
         schema,
-        adapters: jsonAdapter({
+        adapters: tomlAdapter({
           path: testFilePath,
         }),
       }),
-    ).rejects.toThrowError(z.ZodError);
+    ).rejects.toThrowError(z.core.$ZodError);
   });
   it("should log error from adapter errors + throw zod error when schema is invalid", async () => {
     // given
@@ -67,14 +112,14 @@ describe("json adapter", () => {
     await expect(
       loadConfig({
         schema,
-        adapters: jsonAdapter({
-          path: "not-exist.json",
+        adapters: tomlAdapter({
+          path: "not-exist.toml",
         }),
       }),
-    ).rejects.toThrowError(z.ZodError);
+    ).rejects.toThrowError(z.core.$ZodError);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Cannot read data from json adapter: Failed to parse / read JSON file at not-exist.json: ENOENT: no such file or directory, open 'not-exist.json'",
+      "Cannot read data from toml adapter: Failed to parse / read TOML file at not-exist.toml: ENOENT: no such file or directory, open 'not-exist.toml'",
     );
   });
   it("should log error from adapter errors (custom logger) + throw zod error when schema is invalid", async () => {
@@ -95,15 +140,15 @@ describe("json adapter", () => {
     await expect(
       loadConfig({
         schema,
-        adapters: jsonAdapter({
-          path: "not-exist.json",
+        adapters: tomlAdapter({
+          path: "not-exist.toml",
         }),
         logger: customLogger,
       }),
-    ).rejects.toThrowError(z.ZodError);
+    ).rejects.toThrowError(z.core.$ZodError);
 
     expect(customLoggerWarnSpy).toHaveBeenCalledWith(
-      "Cannot read data from json adapter: Failed to parse / read JSON file at not-exist.json: ENOENT: no such file or directory, open 'not-exist.json'",
+      "Cannot read data from toml adapter: Failed to parse / read TOML file at not-exist.toml: ENOENT: no such file or directory, open 'not-exist.toml'",
     );
   });
   it("throw zod error when schema is invalid but not log error from adapter errors when silent is true", async () => {
@@ -120,12 +165,12 @@ describe("json adapter", () => {
     expect(
       loadConfig({
         schema,
-        adapters: jsonAdapter({
-          path: "not-exist.json",
+        adapters: tomlAdapter({
+          path: "not-exist.toml",
           silent: true,
         }),
       }),
-    ).rejects.toThrowError(z.ZodError);
+    ).rejects.toThrowError(z.core.$ZodError);
 
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });

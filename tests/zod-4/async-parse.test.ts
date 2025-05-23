@@ -1,6 +1,6 @@
 import { loadConfig } from "@/lib/config";
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 describe("Async schema parsing", () => {
   it("should parse correclty the schema", async () => {

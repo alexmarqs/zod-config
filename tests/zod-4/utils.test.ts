@@ -1,4 +1,4 @@
-import { deepMerge, filterByPrefixKey, filterByRegex, isMergeableObject } from "../src/lib/utils";
+import { deepMerge, filterByRegex, isMergeableObject } from "../../src/lib/utils";
 import { describe, it, expect } from "vitest";
 
 describe("filterByRegex", () => {
@@ -66,54 +66,6 @@ describe("filterByRegex", () => {
 
     // when
     const filteredData = filterByRegex(data, regex);
-
-    // then
-    expect(filteredData).toEqual({});
-  });
-});
-
-describe("filterByPrefixKey", () => {
-  it("should return an object with keys that start with the prefix", () => {
-    // given
-    const data = {
-      APP_NAME: "my-app",
-      TEST_NAME: "my-test",
-    };
-    const prefix = "TEST_";
-    const expected = {
-      TEST_NAME: "my-test",
-    };
-
-    // when
-    const filteredData = filterByPrefixKey(data, prefix);
-
-    // then
-    expect(filteredData).toEqual(expected);
-  });
-
-  it("should return an empty object if no keys start with the prefix", () => {
-    // given
-    const data = {
-      APP_NAME: "my-app",
-      TEST_NAME: "my-test",
-    };
-    const prefix = "NOTHING_";
-
-    // when
-    const filteredData = filterByPrefixKey(data, prefix);
-
-    // then
-
-    expect(filteredData).toEqual({});
-  });
-
-  it("should return an empty object if the input object is empty", () => {
-    // given
-    const data = {};
-    const prefix = "NOTHING_";
-
-    // when
-    const filteredData = filterByPrefixKey(data, prefix);
 
     // then
     expect(filteredData).toEqual({});

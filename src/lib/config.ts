@@ -1,6 +1,14 @@
-import type { AnyZodObject, z } from "zod";
-import type { Adapter, Config, KeyMatching, Logger } from "../types";
-import { deepMerge, applyKeyMatching } from "./utils";
+import type {
+  Adapter,
+  Config,
+  InferredDataConfig,
+  InferredErrorConfig,
+  KeyMatching,
+  Logger,
+  SchemaConfig,
+} from "../types";
+import { applyKeyMatching, deepMerge, getSchemaShape } from "./utils";
+import { safeParseAsync } from "zod/v4/core";
 
 /**
  * Load config from adapters.
@@ -11,46 +19,52 @@ import { deepMerge, applyKeyMatching } from "./utils";
  * @param config
  * @returns parsed config
  */
-export const loadConfig = async <T extends AnyZodObject>(
+export const loadConfig = async <T extends SchemaConfig>(
   config: Config<T>,
-): Promise<z.infer<T>> => {
-  const { schema, adapters, onError, onSuccess } = config;
+): Promise<InferredDataConfig<T>> => {
+  const { schema, adapters, onError, onSuccess, keyMatching } = config;
   const logger = config.logger ?? console;
 
   // Read data from adapters
   const data = await getDataFromAdapters(
     Array.isArray(adapters) ? adapters : adapters ? [adapters] : [],
     logger,
-    config.schema,
-    config.keyMatching ?? "strict",
+    schema,
+    keyMatching ?? "strict",
   );
 
+  let result = undefined;
+
   // Validate data against schema
-  const result = await schema.safeParseAsync(data);
+  if ("_zod" in schema) {
+    // v4
+    result = await safeParseAsync(schema, data);
+  } else {
+    // v3
+    result = await schema.safeParseAsync(data);
+  }
 
   if (!result.success) {
-    // If onError callback is provided, we will call it with the error
     if (onError) {
-      onError(result.error);
+      onError(result.error as InferredErrorConfig<T>);
 
-      return {};
+      return {} as InferredDataConfig<T>;
     }
 
     throw result.error;
   }
 
-  // If onSuccess callback is provided, we will call it with the parsed data
   if (onSuccess) {
-    onSuccess(result.data);
+    onSuccess(result.data as InferredDataConfig<T>);
   }
 
-  return result.data;
+  return result.data as InferredDataConfig<T>;
 };
 
 const getDataFromAdapters = async (
   adapters: Adapter[],
   logger: Logger,
-  schema: AnyZodObject,
+  schema: SchemaConfig,
   keyMatching: KeyMatching,
 ) => {
   // If no adapters are provided, we will read from process.env
@@ -64,7 +78,17 @@ const getDataFromAdapters = async (
       try {
         const data = await adapter.read();
 
-        return applyKeyMatching(data, schema.shape, keyMatching);
+        if (keyMatching === "strict") {
+          return data;
+        }
+
+        const shape = getSchemaShape(schema);
+
+        if (!shape) {
+          return data;
+        }
+
+        return applyKeyMatching(data, shape, keyMatching);
       } catch (error) {
         if (!adapter.silent) {
           logger.warn(

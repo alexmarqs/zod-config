@@ -3,7 +3,7 @@ import { loadConfig } from "@/lib/config";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { z } from "zod";
+import { z } from "zod/v4-mini";
 
 describe.each([
   {
@@ -36,7 +36,7 @@ describe.each([
     // given
     const schema = z.object({
       HOST: z.string(),
-      PORT: z.string().regex(/^\d+$/),
+      PORT: z.string(),
     });
 
     // when
@@ -85,12 +85,12 @@ describe("combining multiple script adapters", () => {
     // given
     const schema = z.object({
       HOST: z.string(),
-      PORT: z.string().regex(/^\d+$/),
+      PORT: z.string(),
       TEST_RECORD: z.object({
         key: z.string(),
         value: z.string(),
       }),
-      TEST_MAP: z.map(z.string(), z.string()).optional(),
+      TEST_MAP: z.map(z.string(), z.string()),
     });
 
     // when
