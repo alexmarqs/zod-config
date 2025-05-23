@@ -16,7 +16,8 @@
 </p>
 
 
-> **Zod 4 support**: Available using the pre-release (release candidate) versions `zod-config@rc`.
+> The new **major version** `^1.0.0` supports both [Zod 4](https://zod.dev/v4) and [Zod 3](https://v3.zod.dev/) out of the box. Check the [compatibility](#compatibility) section for more details.
+
 
 ## Features
 
@@ -34,12 +35,10 @@ pnpm add zod-config zod # pnpm
 yarn add zod-config zod # yarn
 ```
 
-(When you install `zod` or `@zod/mini`, your package manager will automatically install `@zod/core` too. So this peer dependency will be met as long as you have one of these packages installed)
-
-
 ## Table of contents:
 
 - [Quick Start](#quick-start)
+- [Compatibility](#compatibility)
 - [Default Adapter](#default-adapter)
 - [Built In Adapters](#built-in-adapters)
   - [Env Adapter](#env-adapter)
@@ -74,6 +73,33 @@ Zod Config provides a `loadConfig` function that takes a Zod Object schema and r
 From the package we also expose the types `Adapter`, `Config` and `Logger` in case you want to use them in your own adapters.
 
 This library provides some built in adapters to load the configuration from different sources via modules. You can easily import them from `zod-config/<built-in-adapter-module-name>` (see the examples below).
+
+### Compatibility
+
+Zod Config supports both [Zod 4](https://zod.dev/v4) and [Zod 3](https://v3.zod.dev/) out of the box. To start using it, just make sure you have the correct versions of `zod-config` (zod-config@^1.0.0) and `zod` (zod@^3.25.0)! 
+
+Example:
+```ts
+// Using Zod 4
+import { z } from "zod/v4";
+// Using Zod 4 Mini
+import { z } from "zod/v4-mini";
+// Using Zod 3
+import { z } from "zod"; // or "zod/v3"
+
+import { loadConfig } from "zod-config";
+
+const schema = z.object({
+  name: z.string(),
+});
+
+const config = await loadConfig({
+  schema,
+  adapters: [
+    envAdapter(),
+  ],
+});
+```
 
 ### Default Adapter
 

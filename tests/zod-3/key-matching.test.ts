@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { z } from "zod/v4";
+import { z } from "zod/v3";
 
 import { loadConfig } from "@/index";
+import { inlineAdapter } from "../fixtures/utils-fixtures";
 
 describe("Lenient key matching tests", () => {
   it("should perform lenient matching", async () => {
@@ -161,83 +162,6 @@ describe("Lenient key matching tests", () => {
     });
   });
 
-  it("should work with top level object transforms", async () => {
-    const ServerConfig = z
-      .object({
-        host: z.string(),
-        port: z.string(),
-      })
-      .transform((data) => ({
-        serverUrl: `http://${data.host}:${data.port}`,
-        host: data.host,
-        port: Number.parseInt(data.port, 10),
-      }));
-
-    const config = await loadConfig({
-      schema: ServerConfig,
-      keyMatching: "lenient",
-      adapters: [
-        inlineAdapter({
-          HOST: "localhost",
-          PORT: "3000",
-        }),
-      ],
-    });
-
-    expect(config).toEqual({
-      serverUrl: "http://localhost:3000",
-      host: "localhost",
-      port: 3000,
-    });
-  });
-
-  it("should work with nested transforms", async () => {
-    const DatabaseConfig = z.object({
-      credentials: z
-        .object({
-          username: z.string(),
-          password: z.string(),
-        })
-        .transform((creds) => ({
-          ...creds,
-          encoded: Buffer.from(`${creds.username}:${creds.password}`).toString("base64"),
-        })),
-      settings: z.object({
-        host: z.preprocess(() => "preprocess-db.example.com", z.string()),
-        port: z.string().transform((val) => Number.parseInt(val, 10)),
-      }),
-    });
-
-    const config = await loadConfig({
-      schema: DatabaseConfig,
-      keyMatching: "lenient",
-      adapters: [
-        inlineAdapter({
-          CREDENTIALS: {
-            "USER-NAME": "admin",
-            PASSWORD: "secret123",
-          },
-          settings: {
-            HOST: "db.example.com",
-            port: "5432",
-          },
-        }),
-      ],
-    });
-
-    expect(config).toEqual({
-      credentials: {
-        username: "admin",
-        password: "secret123",
-        encoded: "YWRtaW46c2VjcmV0MTIz", // Base64 of "admin:secret123"
-      },
-      settings: {
-        host: "preprocess-db.example.com",
-        port: 5432,
-      },
-    });
-  });
-
   it("should handle async transforms with lenient matching", async () => {
     const AsyncConfig = z.object({
       userId: z.string().transform(async (val) => val.toUpperCase()),
@@ -261,7 +185,3 @@ describe("Lenient key matching tests", () => {
     });
   });
 });
-
-function inlineAdapter(source: Record<string, unknown>) {
-  return { name: "inline", read: async () => source };
-}

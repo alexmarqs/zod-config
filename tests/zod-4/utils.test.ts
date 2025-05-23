@@ -1,4 +1,4 @@
-import { deepMerge, filterByRegex, isMergeableObject } from "../src/lib/utils";
+import { deepMerge, filterByRegex, isMergeableObject } from "../../src/lib/utils";
 import { describe, it, expect } from "vitest";
 
 describe("filterByRegex", () => {

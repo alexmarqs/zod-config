@@ -1,8 +1,8 @@
 import type {
   Adapter,
   Config,
-  DataConfig,
-  ErrorConfig,
+  InferredDataConfig,
+  InferredErrorConfig,
   KeyMatching,
   Logger,
   SchemaConfig,
@@ -21,7 +21,7 @@ import { safeParseAsync } from "zod/v4/core";
  */
 export const loadConfig = async <T extends SchemaConfig>(
   config: Config<T>,
-): Promise<DataConfig<T>> => {
+): Promise<InferredDataConfig<T>> => {
   const { schema, adapters, onError, onSuccess, keyMatching } = config;
   const logger = config.logger ?? console;
 
@@ -46,19 +46,19 @@ export const loadConfig = async <T extends SchemaConfig>(
 
   if (!result.success) {
     if (onError) {
-      onError(result.error as ErrorConfig<T>);
+      onError(result.error as InferredErrorConfig<T>);
 
-      return {} as DataConfig<T>;
+      return {} as InferredDataConfig<T>;
     }
 
     throw result.error;
   }
 
   if (onSuccess) {
-    onSuccess(result.data as DataConfig<T>);
+    onSuccess(result.data as InferredDataConfig<T>);
   }
 
-  return result.data as DataConfig<T>;
+  return result.data as InferredDataConfig<T>;
 };
 
 const getDataFromAdapters = async (

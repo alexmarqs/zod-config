@@ -1,5 +1,5 @@
 import { z } from "zod/v4";
-import { applyKeyMatching, getShape } from "../src/lib/utils";
+import { applyKeyMatching, getShape } from "../../src/lib/utils";
 import { describe, it, expect } from "vitest";
 
 describe("applyKeyMatching", () => {

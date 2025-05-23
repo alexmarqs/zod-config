@@ -134,7 +134,7 @@
     "typescript": "5.1.3",
     "vitest": "3.0.9",
     "yaml": "2.7.0",
-    "zod": "^3.25.0"
+    "zod": "^3.25.23"
   },
   "peerDependencies": {
     "dotenv": ">=15",
