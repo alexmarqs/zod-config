@@ -78,7 +78,6 @@ This library provides some built in adapters to load the configuration from diff
 
 Zod Config supports both [Zod 4](https://zod.dev/v4) and [Zod 3](https://v3.zod.dev/) out of the box. To start using it, just make sure you have the correct versions of `zod-config` (zod-config@^1.0.0) and `zod` (zod@^3.25.0)! 
 
-Example:
 ```ts
 // Using Zod 4
 import { z } from "zod/v4";
