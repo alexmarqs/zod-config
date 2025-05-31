@@ -14,14 +14,17 @@ export type SchemaConfig = z3.AnyZodObject | z.$ZodType<Record<string, unknown>>
 export type ShapeConfig = z3.ZodRawShape | z.$ZodShape;
 
 /*
+  Helper type for Zod v4 output inference that avoids infinite recursion.
+*/
+type ZodV4OutputHelper<T> = T extends z.$ZodType<any> ? z.infer<T> : never;
+
+/*
   This is a type that represents the data of the config.
   It can be a zod v3 data or a zod v4 data.
 */
 export type InferredDataConfig<S extends SchemaConfig> = S extends z3.ZodType<infer T>
   ? T
-  : S extends z.$ZodType<infer U>
-    ? U
-    : never;
+  : ZodV4OutputHelper<S>;
 
 /*
   This is a type that represents the error of the config.
