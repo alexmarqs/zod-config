@@ -9,6 +9,7 @@ import type {
 } from "../types";
 import { applyKeyMatching, deepMerge, getSchemaShape } from "./utils";
 import { safeParseAsync } from "zod/v4/core";
+import { getSafeProcessEnv } from "./utils/get-safe-process-env";
 
 /**
  * Load config from adapters.
@@ -69,7 +70,7 @@ const getDataFromAdapters = async (
 ) => {
   // If no adapters are provided, we will read from process.env
   if (!adapters || adapters.length === 0) {
-    return process.env;
+    return getSafeProcessEnv();
   }
 
   // Load data from all adapters, if any adapter fails, we will still return the data from other adapters

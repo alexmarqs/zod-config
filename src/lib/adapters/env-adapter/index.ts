@@ -1,3 +1,4 @@
+import { getSafeProcessEnv } from "@/lib/utils/get-safe-process-env";
 import type { Adapter, BaseAdapterProps } from "../../../types";
 import { filteredData } from "../../utils";
 
@@ -11,8 +12,7 @@ export const envAdapter = ({ customEnv, regex, silent }: EnvAdapterProps = {}): 
   return {
     name: ADAPTER_NAME,
     read: async () => {
-      // spread process.env by default to ensure we have a plain object to avoid prototype issues
-      const data = customEnv || (typeof process !== "undefined" ? { ...process.env } : {});
+      const data = customEnv || getSafeProcessEnv();
 
       return filteredData(data, { regex });
     },
