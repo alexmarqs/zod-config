@@ -1,6 +1,7 @@
 import { envAdapter } from "@/lib/adapters/env-adapter";
 import { loadConfig } from "@/lib/config";
 import {} from "node:fs/promises";
+import { inlineAdapter } from "../fixtures/utils-fixtures";
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
 
@@ -12,10 +13,10 @@ describe("env adapter", () => {
       PORT: z.string().regex(/^\d+$/),
     });
 
-    process.env = {
+    Object.assign(process.env, {
       APP_NAME: "app name",
       PORT: "3000",
-    };
+    });
 
     // when
     const config = await loadConfig({
@@ -56,10 +57,10 @@ describe("env adapter", () => {
       APP_NAME: z.string(),
     });
 
-    process.env = {
+    Object.assign(process.env, {
       APP_NAME: "app name",
       PORT: "3000",
-    };
+    });
 
     // when
     const config = await loadConfig({
@@ -73,5 +74,26 @@ describe("env adapter", () => {
     expect(config).toEqual({
       APP_NAME: "app name",
     });
+  });
+  it("Process.env should be correctly handled", async () => {
+    // given
+    const schema = z.object({
+      NODE_ENV: z.string(),
+    });
+
+    // when
+    const config = await loadConfig({
+      schema,
+      adapters: [
+        inlineAdapter({
+          NODE_ENV: "test-inline",
+        }),
+        // should exist NODE_ENV = test in process.env
+        envAdapter(),
+      ],
+    });
+
+    // then
+    expect(config.NODE_ENV).toBe("test");
   });
 });

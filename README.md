@@ -16,7 +16,7 @@
 </p>
 
 
-> The new **major version** `^1.0.0` supports both [Zod 4](https://zod.dev/v4) and [Zod 3](https://v3.zod.dev/) out of the box. Check the [compatibility](#compatibility) section for more details.
+> The new **major version** supports both [Zod 4](https://zod.dev/v4) and [Zod 3](https://v3.zod.dev/) out of the box. Check the [compatibility](#compatibility) section for more details.
 
 
 ## Features
