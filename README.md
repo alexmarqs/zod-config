@@ -87,6 +87,7 @@ import { z } from "zod/v4-mini";
 import { z } from "zod"; // or "zod/v3"
 
 import { loadConfig } from "zod-config";
+import { envAdapter } from "zod-config/env-adapter";
 
 const schema = z.object({
   name: z.string(),
