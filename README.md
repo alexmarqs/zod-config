@@ -135,8 +135,8 @@ import { loadConfig } from 'zod-config';
 import { envAdapter } from 'zod-config/env-adapter';
 
 const schemaConfig = z.object({
-  port: z.string().regex(/^\d+$/),
-  host: z.string(),
+  MY_APP_PORT: z.string().regex(/^\d+$/),
+  MY_APP_HOST: z.string(),
 });
 
 // using default env (process.env)
@@ -168,8 +168,8 @@ import { loadConfig } from 'zod-config';
 import { jsonAdapter } from 'zod-config/json-adapter';
 
 const schemaConfig = z.object({
-  port: z.string().regex(/^\d+$/),
-  host: z.string(),
+  MY_APP_PORT: z.string().regex(/^\d+$/),
+  MY_APP_HOST: z.string(),
 });
 
 const filePath = path.join(__dirname, 'config.json');
@@ -203,8 +203,8 @@ import { loadConfig } from 'zod-config';
 import { yamlAdapter } from 'zod-config/yaml-adapter';
 
 const schemaConfig = z.object({
-  port: z.string().regex(/^\d+$/),
-  host: z.string(),
+  MY_APP_PORT: z.string().regex(/^\d+$/),
+  MY_APP_HOST: z.string(),
 });
 
 const filePath = path.join(__dirname, 'config.yaml');
@@ -238,8 +238,8 @@ import { loadConfig } from 'zod-config';
 import { tomlAdapter } from 'zod-config/toml-adapter';
 
 const schemaConfig = z.object({
-  port: z.string().regex(/^\d+$/),
-  host: z.string(),
+  MY_APP_PORT: z.string().regex(/^\d+$/),
+  MY_APP_HOST: z.string(),
 });
 
 const filePath = path.join(__dirname, 'config.toml');
@@ -273,8 +273,8 @@ import { loadConfig } from 'zod-config';
 import { dotEnvAdapter } from 'zod-config/dotenv-adapter';
 
 const schemaConfig = z.object({
-  port: z.string().regex(/^\d+$/),
-  host: z.string(),
+  MY_APP_PORT: z.string().regex(/^\d+$/),
+  MY_APP_HOST: z.string(),
 });
 
 const filePath = path.join(__dirname, '.env');
