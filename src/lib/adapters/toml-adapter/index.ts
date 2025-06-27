@@ -1,6 +1,6 @@
-import type { Adapter, BaseAdapterProps } from "../../../types";
+import { readFileSync } from "node:fs";
+import type { BaseAdapterProps, SyncAdapter } from "../../../types";
 import { filteredData } from "../../utils";
-import { readFile } from "node:fs/promises";
 import { parse as tomlParse } from "smol-toml";
 
 export type TomlAdapterProps = BaseAdapterProps & {
@@ -8,12 +8,12 @@ export type TomlAdapterProps = BaseAdapterProps & {
 };
 const ADAPTER_NAME = "toml adapter";
 
-export const tomlAdapter = ({ path, regex, silent }: TomlAdapterProps): Adapter => {
+export const tomlAdapter = ({ path, regex, silent }: TomlAdapterProps): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
-    read: async () => {
+    read: () => {
       try {
-        const data = await readFile(path, "utf-8");
+        const data = readFileSync(path, "utf-8");
 
         const parsedData = tomlParse(data) || {};
 

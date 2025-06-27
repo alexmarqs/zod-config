@@ -36,18 +36,12 @@ export type InferredErrorConfig<S extends SchemaConfig> = S extends z3.ZodType<i
     ? z.$ZodError<U>
     : never;
 
-/**
- * Adapter type
- */
-export type Adapter<D extends SchemaConfig = SchemaConfig> = {
+type BaseAdapter = {
   /**
    * Name of the adapter
    */
   name: string;
-  /**
-   * Read the config
-   */
-  read: () => Promise<InferredDataConfig<D>>;
+
   /**
    * Whether to suppress errors
    */
@@ -55,17 +49,30 @@ export type Adapter<D extends SchemaConfig = SchemaConfig> = {
 };
 
 /**
- * Config type
+ * Adapter type
  */
-export type Config<S extends SchemaConfig = SchemaConfig> = {
+export type Adapter<D extends SchemaConfig = SchemaConfig> = BaseAdapter & {
+  /**
+   * Read the config
+   */
+  read: () => Promise<InferredDataConfig<D>>;
+};
+
+/**
+ * Synchronous adapter type
+ */
+export type SyncAdapter<D extends SchemaConfig = SchemaConfig> = BaseAdapter & {
+  /**
+   * Read the config
+   */
+  read: () => InferredDataConfig<D>;
+};
+
+export type BaseConfig<S extends SchemaConfig = SchemaConfig> = {
   /**
    * Schema to validate the config against
    */
   schema: S;
-  /**
-   * Adapters to use
-   */
-  adapters?: Adapter[] | Adapter;
   /**
    * Function to call on success
    */
@@ -82,6 +89,26 @@ export type Config<S extends SchemaConfig = SchemaConfig> = {
    * How to handle casing differences.
    */
   keyMatching?: KeyMatching;
+};
+
+/**
+ * Config type
+ */
+export type Config<S extends SchemaConfig = SchemaConfig> = BaseConfig<S> & {
+  /**
+   * Adapters to use
+   */
+  adapters?: Array<Adapter | SyncAdapter> | Adapter | SyncAdapter;
+};
+
+/**
+ * Synchronous config type
+ */
+export type SyncConfig<S extends SchemaConfig = SchemaConfig> = BaseConfig<S> & {
+  /**
+   * Adapters to use
+   */
+  adapters?: Array<SyncAdapter> | SyncAdapter;
 };
 
 /**

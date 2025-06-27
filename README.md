@@ -49,6 +49,7 @@ yarn add zod-config zod # yarn
   - [Script Adapter](#script-adapter)
   - [Directory Adapter](#directory-adapter)
 - [Combine multiple adapters](#combine-multiple-adapters)
+- [Synchronous loading](#synchronous-loading)
 - [Callbacks](#callbacks)
 - [Custom Logger](#custom-logger)
 - [Silent mode](#silent-mode)
@@ -64,13 +65,15 @@ Zod Config provides a `loadConfig` function that takes a Zod Object schema and r
 | Property | Type | Description | Required |
 | --- | --- | --- | --- |
 | `schema` | `AnyZodObject` | A Zod Object schema to validate the configuration. | `true` |
-| `adapters` | `Adapter[] or Adapter` | Adapter(s) to load the configuration from. If not provided, process.env will be used. | `false` |
+| `adapters` | `Array<Adapter | SyncAdapter> or Adapter or SyncAdapter` | Adapter(s) to load the configuration from. If not provided, process.env will be used. | `false` |
 | `onError` | `(error: Error) => void` | A callback to be called when an error occurs. | `false` |
 | `onSuccess` | `(config: z.infer ) => void` | A callback to be called when the configuration is loaded successfully. | `false` |
 | `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. | `false` |
 | `keyMatching` | `'strict'` / `'lenient'` | How to match keys between the schema and the data of the adapters. By default, it uses `strict`. | `false` |
 
-From the package we also expose the types `Adapter`, `Config` and `Logger` in case you want to use them in your own adapters.
+From the package we also expose the types `Adapter`, `SyncAdapter`, `Config`, `SyncConfig` and `Logger` in case you want to use them in your own adapters.
+
+The library also provides a `loadConfigSync` function which takes the same configuration, but does not return a Promise. You cannot provide asynchronous adapters or Zod schemas to `loadConfigSync`. See [Synchronous loading](#synchronous-loading) for more information.
 
 This library provides some built in adapters to load the configuration from different sources via modules. You can easily import them from `zod-config/<built-in-adapter-module-name>` (see the examples below).
 
@@ -400,6 +403,41 @@ const schemaConfig = z.object({
 const filePath = path.join(__dirname, 'config.json');
 
 const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: [
+    jsonAdapter({ path: filePath }),
+    envAdapter(),
+  ],
+});
+```
+
+### Synchronous loading
+
+The `loadConfig` function is asynchronous to allow for adapters that are asynchronous. If you are only using synchronous adapters, you can use the `loadConfigSync` function which is synchronous and does not return a promise.
+
+The following default adapters are synchronous and can be used with `loadConfigSync`:
+- `envAdapter`
+- `jsonAdapter`
+- `yamlAdapter`
+- `tomlAdapter`
+- `dotEnvAdapter`
+
+When implementing a custom adapter that you want to use with `loadConfigSync`, make sure to implement the `SyncAdapter` interface instead of the `Adapter` interface.
+
+```ts
+import { z } from 'zod';
+import { loadConfigSync } from 'zod-config';
+import { envAdapter } from 'zod-config/env-adapter';
+import { jsonAdapter } from 'zod-config/json-adapter';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const filePath = path.join(__dirname, 'config.json');
+
+const config = loadConfigSync({
   schema: schemaConfig,
   adapters: [
     jsonAdapter({ path: filePath }),

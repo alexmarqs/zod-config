@@ -1,7 +1,7 @@
 import { parse } from "dotenv";
-import { readFile } from "node:fs/promises";
-import type { Adapter, BaseAdapterProps } from "../../../types";
+import type { SyncAdapter, BaseAdapterProps } from "../../../types";
 import { filteredData } from "../../utils";
+import { readFileSync } from "node:fs";
 
 export type DotEnvAdapterProps = BaseAdapterProps & {
   path: string;
@@ -9,12 +9,12 @@ export type DotEnvAdapterProps = BaseAdapterProps & {
 
 const ADAPTER_NAME = "dotenv adapter";
 
-export const dotEnvAdapter = ({ path, regex, silent }: DotEnvAdapterProps): Adapter => {
+export const dotEnvAdapter = ({ path, regex, silent }: DotEnvAdapterProps): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
-    read: async () => {
+    read: () => {
       try {
-        const data = await readFile(path, "utf-8");
+        const data = readFileSync(path, "utf-8");
 
         const parsedData = parse(data) || {};
 

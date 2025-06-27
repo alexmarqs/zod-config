@@ -1,19 +1,19 @@
 import type {
-  Adapter,
-  Config,
   InferredDataConfig,
   InferredErrorConfig,
   KeyMatching,
   Logger,
   SchemaConfig,
   SyncAdapter,
+  SyncConfig,
 } from "../types";
-import { applyKeyMatching, deepMerge, getSchemaShape } from "./utils";
-import { safeParseAsync } from "zod/v4/core";
+import { safeParse } from "zod/v4/core";
 import { getSafeProcessEnv } from "./utils/get-safe-process-env";
+import { deepMerge } from "./utils";
+import { processAdapterData } from "./config";
 
 /**
- * Load config from adapters.
+ * Synchronously load config from adapters.
  *
  * - If no adapters are provided, we will read from process.env.
  * - If multiple adapters are provided, we will deep merge the data from all adapters, with the last adapter taking precedence.
@@ -21,14 +21,14 @@ import { getSafeProcessEnv } from "./utils/get-safe-process-env";
  * @param config
  * @returns parsed config
  */
-export const loadConfig = async <T extends SchemaConfig>(
-  config: Config<T>,
-): Promise<InferredDataConfig<T>> => {
+export const loadConfigSync = <T extends SchemaConfig>(
+  config: SyncConfig<T>,
+): InferredDataConfig<T> => {
   const { schema, adapters, onError, onSuccess, keyMatching } = config;
   const logger = config.logger ?? console;
 
   // Read data from adapters
-  const data = await getDataFromAdapters(
+  const data = getDataFromAdaptersSync(
     Array.isArray(adapters) ? adapters : adapters ? [adapters] : [],
     logger,
     schema,
@@ -37,13 +37,13 @@ export const loadConfig = async <T extends SchemaConfig>(
 
   let result = undefined;
 
-  // Validate data against schema
   if ("_zod" in schema) {
+    // Validate data against schema
     // v4
-    result = await safeParseAsync(schema, data);
+    result = safeParse(schema, data);
   } else {
     // v3
-    result = await schema.safeParseAsync(data);
+    result = schema.safeParse(data);
   }
 
   if (!result.success) {
@@ -63,8 +63,8 @@ export const loadConfig = async <T extends SchemaConfig>(
   return result.data as InferredDataConfig<T>;
 };
 
-const getDataFromAdapters = async (
-  adapters: Array<Adapter | SyncAdapter>,
+const getDataFromAdaptersSync = (
+  adapters: Array<SyncAdapter>,
   logger: Logger,
   schema: SchemaConfig,
   keyMatching: KeyMatching,
@@ -75,44 +75,30 @@ const getDataFromAdapters = async (
   }
 
   // Load data from all adapters, if any adapter fails, we will still return the data from other adapters
-  const promiseResult = await Promise.all(
-    adapters.map(async (adapter) => {
-      let data: Record<string, unknown>;
-      try {
-        data = await adapter.read();
-      } catch (error) {
-        if (!adapter.silent) {
-          logger.warn(
-            `Cannot read data from ${adapter.name}: ${
-              error instanceof Error ? error.message : error
-            }`,
-          );
-        }
-        return {};
+  const result = adapters.map((adapter) => {
+    let data: Record<string, unknown>;
+    try {
+      data = adapter.read();
+    } catch (error) {
+      if (!adapter.silent) {
+        logger.warn(
+          `Cannot read data from ${adapter.name}: ${
+            error instanceof Error ? error.message : error
+          }`,
+        );
       }
+      return {};
+    }
 
-      return processAdapterData(data, schema, keyMatching);
-    }),
-  );
+    if (data instanceof Promise) {
+      throw new Error(
+        `Data returned from ${adapter.name} is a Promise. Use loadConfig instead of loadConfigSync to use asynchronous adapters.`,
+      );
+    }
+
+    return processAdapterData(data, schema, keyMatching);
+  });
 
   // Perform deep merge of data from all adapters
-  return deepMerge({}, ...promiseResult);
-};
-
-export const processAdapterData = (
-  data: Record<string, unknown>,
-  schema: SchemaConfig,
-  keyMatching: KeyMatching,
-): Record<string, unknown> => {
-  if (keyMatching === "strict") {
-    return data;
-  }
-
-  const shape = getSchemaShape(schema);
-
-  if (!shape) {
-    return data;
-  }
-
-  return applyKeyMatching(data, shape, keyMatching);
+  return deepMerge({}, ...result);
 };

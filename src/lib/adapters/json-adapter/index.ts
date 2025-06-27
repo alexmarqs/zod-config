@@ -1,6 +1,6 @@
-import type { Adapter, BaseAdapterProps } from "../../../types";
+import { readFileSync } from "node:fs";
+import type { BaseAdapterProps, SyncAdapter } from "../../../types";
 import { filteredData } from "../../utils";
-import { readFile } from "node:fs/promises";
 
 export type JsonAdapterProps = BaseAdapterProps & {
   path: string;
@@ -8,12 +8,12 @@ export type JsonAdapterProps = BaseAdapterProps & {
 
 const ADAPTER_NAME = "json adapter";
 
-export const jsonAdapter = ({ path, regex, silent }: JsonAdapterProps): Adapter => {
+export const jsonAdapter = ({ path, regex, silent }: JsonAdapterProps): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
-    read: async () => {
+    read: () => {
       try {
-        const data = await readFile(path, "utf-8");
+        const data = readFileSync(path, "utf-8");
 
         const parsedData = JSON.parse(data) || {};
 
