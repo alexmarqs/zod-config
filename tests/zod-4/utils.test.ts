@@ -1,5 +1,6 @@
-import { deepMerge, filterByRegex, isMergeableObject } from "../../src/lib/utils";
+import { deepMerge, filterByRegex, isMergeableObject, processAdapterData } from "../../src/lib/utils";
 import { describe, it, expect } from "vitest";
+import { z } from "zod/v4";
 
 describe("filterByRegex", () => {
   it("should return an object with keys that match the regex #1", () => {
@@ -139,3 +140,38 @@ describe("isMergeableObject", () => {
     expect(isMergeableObject(new Set())).toBe(false);
   });
 });
+
+
+describe("processAdapterData", () => {
+  it("should return the data when key matching is strict", () => {
+    const schema = z.object({
+      a: z.string(),
+    });
+
+    const data = {
+      a: "1",
+    };
+
+    const processedData = processAdapterData(data, schema, "strict");
+
+    expect(processedData).toEqual(data);
+  });
+
+  it("should return the data when key matching is lenient", () => {
+    const schema = z.object({
+      A: z.string(),
+    });
+
+    const data = {
+      a: "1",
+    };
+
+    const processedData = processAdapterData(data, schema, "lenient");
+
+    expect(processedData).toEqual({
+      A: "1",
+    });
+  });
+});
+
+

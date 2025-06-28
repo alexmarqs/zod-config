@@ -1,2 +1,3 @@
-export type { Adapter, Config, Logger } from "./types";
+export type { Adapter, SyncAdapter, Config, SyncConfig, Logger } from "./types";
 export { loadConfig } from "./lib/config";
+export { loadConfigSync } from "./lib/config-sync";

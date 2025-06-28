@@ -1,6 +1,6 @@
-import type { Adapter, BaseAdapterProps } from "../../../types";
+import { readFileSync } from "node:fs";
+import type { BaseAdapterProps, SyncAdapter } from "../../../types";
 import { filteredData } from "../../utils";
-import { readFile } from "node:fs/promises";
 import YAML from "yaml";
 
 export type YamlAdapterProps = BaseAdapterProps & {
@@ -9,12 +9,12 @@ export type YamlAdapterProps = BaseAdapterProps & {
 
 const ADAPTER_NAME = "yaml adapter";
 
-export const yamlAdapter = ({ path, regex, silent }: YamlAdapterProps): Adapter => {
+export const yamlAdapter = ({ path, regex, silent }: YamlAdapterProps): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
-    read: async () => {
+    read: () => {
       try {
-        const data = await readFile(path, "utf-8");
+        const data = readFileSync(path, "utf-8");
 
         const parsedData = YAML.parse(data) || {};
 
