@@ -1,7 +1,8 @@
+import { loadConfigSync } from "@/index";
 import { envAdapter } from "@/lib/adapters/env-adapter";
 import { jsonAdapter } from "@/lib/adapters/json-adapter";
 import { loadConfig } from "@/lib/config";
-import type { Logger } from "@/types";
+import type { Adapter, Logger } from "@/types";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -19,7 +20,7 @@ describe("multiple adapters", () => {
     await unlink(testFilePath);
   });
 
-  it("should return parsed data from adapters when schema is valid", async () => {
+  it("should return parsed data from adapters when schema is valid", () => {
     // given
     const schema = z.object({
       HOST: z.string(),
@@ -33,7 +34,7 @@ describe("multiple adapters", () => {
     };
 
     // when
-    const config = await loadConfig({
+    const config = loadConfigSync({
       schema,
       adapters: [
         envAdapter(),
@@ -48,13 +49,14 @@ describe("multiple adapters", () => {
     expect(config.PORT).toBe("3000");
     expect(config.APP_NAME).toBe("app name");
   });
-  it("should return parsed data from adapters when schema is valid even if one adapter fails", async () => {
+  it("should return parsed data from adapters when schema is valid even if one adapter fails", () => {
     // given
     const schema = z.object({
       HOST: z.string(),
       PORT: z.string().regex(/^\d+$/),
       APP_NAME: z.string(),
     });
+
     process.env = {
       HOST: "localhost",
       PORT: "3000",
@@ -64,7 +66,7 @@ describe("multiple adapters", () => {
     const consoleErrorSpy = vi.spyOn(console, "warn");
 
     // when
-    const config = await loadConfig({
+    const config = loadConfigSync({
       schema,
       adapters: [
         envAdapter(),
@@ -80,7 +82,7 @@ describe("multiple adapters", () => {
     expect(config.PORT).toBe("3000");
     expect(config.APP_NAME).toBe("app name");
   });
-  it("should return parsed data from adapters when schema is valid even if one adapter fails (custom logger)", async () => {
+  it("should return parsed data from adapters when schema is valid even if one adapter fails (custom logger)", () => {
     // given
     const schema = z.object({
       HOST: z.string(),
@@ -101,7 +103,7 @@ describe("multiple adapters", () => {
     const consoleErrorSpy = vi.spyOn(console, "warn");
 
     // when
-    const config = await loadConfig({
+    const config = loadConfigSync({
       schema,
       adapters: [
         envAdapter(),
@@ -127,12 +129,24 @@ describe("multiple adapters", () => {
       APP_NAME: z.string(),
       APP_ID: z.string(),
     });
-    process.env = {
-      HOST: "localhost",
-      PORT: "3000",
-      APP_NAME: "app name from env",
-      APP_ID: undefined,
+
+
+    const customAsyncAdapter: Adapter = {
+      name: "custom adapter",
+      read: async () => {
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        return {
+          HOST: "localhost",
+          PORT: "3000",
+          APP_NAME: "app name from env",
+          APP_ID: undefined,
+        };
+      },
     };
+
+
 
     // when
     const config = await loadConfig({
@@ -141,10 +155,11 @@ describe("multiple adapters", () => {
         jsonAdapter({
           path: testFilePath,
         }),
-        envAdapter(),
+        customAsyncAdapter,
       ],
     });
 
+    
     // then
     expect(config.HOST).toBe("localhost");
     expect(config.PORT).toBe("3000");
