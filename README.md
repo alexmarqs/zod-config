@@ -60,7 +60,7 @@ yarn add zod-config zod # yarn
 
 ## Quick Start
 
-Zod Config provides a `loadConfig` function that takes a Zod Object schema and returns a promise that resolves to the configuration object - it supports both asynchronous and synchronous adapters / Zod schemas. The library also provides a `loadConfigSync` function version which takes the same configuration, but does not return a Promise anymore (note that you cannot provide asynchronous adapters or Zod schemas to `loadConfigSync`, see [Synchronous loading](#synchronous-loading) for more information).
+Zod Config provides a `loadConfig` function that takes a Zod Object schema and returns a promise that resolves to the configuration object - it supports both asynchronous and synchronous adapters / Zod schemas. The library also provides a `loadConfigSync` function version which takes the same configuration, but does not return a Promise anymore (note that you cannot provide asynchronous adapters / Zod schemas to `loadConfigSync`, see [Synchronous loading](#synchronous-loading) for more information).
 
 Here are the available configuration options:
 
