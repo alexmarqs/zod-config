@@ -135,4 +135,7 @@ export type BaseAdapterProps = {
   silent?: boolean;
 };
 
+/**
+ * Key matching type
+ */
 export type KeyMatching = "lenient" | "strict";

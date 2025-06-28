@@ -1,5 +1,5 @@
 import { loadConfig } from "@/lib/config";
-import { loadConfigSync } from "@/lib/configSync";
+import { loadConfigSync } from "@/lib/config-sync";
 import { describe, expect, it } from "vitest";
 import type { Adapter } from "@/types";
 import { z } from "zod/v4";
@@ -46,6 +46,42 @@ describe("custom adapter", () => {
   });
 
   describe("loadConfigSync", () => {
+    it("should return parsed data when schema is valid with both sync custom adapters", () => {
+      // given
+      const schema = z.object({
+        HOST: z.string(),
+        PORT: z.string().regex(/^\d+$/),
+      });
+
+      const customAdapter1 = {
+        name: "custom sync adapter 1",
+        read:  () => {
+          return {
+            HOST: "custom host 1",
+            PORT: "1111",
+          };
+        },
+      };
+
+      const customAdapter2 = {
+        name: "custom sync adapter 2",
+        read: () => {
+          return {
+            HOST: "custom host 2"
+          };
+        },
+      };
+
+      // when
+      const config = loadConfigSync({
+        schema,
+        adapters: [customAdapter1, customAdapter2],
+      });
+
+      // then
+      expect(config.HOST).toBe("custom host 2");
+      expect(config.PORT).toBe("1111");
+    });
     it("should throw an error when an async adapter is provided", async () => {
       // given
       const schema = z.object({

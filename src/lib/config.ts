@@ -8,12 +8,11 @@ import type {
   SchemaConfig,
   SyncAdapter,
 } from "../types";
-import { applyKeyMatching, deepMerge, getSchemaShape } from "./utils";
+import { deepMerge, getSafeProcessEnv, processAdapterData } from "./utils";
 import { safeParseAsync } from "zod/v4/core";
-import { getSafeProcessEnv } from "./utils/get-safe-process-env";
 
 /**
- * Load config from adapters.
+ * Load config from adapters asynchronously.
  *
  * - If no adapters are provided, we will read from process.env.
  * - If multiple adapters are provided, we will deep merge the data from all adapters, with the last adapter taking precedence.
@@ -63,6 +62,10 @@ export const loadConfig = async <T extends SchemaConfig>(
   return result.data as InferredDataConfig<T>;
 };
 
+
+/**
+ * Load data from adapters asynchronously.
+ */
 const getDataFromAdapters = async (
   adapters: Array<Adapter | SyncAdapter>,
   logger: Logger,
@@ -99,20 +102,3 @@ const getDataFromAdapters = async (
   return deepMerge({}, ...promiseResult);
 };
 
-export const processAdapterData = (
-  data: Record<string, unknown>,
-  schema: SchemaConfig,
-  keyMatching: KeyMatching,
-): Record<string, unknown> => {
-  if (keyMatching === "strict") {
-    return data;
-  }
-
-  const shape = getSchemaShape(schema);
-
-  if (!shape) {
-    return data;
-  }
-
-  return applyKeyMatching(data, shape, keyMatching);
-};

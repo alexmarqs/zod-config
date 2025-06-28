@@ -8,9 +8,7 @@ import type {
   SyncConfig,
 } from "../types";
 import { safeParse } from "zod/v4/core";
-import { getSafeProcessEnv } from "./utils/get-safe-process-env";
-import { deepMerge } from "./utils";
-import { processAdapterData } from "./config";
+import { deepMerge, getSafeProcessEnv, processAdapterData } from "./utils";
 
 /**
  * Synchronously load config from adapters.
@@ -63,6 +61,9 @@ export const loadConfigSync = <T extends SchemaConfig>(
   return result.data as InferredDataConfig<T>;
 };
 
+/**
+ * Load data from adapters synchronously.
+ */
 const getDataFromAdaptersSync = (
   adapters: Array<SyncAdapter>,
   logger: Logger,

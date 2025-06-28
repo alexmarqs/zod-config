@@ -1,5 +1,5 @@
 import { loadConfig } from "@/lib/config";
-import { loadConfigSync } from "@/lib/configSync";
+import { loadConfigSync } from "@/lib/config-sync";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4";
 

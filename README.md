@@ -60,20 +60,20 @@ yarn add zod-config zod # yarn
 
 ## Quick Start
 
-Zod Config provides a `loadConfig` function that takes a Zod Object schema and returns a promise that resolves to the configuration object.
+Zod Config provides a `loadConfig` function that takes a Zod Object schema and returns a promise that resolves to the configuration object - it supports both asynchronous and synchronous adapters / Zod schemas. The library also provides a `loadConfigSync` function version which takes the same configuration, but does not return a Promise anymore (note that you cannot provide asynchronous adapters or Zod schemas to `loadConfigSync`, see [Synchronous loading](#synchronous-loading) for more information).
+
+Here are the available configuration options:
 
 | Property | Type | Description | Required |
 | --- | --- | --- | --- |
 | `schema` | `AnyZodObject` | A Zod Object schema to validate the configuration. | `true` |
-| `adapters` | `Array<Adapter | SyncAdapter> or Adapter or SyncAdapter` | Adapter(s) to load the configuration from. If not provided, process.env will be used. | `false` |
+| `adapters` | `Array<Adapter \| SyncAdapter> \| Adapter \| SyncAdapter` | Adapter(s) to load the configuration from. If not provided, process.env will be used. | `false` |
 | `onError` | `(error: Error) => void` | A callback to be called when an error occurs. | `false` |
 | `onSuccess` | `(config: z.infer ) => void` | A callback to be called when the configuration is loaded successfully. | `false` |
 | `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. | `false` |
 | `keyMatching` | `'strict'` / `'lenient'` | How to match keys between the schema and the data of the adapters. By default, it uses `strict`. | `false` |
 
-From the package we also expose the types `Adapter`, `SyncAdapter`, `Config`, `SyncConfig` and `Logger` in case you want to use them in your own adapters.
-
-The library also provides a `loadConfigSync` function which takes the same configuration, but does not return a Promise. You cannot provide asynchronous adapters or Zod schemas to `loadConfigSync`. See [Synchronous loading](#synchronous-loading) for more information.
+From the package we also expose the necessary types in case you want to use them in your own adapters.
 
 This library provides some built in adapters to load the configuration from different sources via modules. You can easily import them from `zod-config/<built-in-adapter-module-name>` (see the examples below).
 
@@ -130,7 +130,7 @@ console.log(config.host)
 
 #### Env Adapter
 
-Loads the configuration from `process.env` or a custom object, allowing filtering the keys using a regex.
+Loads the configuration from `process.env` or a custom object, allowing you to filter the keys using a regex (this can be useful when you have multiple adapters and you want to filter the keys to avoid conflicts or just to keep only the keys you need to process - it is also available in some other built-in adapter).
 
 ```ts
 import { z } from 'zod';
