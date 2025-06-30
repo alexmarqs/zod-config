@@ -1,4 +1,9 @@
-import { deepMerge, filterByRegex, isMergeableObject, processAdapterData } from "../../src/lib/utils";
+import {
+  deepMerge,
+  filterByRegex,
+  isMergeableObject,
+  processAdapterData,
+} from "../../src/lib/utils";
 import { describe, it, expect } from "vitest";
 import { z } from "zod/v4";
 
@@ -141,7 +146,6 @@ describe("isMergeableObject", () => {
   });
 });
 
-
 describe("processAdapterData", () => {
   it("should return the data when key matching is strict", () => {
     const schema = z.object({
@@ -173,5 +177,3 @@ describe("processAdapterData", () => {
     });
   });
 });
-
-

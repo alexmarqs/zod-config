@@ -90,7 +90,7 @@ crons = ["0 0 * * *"]
 
     // when
     // then
-    expect(
+    await expect(
       loadConfig({
         schema,
         adapters: tomlAdapter({
@@ -162,7 +162,7 @@ crons = ["0 0 * * *"]
 
     // when
     // then
-    expect(
+    await expect(
       loadConfig({
         schema,
         adapters: tomlAdapter({

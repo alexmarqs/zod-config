@@ -133,7 +133,7 @@ describe("custom adapter", () => {
         schema,
         adapters: [customAdapter1, customAdapter2],
       });
-      
+
       // then
       expect(config.HOST).toBe("custom host 2");
       expect(config.PORT).toBe("2222");

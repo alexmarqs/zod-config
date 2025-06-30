@@ -55,7 +55,7 @@ describe("custom adapter", () => {
 
       const customAdapter1 = {
         name: "custom sync adapter 1",
-        read:  () => {
+        read: () => {
           return {
             HOST: "custom host 1",
             PORT: "1111",
@@ -67,7 +67,7 @@ describe("custom adapter", () => {
         name: "custom sync adapter 2",
         read: () => {
           return {
-            HOST: "custom host 2"
+            HOST: "custom host 2",
           };
         },
       };

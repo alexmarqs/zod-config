@@ -119,7 +119,7 @@ describe("dotenv adapter", () => {
 
     // when
     // then
-    expect(
+    await expect(
       loadConfig({
         schema,
         adapters: dotEnvAdapter({
@@ -189,7 +189,7 @@ describe("dotenv adapter", () => {
 
     // when
     // then
-    expect(
+    await expect(
       loadConfig({
         schema,
         adapters: dotEnvAdapter({

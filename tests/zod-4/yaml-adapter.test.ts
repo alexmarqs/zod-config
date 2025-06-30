@@ -46,7 +46,7 @@ describe("yaml adapter", () => {
 
     // when
     // then
-    expect(
+    await expect(
       loadConfig({
         schema,
         adapters: yamlAdapter({
@@ -118,7 +118,7 @@ describe("yaml adapter", () => {
 
     // when
     // then
-    expect(
+    await expect(
       loadConfig({
         schema,
         adapters: yamlAdapter({

@@ -37,7 +37,7 @@ describe("default adapter", () => {
 
     // when
     // then
-    expect(
+    await expect(
       loadConfig({
         schema,
       }),
