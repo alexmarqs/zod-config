@@ -45,7 +45,7 @@ describe("json adapter", () => {
 
     // when
     // then
-    expect(
+    await expect(
       loadConfig({
         schema,
         adapters: jsonAdapter({
@@ -115,7 +115,7 @@ describe("json adapter", () => {
 
     // when
     // then
-    expect(
+    await expect(
       loadConfig({
         schema,
         adapters: jsonAdapter({
