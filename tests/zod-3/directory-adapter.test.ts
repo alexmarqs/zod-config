@@ -21,10 +21,6 @@ vi.mock("@/lib/adapters/directory-adapter/variables", async (importOriginal) => 
   };
 });
 
-afterEach(() => {
-  vi.restoreAllMocks();
-});
-
 type DirectoryTestContext = {
   schema: z.AnyZodObject;
   directories: string[];
@@ -76,6 +72,50 @@ describe.each<DirectoryTestContext>([
     ],
   },
 ])("Directory adapter tests", ({ schema, directories, files, environments }) => {
+  beforeAll(async () => {
+    // Clean up any existing directories first
+    await Promise.all(
+      directories.map(async (directory) => {
+        try {
+          await rm(directory, { recursive: true, force: true });
+        } catch (error) {
+          // Ignore error if directory doesn't exist
+          if (error instanceof Error && "code" in error && error.code !== "ENOENT") {
+            console.warn(`Failed to cleanup directory ${directory}:`, error);
+            throw error;
+          }
+        }
+      }),
+    );
+
+    // Create directories
+    await Promise.all(
+      directories.map(async (directory) => {
+        await mkdir(directory, { recursive: true });
+      }),
+    );
+
+    // Then create files (can be done in parallel since directories exist)
+    await Promise.all(
+      files.map(async ({ fileName, content }) => await writeFile(fileName, content)),
+    );
+  });
+
+  afterAll(async () => {
+    await Promise.all(
+      directories.map(async (directory) => {
+        try {
+          await rm(directory, { recursive: true });
+        } catch (error) {
+          // Ignore error if directory doesn't exist
+          if (error instanceof Error && "code" in error && error.code !== "ENOENT") {
+            throw error;
+          }
+        }
+      }),
+    );
+  });
+
   describe.each(environments)("Environment-specific tests", ({ resolvedVariables, expected }) => {
     beforeEach(() => {
       vi.spyOn(variables, "resolveConfigResolutionVariables").mockReturnValue({
@@ -85,6 +125,10 @@ describe.each<DirectoryTestContext>([
         shortHostname: "localhost",
         ...resolvedVariables,
       });
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
     });
 
     it("should return parsed data when it matches schema", async () => {
@@ -110,18 +154,5 @@ describe.each<DirectoryTestContext>([
       // then
       expect(config).toEqual(expected);
     });
-  });
-
-  beforeAll(async () => {
-    await Promise.all(directories.map(async (directory) => await mkdir(directory)));
-    await Promise.all(
-      files.map(async ({ fileName, content }) => await writeFile(fileName, content)),
-    );
-  });
-
-  afterAll(async () => {
-    await Promise.all(
-      directories.map(async (directory) => await rm(directory, { recursive: true })),
-    );
   });
 });
