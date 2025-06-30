@@ -2,6 +2,7 @@ import {
   type AnyZodObject,
   ZodDefault,
   ZodObject,
+  ZodOptional,
   type ZodRawShape,
   type ZodTypeAny,
 } from "zod/v3";
@@ -79,12 +80,20 @@ function isZodDefault(input: unknown): input is z.$ZodDefault {
   return input instanceof z.$ZodDefault;
 }
 
+function isZodOptional(input: unknown): input is z.$ZodOptional {
+  return input instanceof z.$ZodOptional;
+}
+
 function isZodObjectV3(input: unknown): input is AnyZodObject {
   return input instanceof ZodObject;
 }
 
 function isZodDefultV3(input: unknown): input is ZodDefault<any> {
   return input instanceof ZodDefault;
+}
+
+function isZodOptionalV3(input: unknown): input is ZodOptional<any> {
+  return input instanceof ZodOptional;
 }
 
 function isZodPipeTransformObject(
@@ -104,7 +113,7 @@ function compareBy<T, R>(selector: (it: T) => R): (a: T, b: T) => boolean {
 }
 
 export function getShape(schema: z.$ZodType<unknown>): z.$ZodShape | undefined {
-  if (isZodDefault(schema)) return getShape(schema._zod.def.innerType);
+  if (isZodDefault(schema) || isZodOptional(schema)) return getShape(schema._zod.def.innerType);
   if (isZodObject(schema)) return schema._zod.def.shape;
   if (isZodPipeTransformObject(schema)) return schema._zod.def.in._zod.def.shape;
   if (isZodPipePreprocessObject(schema)) return schema._zod.def.out._zod.def.shape;
@@ -112,7 +121,7 @@ export function getShape(schema: z.$ZodType<unknown>): z.$ZodShape | undefined {
 }
 
 export function getShapeV3(schema: ZodTypeAny): ZodRawShape | undefined {
-  if (isZodDefultV3(schema)) return getShapeV3(schema._def.innerType);
+  if (isZodDefultV3(schema) || isZodOptionalV3(schema)) return getShapeV3(schema._def.innerType);
   if (isZodObjectV3(schema)) return schema.shape;
   return undefined;
 }
