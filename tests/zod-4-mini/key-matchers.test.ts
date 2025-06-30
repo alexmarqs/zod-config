@@ -131,6 +131,55 @@ describe("applyKeyMatching", () => {
     });
   });
 
+  it("should handle key matching for zod type wrapped in a ZodDefault", () => {
+    // given
+    const schema = z.object({
+      database: z
+        .object({
+          connection: z.object({
+            host: z.string(),
+            port: z.number(),
+            username: z.string(),
+            password: z.string(),
+          }),
+        })
+        .default({
+          connection: {
+            host: "host",
+            port: 3000,
+            password: "password",
+            username: "username",
+          },
+        }),
+    });
+
+    // database is not provided
+    const data = {
+      data_base: {
+        CONNECTION: {
+          password: "password",
+        },
+      },
+    };
+
+    // when
+    const shape = getShape(schema);
+    if (!shape) {
+      throw new Error("Shape should not be undefined");
+    }
+
+    const result = applyKeyMatching(data, shape, "lenient");
+
+    // then
+    expect(result).toEqual({
+      database: {
+        connection: {
+          password: "password",
+        },
+      },
+    });
+  });
+
   it("should handle max depth to prevent circular references", () => {
     // given
     const schema = z.object({
