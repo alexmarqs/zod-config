@@ -130,11 +130,9 @@ describe("multiple adapters", () => {
       APP_ID: z.string(),
     });
 
-
     const customAsyncAdapter: Adapter = {
       name: "custom adapter",
       read: async () => {
-
         await new Promise((resolve) => setTimeout(resolve, 100));
 
         return {
@@ -145,8 +143,6 @@ describe("multiple adapters", () => {
         };
       },
     };
-
-
 
     // when
     const config = await loadConfig({
@@ -159,7 +155,6 @@ describe("multiple adapters", () => {
       ],
     });
 
-    
     // then
     expect(config.HOST).toBe("localhost");
     expect(config.PORT).toBe("3000");

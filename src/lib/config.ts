@@ -62,7 +62,6 @@ export const loadConfig = async <T extends SchemaConfig>(
   return result.data as InferredDataConfig<T>;
 };
 
-
 /**
  * Load data from adapters asynchronously.
  */
@@ -101,4 +100,3 @@ const getDataFromAdapters = async (
   // Perform deep merge of data from all adapters
   return deepMerge({}, ...promiseResult);
 };
-
