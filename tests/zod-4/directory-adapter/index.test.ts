@@ -51,15 +51,7 @@ describe("Directory adapter tests", () => {
     // Clean up any existing directories first
     await Promise.all(
       directories.map(async (directory) => {
-        try {
-          await rm(directory, { recursive: true, force: true });
-        } catch (error) {
-          // Ignore error if directory doesn't exist
-          if (error instanceof Error && "code" in error && error.code !== "ENOENT") {
-            console.warn(`Failed to cleanup directory ${directory}:`, error);
-            throw error;
-          }
-        }
+        await rm(directory, { recursive: true, force: true });
       }),
     );
 
@@ -79,14 +71,7 @@ describe("Directory adapter tests", () => {
   afterAll(async () => {
     await Promise.all(
       directories.map(async (directory) => {
-        try {
-          await rm(directory, { recursive: true });
-        } catch (error) {
-          // Ignore error if directory doesn't exist
-          if (error instanceof Error && "code" in error && error.code !== "ENOENT") {
-            throw error;
-          }
-        }
+        await rm(directory, { recursive: true, force: true });
       }),
     );
   });

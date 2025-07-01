@@ -41,18 +41,18 @@ describe.each<DirectoryTestContext>([
         corge: z.string(),
       }),
     }),
-    directories: ["test-config"],
+    directories: ["test-config-zod-3"],
     files: [
       {
-        fileName: "test-config/default.ts",
+        fileName: "test-config-zod-3/default.ts",
         content: `export default { foo: "hello", bar: 10, baz: { qux: "world", corge: "!" } };`,
       },
       {
-        fileName: "test-config/development.ts",
+        fileName: "test-config-zod-3/development.ts",
         content: `export default { foo: "hiya" };`,
       },
       {
-        fileName: "test-config/local-development.ts",
+        fileName: "test-config-zod-3/local-development.ts",
         content: `export default { baz: { qux: "hehee" } };`,
       },
     ],
@@ -76,15 +76,7 @@ describe.each<DirectoryTestContext>([
     // Clean up any existing directories first
     await Promise.all(
       directories.map(async (directory) => {
-        try {
-          await rm(directory, { recursive: true, force: true });
-        } catch (error) {
-          // Ignore error if directory doesn't exist
-          if (error instanceof Error && "code" in error && error.code !== "ENOENT") {
-            console.warn(`Failed to cleanup directory ${directory}:`, error);
-            throw error;
-          }
-        }
+        await rm(directory, { recursive: true, force: true });
       }),
     );
 
@@ -104,14 +96,7 @@ describe.each<DirectoryTestContext>([
   afterAll(async () => {
     await Promise.all(
       directories.map(async (directory) => {
-        try {
-          await rm(directory, { recursive: true });
-        } catch (error) {
-          // Ignore error if directory doesn't exist
-          if (error instanceof Error && "code" in error && error.code !== "ENOENT") {
-            throw error;
-          }
-        }
+        await rm(directory, { recursive: true, force: true });
       }),
     );
   });
