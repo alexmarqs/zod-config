@@ -9,7 +9,12 @@ export type DotEnvAdapterProps = BaseAdapterProps & {
 
 const ADAPTER_NAME = "dotenv adapter";
 
-export const dotEnvAdapter = ({ path, regex, silent }: DotEnvAdapterProps): SyncAdapter => {
+export const dotEnvAdapter = ({
+  path,
+  regex,
+  silent,
+  keyMatching,
+}: DotEnvAdapterProps): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
     read: () => {
@@ -28,5 +33,6 @@ export const dotEnvAdapter = ({ path, regex, silent }: DotEnvAdapterProps): Sync
       }
     },
     silent,
+    keyMatching,
   };
 };

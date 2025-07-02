@@ -161,4 +161,92 @@ describe("multiple adapters", () => {
     expect(config.APP_NAME).toBe("app name from env");
     expect(config.APP_ID).toBe("1234abcde");
   });
+
+  it("should handle global silent option with multiple failing adapters", async () => {
+    // given
+    const schema = z.object({
+      HOST: z.string(),
+      PORT: z.string(),
+    });
+    const consoleWarnSpy = vi.spyOn(console, "warn");
+
+    const failingAdapter1: Adapter = {
+      name: "failing adapter 1",
+      read: async () => {
+        throw new Error("First adapter error");
+      },
+    };
+
+    const failingAdapter2: Adapter = {
+      name: "failing adapter 2",
+      read: async () => {
+        throw new Error("Second adapter error");
+      },
+    };
+
+    // when - global silent is true
+    const config = await loadConfig({
+      schema,
+      silent: true,
+      adapters: [
+        failingAdapter1,
+        failingAdapter2,
+        envAdapter({ customEnv: { HOST: "localhost", PORT: "3000" } }),
+      ],
+    });
+
+    // then - should not log any errors due to global silent
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+    expect(config).toEqual({
+      HOST: "localhost",
+      PORT: "3000",
+    });
+  });
+
+  it("should handle mixed silent configurations with multiple adapters", async () => {
+    // given
+    const schema = z.object({
+      HOST: z.string(),
+      PORT: z.string(),
+      API_KEY: z.string().optional(),
+    });
+    const consoleWarnSpy = vi.spyOn(console, "warn");
+
+    const silentFailingAdapter: Adapter = {
+      name: "silent failing adapter",
+      silent: true,
+      read: async () => {
+        throw new Error("Silent adapter error");
+      },
+    };
+
+    const loudFailingAdapter: Adapter = {
+      name: "loud failing adapter",
+      silent: false,
+      read: async () => {
+        throw new Error("Loud adapter error");
+      },
+    };
+
+    // when - global silent is false, but individual adapters have different settings
+    const config = await loadConfig({
+      schema,
+      silent: false,
+      adapters: [
+        silentFailingAdapter,
+        loudFailingAdapter,
+        envAdapter({ customEnv: { HOST: "localhost", PORT: "3000" } }),
+      ],
+    });
+
+    // then - should only log error from the loud adapter
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      "Cannot read data from loud failing adapter: Loud adapter error",
+    );
+    expect(config).toEqual({
+      HOST: "localhost",
+      PORT: "3000",
+    });
+  });
 });

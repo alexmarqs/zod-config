@@ -16,7 +16,7 @@ export type ShapeConfig = z3.ZodRawShape | z.$ZodShape;
 /*
   Helper type for Zod v4 output inference that avoids infinite recursion.
 */
-type ZodV4OutputHelper<T> = T extends z.$ZodType<any> ? z.infer<T> : never;
+type ZodV4Output<T> = T extends z.$ZodType<any> ? z.infer<T> : never;
 
 /*
   This is a type that represents the data of the config.
@@ -24,7 +24,7 @@ type ZodV4OutputHelper<T> = T extends z.$ZodType<any> ? z.infer<T> : never;
 */
 export type InferredDataConfig<S extends SchemaConfig> = S extends z3.ZodType<infer T>
   ? T
-  : ZodV4OutputHelper<S>;
+  : ZodV4Output<S>;
 
 /*
   This is a type that represents the error of the config.
@@ -41,12 +41,7 @@ type BaseAdapter = {
    * Name of the adapter
    */
   name: string;
-
-  /**
-   * Whether to suppress errors
-   */
-  silent?: boolean;
-};
+} & SharedConfigOptions;
 
 /**
  * Adapter type
@@ -85,11 +80,7 @@ export type BaseConfig<S extends SchemaConfig = SchemaConfig> = {
    * Logger to use
    */
   logger?: Logger;
-  /**
-   * How to handle casing differences.
-   */
-  keyMatching?: KeyMatching;
-};
+} & SharedConfigOptions;
 
 /**
  * Config type
@@ -129,10 +120,20 @@ export type BaseAdapterProps = {
    * Regular expression to filter keys
    */
   regex?: RegExp;
+} & SharedConfigOptions;
+
+/**
+ * Shared config options between global config and adapter config
+ */
+export type SharedConfigOptions = {
   /**
    * Whether to suppress errors
    */
   silent?: boolean;
+  /**
+   * How to handle casing differences.
+   */
+  keyMatching?: KeyMatching;
 };
 
 /**

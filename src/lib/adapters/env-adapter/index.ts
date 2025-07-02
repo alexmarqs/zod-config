@@ -8,7 +8,12 @@ export type EnvAdapterProps = BaseAdapterProps & {
 
 const ADAPTER_NAME = "env adapter";
 
-export const envAdapter = ({ customEnv, regex, silent }: EnvAdapterProps = {}): SyncAdapter => {
+export const envAdapter = ({
+  customEnv,
+  regex,
+  silent,
+  keyMatching,
+}: EnvAdapterProps = {}): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
     read: () => {
@@ -17,5 +22,6 @@ export const envAdapter = ({ customEnv, regex, silent }: EnvAdapterProps = {}): 
       return filteredData(data, { regex });
     },
     silent,
+    keyMatching,
   };
 };

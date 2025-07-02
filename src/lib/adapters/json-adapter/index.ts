@@ -8,7 +8,12 @@ export type JsonAdapterProps = BaseAdapterProps & {
 
 const ADAPTER_NAME = "json adapter";
 
-export const jsonAdapter = ({ path, regex, silent }: JsonAdapterProps): SyncAdapter => {
+export const jsonAdapter = ({
+  path,
+  regex,
+  silent,
+  keyMatching,
+}: JsonAdapterProps): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
     read: () => {
@@ -27,5 +32,6 @@ export const jsonAdapter = ({ path, regex, silent }: JsonAdapterProps): SyncAdap
       }
     },
     silent,
+    keyMatching,
   };
 };
