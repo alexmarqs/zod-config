@@ -21,7 +21,7 @@ export const KEY_MATCHERS: Record<KeyMatching, KeyMatcher> = {
  * Maximum depth of nested objects to transform.
  * This is to prevent infinite loops in case of circular references.
  */
-const MAX_DEPTH = 100;
+const MAX_DEPTH = 150;
 
 /**
  * Returns the data, with all the nested keys transformed to match the shape of the schema.

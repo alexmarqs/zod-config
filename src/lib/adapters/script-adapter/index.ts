@@ -7,7 +7,12 @@ export type ScriptAdapterProps = BaseAdapterProps & {
 
 const ADAPTER_NAME = "script adapter";
 
-export const scriptAdapter = ({ path, regex, silent }: ScriptAdapterProps): Adapter => {
+export const scriptAdapter = ({
+  path,
+  regex,
+  silent,
+  keyMatching,
+}: ScriptAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
     read: async () => {
@@ -22,5 +27,6 @@ export const scriptAdapter = ({ path, regex, silent }: ScriptAdapterProps): Adap
       }
     },
     silent,
+    keyMatching,
   };
 };
