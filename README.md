@@ -65,16 +65,17 @@ Zod Config provides a `loadConfig` function that takes a Zod Object schema and r
 
 Here are the available configuration options:
 
-| Property | Type | Description | Required |
-| --- | --- | --- | --- |
-| `schema` | `AnyZodObject` | A Zod Object schema to validate the configuration. | `true` |
-| `adapters` | `Array<Adapter \| SyncAdapter> \| Adapter \| SyncAdapter` | Adapter(s) to load the configuration from. If not provided, process.env will be used. | `false` |
-| `onError` | `(error: Error) => void` | A callback to be called when an error occurs. | `false` |
-| `onSuccess` | `(config: z.infer ) => void` | A callback to be called when the configuration is loaded successfully. | `false` |
-| `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. | `false` |
-| `keyMatching` | `'strict'` / `'lenient'` | How to match keys between the schema and the data of the adapters. By default, it uses `strict`. | `false` |
+| Property | Type | Description | Required | Shared with Adapter? |
+| --- | --- | --- | --- | --- |
+| `schema` | `AnyZodObject` | A Zod Object schema to validate the configuration. | `true` | `N/A` |
+| `adapters` | `Array<Adapter \| SyncAdapter> \| Adapter \| SyncAdapter` | Adapter(s) to load the configuration from. If not provided, process.env will be used. | `false` | `N/A` |
+| `onError` | `(error: Error) => void` | A callback to be called when an error occurs. | `false` | `no` |
+| `onSuccess` | `(config: z.infer ) => void` | A callback to be called when the configuration is loaded successfully. | `false` | `no` |
+| `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. | `false` | `no` |
+| `keyMatching` | `'strict'` / `'lenient'` | How to match keys between the schema and the data of the adapters. By default, it uses `strict`. | `false` | `yes` |
+| `silent` | `boolean` | Whether to suppress errors. By default, it is `false`. | `false` | `yes` |
 
-From the package we also expose the necessary types in case you want to use them in your own adapters.
+From the package we also expose the necessary types in case you want to use them in your own adapters. Some of the options are shared between the global config and the adapter config, so you can use them in your own adapters as well.
 
 This library provides some built in adapters to load the configuration from different sources via modules. You can easily import them from `zod-config/<built-in-adapter-module-name>` (see the examples below).
 
@@ -507,6 +508,7 @@ const schemaConfig = z.object({
 
 const config = await loadConfig({
   schema: schemaConfig,
+  // silent: true (also available in the global config in case you want to use it for all adapters)
   adapters: envAdapter({ silent: true }),
 });
 ```
@@ -527,7 +529,9 @@ const schemaConfig = z.object({
 const config = await loadConfig({
   schema: schemaConfig,
   keyMatching: 'lenient',
-  adapters: envAdapter(),
+  adapters: envAdapter({
+    // keyMatching: 'lenient' (it can also be applied to the adapter level if you want to use a different key matching for a specific adapter)
+  }),
 });
 ```
 
