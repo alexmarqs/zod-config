@@ -25,7 +25,7 @@
 - 🤌 **Tiny**. Zod Config is a tiny library with no dependencies, tree-shaking friendly;
 - ✨ **Flexible**. [Combine multiple adapters](#combine-multiple-adapters) to load the configuration from different sources. We deeply merge the configuration from different sources, following the order of the adapters provided; Create your own adapters easily; Use the callback functions to handle errors and success due to the async nature of the adapters;
 - 🪴 **Easy to use**. Zod Config is designed to be easy to use, with a simple API;
-- 🔄 **Async / Sync support**. Zod Config provides both asynchronous and synchronous APIs to fit different application needs.
+- 🔄 **Async / Sync support**. Zod Config provides both asynchronous and synchronous APIs to fit different application needs;
 
 
 ## Install
@@ -77,7 +77,9 @@ Here are the available configuration options:
 | `silent` | `boolean` | Whether to suppress errors. By default, it is `false`. | `false` | `yes` | `yes` |
 | `transform` | `(obj: { key: string; value: unknown }) => { key: string; value: unknown } \| false` | Function to transform key-value pairs before processing. If the function returns false, the key-value pair will be dropped. | `false` | `yes` | `yes` |
 
-From the package we also expose the necessary types in case you want to use them in your own adapters. Some of the options are shared between the global config and the adapter config, so you can use them in your own adapters as well. For specific adapter options, check the section of the adapter you are using. This library provides some built in adapters to load the configuration from different sources via modules. You can easily import them from `zod-config/<built-in-adapter-module-name>` (see the examples below).
+From the package we also expose the necessary types in case you want to use them in your own adapters. Some of the options are shared between the global config and the adapter config, so you can use them in your own adapters as well. For specific adapter options, check the section of the adapter you are using. 
+
+This library provides some built in adapters to load the configuration from different sources via modules. You can easily import them from `zod-config/<built-in-adapter-module-name>` (see the examples below).
 
 ### Compatibility
 
@@ -150,7 +152,7 @@ const config = await loadConfig({
   adapters: envAdapter(),
 });
 
-// using custom env + filter regex
+// using custom env + filter regex to match only the keys we need
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: envAdapter({ 
@@ -201,7 +203,7 @@ const config = await loadConfig({
   adapters: jsonAdapter({ path: filePath }),
 });
 
-// using filter regex
+// using filter regex to match only the keys we need
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: jsonAdapter({ 
@@ -236,7 +238,7 @@ const config = await loadConfig({
   adapters: yamlAdapter({ path: filePath }),
 });
 
-// using filter regex
+// using filter regex to match only the keys we need
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: yamlAdapter({ 
@@ -271,7 +273,7 @@ const config = await loadConfig({
   adapters: tomlAdapter({ path: filePath }),
 });
 
-// using filter regex
+// using filter regex to match only the keys we need
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: tomlAdapter({ 
@@ -306,7 +308,7 @@ const config = await loadConfig({
   adapters: dotEnvAdapter({ path: filePath }),
 });
 
-// using filter regex
+// using filter regex to match only the keys we need
 const customConfig = await loadConfig({
   schema: schemaConfig,
   adapters: dotEnvAdapter({ 
@@ -540,7 +542,7 @@ const schemaConfig = z.object({
 
 const config = await loadConfig({
   schema: schemaConfig,
-  // silent: true (also available in the global config in case you want to use it for all adapters)
+  // silent: true --> also available in the global config in case you want to use it for all adapters
   adapters: envAdapter({ silent: true }),
 });
 ```
@@ -562,7 +564,7 @@ const config = await loadConfig({
   schema: schemaConfig,
   keyMatching: 'lenient',
   adapters: envAdapter({
-    // keyMatching: 'lenient' (it can also be applied to the adapter level if you want to use a different key matching for a specific adapter)
+    // keyMatching: 'lenient' --> it can also be applied to the adapter level if you want to use a different key matching for a specific adapter
   }),
 });
 ```
@@ -577,7 +579,7 @@ The lenient matching works by comparing keys after:
 
 The `transform` property allows you to modify key-value pairs before they are processed by the schema. This is useful for normalizing data, filtering out unwanted keys, or transforming values. The transform function receives an object with `key` and `value` properties and can return either a transformed object or `false` to drop the key-value pair. The transform function can be applied at both the global level (affecting all adapters) and the adapter level (affecting only that specific adapter). When both are provided, the adapter-level transform takes precedence.
 
-> ⚠️ **Warning**: The transform function is the first step in the data processing pipeline, so it can be used to filter out keys or transform values before using all the other capabilities of the library (e.g., key matching, nesting separator, etc.).
+> ⚠️ **Note**: The transform function is the first step in the data processing pipeline, before all the other capabilities of the library (e.g., key matching, nesting separator, etc.).
 
 ```ts
 import { z } from 'zod';

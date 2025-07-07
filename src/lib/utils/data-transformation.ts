@@ -5,7 +5,7 @@ import { applyNestingSeparatorKeyValue } from "./nesting-separator";
  * Applies transformations to the data.
  * First it applies the transform function if provided, then it applies the nesting separator if provided.
  */
-export const applyTransformations = (
+export const applyDataTransformation = (
   data: Record<string, unknown>,
   transform?: Transform,
   nestingSeparator?: string,

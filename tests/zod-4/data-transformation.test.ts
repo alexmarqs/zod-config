@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { applyTransformations } from "@/lib/utils/transformations";
+import { applyDataTransformation } from "@/lib/utils/data-transformation";
 
 describe("applyTransformations", () => {
   describe("with no transformations", () => {
     it("should return the original data when no transform or nesting separator is provided", () => {
       const data = { key1: "value1", key2: "value2" };
-      const result = applyTransformations(data);
+      const result = applyDataTransformation(data);
       expect(result).toEqual(data);
     });
   });
@@ -18,7 +18,7 @@ describe("applyTransformations", () => {
         value: `transformed_${value}`,
       });
 
-      const result = applyTransformations(data, transform);
+      const result = applyDataTransformation(data, transform);
       expect(result).toEqual({
         KEY1: "transformed_value1",
         KEY2: "transformed_value2",
@@ -32,7 +32,7 @@ describe("applyTransformations", () => {
         return { key, value: "transformed" };
       };
 
-      const result = applyTransformations(data, transform);
+      const result = applyDataTransformation(data, transform);
       expect(result).toEqual({
         keep: "transformed",
         keep2: "transformed",
@@ -43,7 +43,7 @@ describe("applyTransformations", () => {
       const data = { key1: "value1" };
       const transform = () => "invalid" as any;
 
-      expect(() => applyTransformations(data, transform)).toThrow(
+      expect(() => applyDataTransformation(data, transform)).toThrow(
         'Invalid transform result for key "key1": expected { key: string, value: unknown } or false, received: "invalid"',
       );
     });
@@ -52,7 +52,7 @@ describe("applyTransformations", () => {
       const data = { key1: "value1" };
       const transform = () => ({ value: "test" }) as any;
 
-      expect(() => applyTransformations(data, transform)).toThrow(
+      expect(() => applyDataTransformation(data, transform)).toThrow(
         'Invalid transform result for key "key1": expected { key: string, value: unknown } or false, received: {"value":"test"}',
       );
     });
@@ -61,7 +61,7 @@ describe("applyTransformations", () => {
       const data = { key1: "value1" };
       const transform = () => ({ key: "test" }) as any;
 
-      expect(() => applyTransformations(data, transform)).toThrow(
+      expect(() => applyDataTransformation(data, transform)).toThrow(
         'Invalid transform result for key "key1": expected { key: string, value: unknown } or false, received: {"key":"test"}',
       );
     });
@@ -70,7 +70,7 @@ describe("applyTransformations", () => {
   describe("with nesting separator", () => {
     it("should apply nesting separator to create nested objects", () => {
       const data = { "database.host": "localhost", "database.port": "5432" };
-      const result = applyTransformations(data, undefined, ".");
+      const result = applyDataTransformation(data, undefined, ".");
 
       expect(result).toEqual({
         database: {
@@ -82,7 +82,7 @@ describe("applyTransformations", () => {
 
     it("should handle single level keys without separator", () => {
       const data = { host: "localhost", "database.port": "5432" };
-      const result = applyTransformations(data, undefined, ".");
+      const result = applyDataTransformation(data, undefined, ".");
 
       expect(result).toEqual({
         host: "localhost",
@@ -94,7 +94,7 @@ describe("applyTransformations", () => {
 
     it("should handle different separators", () => {
       const data = { database_host: "localhost", database_port: "5432" };
-      const result = applyTransformations(data, undefined, "_");
+      const result = applyDataTransformation(data, undefined, "_");
 
       expect(result).toEqual({
         database: {
@@ -107,7 +107,7 @@ describe("applyTransformations", () => {
     it("should throw error on nested key conflicts", () => {
       const data = { database: "simple_value", "database.host": "localhost" };
 
-      expect(() => applyTransformations(data, undefined, ".")).toThrow(
+      expect(() => applyDataTransformation(data, undefined, ".")).toThrow(
         'Nested key conflict: Cannot create nested object at "database" because it already exists as a primitive value. Conflicting key: "database.host" and "database"',
       );
     });
@@ -115,7 +115,7 @@ describe("applyTransformations", () => {
     it("should throw error when trying to assign to existing object", () => {
       const data = { "database.host": "localhost", database: "simple_value" };
 
-      expect(() => applyTransformations(data, undefined, ".")).toThrow(
+      expect(() => applyDataTransformation(data, undefined, ".")).toThrow(
         'Nested key conflict: "database" cannot be assigned because "database" already exists as an object (created by another key)',
       );
     });
@@ -129,7 +129,7 @@ describe("applyTransformations", () => {
         value: `env_${value}`,
       });
 
-      const result = applyTransformations(data, transform, ".");
+      const result = applyDataTransformation(data, transform, ".");
       expect(result).toEqual({
         database: {
           host: "env_localhost",
@@ -148,7 +148,7 @@ describe("applyTransformations", () => {
         };
       };
 
-      const result = applyTransformations(data, transform, ".");
+      const result = applyDataTransformation(data, transform, ".");
       expect(result).toEqual({
         database: {
           host: "localhost",
@@ -170,7 +170,7 @@ describe("applyTransformations", () => {
         return { key: lowerKey, value };
       };
 
-      const result = applyTransformations(data, transform, ".");
+      const result = applyDataTransformation(data, transform, ".");
       expect(result).toEqual({
         api: { key: "secret123" },
         db: { host: "localhost", port: "5432" },
@@ -181,7 +181,7 @@ describe("applyTransformations", () => {
 
   describe("edge cases", () => {
     it("should handle empty data object", () => {
-      const result = applyTransformations({}, undefined, ".");
+      const result = applyDataTransformation({}, undefined, ".");
       expect(result).toEqual({});
     });
 
@@ -195,7 +195,7 @@ describe("applyTransformations", () => {
         "config.object": { nested: "value" },
       };
 
-      const result = applyTransformations(data, undefined, ".");
+      const result = applyDataTransformation(data, undefined, ".");
       expect(result).toEqual({
         config: {
           string: "text",
@@ -210,7 +210,7 @@ describe("applyTransformations", () => {
 
     it("should handle keys with multiple separators", () => {
       const data = { "a.b.c": "value1", "a.b.d": "value2" };
-      const result = applyTransformations(data, undefined, ".");
+      const result = applyDataTransformation(data, undefined, ".");
 
       expect(result).toEqual({
         a: {
@@ -224,7 +224,7 @@ describe("applyTransformations", () => {
 
     it("should handle empty string separator", () => {
       const data = { "database.host": "localhost" };
-      const result = applyTransformations(data, undefined, "");
+      const result = applyDataTransformation(data, undefined, "");
 
       expect(result).toEqual({
         "database.host": "localhost",
@@ -239,7 +239,7 @@ describe("applyTransformations", () => {
         },
         "key2.nested": "flat_value",
       };
-      const result = applyTransformations(data, undefined, ".");
+      const result = applyDataTransformation(data, undefined, ".");
 
       // Object values are preserved as-is, only top-level keys get split
       expect(result).toEqual({

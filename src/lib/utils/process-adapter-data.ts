@@ -1,6 +1,6 @@
 import type { KeyMatching, SchemaConfig, Transform } from "../../types";
 import { applyKeyMatching, getSchemaShape } from ".";
-import { applyTransformations } from "./transformations";
+import { applyDataTransformation } from "./data-transformation";
 
 export const processAdapterData = (
   data: Record<string, unknown>,
@@ -13,7 +13,7 @@ export const processAdapterData = (
 
   // Apply transformations
   if (transform || nestingSeparator) {
-    processedData = applyTransformations(processedData, transform, nestingSeparator);
+    processedData = applyDataTransformation(processedData, transform, nestingSeparator);
   }
 
   // Apply key matching
