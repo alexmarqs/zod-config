@@ -14,6 +14,7 @@ export const yamlAdapter = ({
   regex,
   silent,
   keyMatching,
+  transform,
 }: YamlAdapterProps): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
@@ -34,5 +35,6 @@ export const yamlAdapter = ({
     },
     silent,
     keyMatching,
+    transform,
   };
 };

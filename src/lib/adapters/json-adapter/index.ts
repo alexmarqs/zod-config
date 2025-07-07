@@ -13,6 +13,7 @@ export const jsonAdapter = ({
   regex,
   silent,
   keyMatching,
+  transform,
 }: JsonAdapterProps): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
@@ -33,5 +34,6 @@ export const jsonAdapter = ({
     },
     silent,
     keyMatching,
+    transform,
   };
 };

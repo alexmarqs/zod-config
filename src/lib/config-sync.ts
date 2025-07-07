@@ -6,6 +6,7 @@ import type {
   SchemaConfig,
   SyncAdapter,
   SyncConfig,
+  Transform,
 } from "../types";
 import { safeParse } from "zod/v4/core";
 import { deepMerge, getSafeProcessEnv, processAdapterData } from "./utils";
@@ -23,7 +24,7 @@ import { getResolvedConfig } from "./utils/resolved-config";
 export const loadConfigSync = <T extends SchemaConfig>(
   config: SyncConfig<T>,
 ): InferredDataConfig<T> => {
-  const { schema, adapters, onError, onSuccess, keyMatching, silent } = config;
+  const { schema, adapters, onError, onSuccess, keyMatching, silent, transform } = config;
   const logger = config.logger ?? console;
 
   // Read data from adapters
@@ -33,6 +34,7 @@ export const loadConfigSync = <T extends SchemaConfig>(
     schema,
     keyMatching,
     silent,
+    transform,
   );
 
   let result = undefined;
@@ -72,6 +74,7 @@ const getDataFromAdaptersSync = (
   schema: SchemaConfig,
   keyMatching?: KeyMatching,
   silent?: boolean,
+  transform?: Transform,
 ) => {
   // If no adapters are provided, we will read from process.env
   if (!adapters || adapters.length === 0) {
@@ -80,12 +83,16 @@ const getDataFromAdaptersSync = (
 
   // Load data from all adapters, if any adapter fails, we will still return the data from other adapters
   const result = adapters.map((adapter) => {
-    const resolvedConfig = getResolvedConfig(adapter, keyMatching, silent);
+    const resolvedConfig = getResolvedConfig(adapter, keyMatching, silent, transform);
 
     let data: Record<string, unknown>;
 
     try {
       data = adapter.read();
+
+      if (!data) {
+        return {};
+      }
     } catch (error) {
       if (!resolvedConfig.silent) {
         logger.warn(
@@ -103,7 +110,13 @@ const getDataFromAdaptersSync = (
       );
     }
 
-    return processAdapterData(data, schema, resolvedConfig.keyMatching);
+    return processAdapterData(
+      data,
+      schema,
+      resolvedConfig.keyMatching,
+      resolvedConfig.transform,
+      resolvedConfig.nestingSeparator,
+    );
   });
 
   // Perform deep merge of data from all adapters

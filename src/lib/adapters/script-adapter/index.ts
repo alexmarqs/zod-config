@@ -12,6 +12,7 @@ export const scriptAdapter = ({
   regex,
   silent,
   keyMatching,
+  transform,
 }: ScriptAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
@@ -28,5 +29,6 @@ export const scriptAdapter = ({
     },
     silent,
     keyMatching,
+    transform,
   };
 };

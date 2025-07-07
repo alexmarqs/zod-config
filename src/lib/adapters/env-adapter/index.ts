@@ -4,6 +4,7 @@ import { filteredData } from "../../utils";
 
 export type EnvAdapterProps = BaseAdapterProps & {
   customEnv?: Record<string, any>;
+  nestingSeparator?: string;
 };
 
 const ADAPTER_NAME = "env adapter";
@@ -13,6 +14,8 @@ export const envAdapter = ({
   regex,
   silent,
   keyMatching,
+  transform,
+  nestingSeparator,
 }: EnvAdapterProps = {}): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
@@ -23,5 +26,7 @@ export const envAdapter = ({
     },
     silent,
     keyMatching,
+    transform,
+    nestingSeparator,
   };
 };

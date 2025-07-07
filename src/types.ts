@@ -36,11 +36,21 @@ export type InferredErrorConfig<S extends SchemaConfig> = S extends z3.ZodType<i
     ? z.$ZodError<U>
     : never;
 
+/*
+  Base adapter type
+*/
 type BaseAdapter = {
   /**
    * Name of the adapter
    */
   name: string;
+
+  /**
+   * Separator to use for creating nested objects from flat keys (e.g., "." or "_")
+   * When provided, keys like "database.host" or "database_host" will be converted to { database: { host: value } }
+   * Only top-level keys get split, nested keys are not affected.
+   */
+  nestingSeparator?: string;
 } & SharedConfigOptions;
 
 /**
@@ -117,7 +127,7 @@ export type Logger = {
  */
 export type BaseAdapterProps = {
   /**
-   * Regular expression to filter keys
+   * Regular expression to match keys to be processed.
    */
   regex?: RegExp;
 } & SharedConfigOptions;
@@ -134,7 +144,20 @@ export type SharedConfigOptions = {
    * How to handle casing differences.
    */
   keyMatching?: KeyMatching;
+
+  /**
+   * Function to transform key-value pairs before processing.
+   * If the function returns false, the key-value pair will be dropped.
+   */
+  transform?: Transform;
 };
+
+/**
+ * Transform type
+ */
+export type Transform = (obj: { key: string; value: unknown }) =>
+  | { key: string; value: unknown }
+  | false;
 
 /**
  * Key matching type

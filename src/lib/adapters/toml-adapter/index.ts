@@ -13,6 +13,7 @@ export const tomlAdapter = ({
   regex,
   silent,
   keyMatching,
+  transform,
 }: TomlAdapterProps): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
@@ -33,5 +34,6 @@ export const tomlAdapter = ({
     },
     silent,
     keyMatching,
+    transform,
   };
 };
