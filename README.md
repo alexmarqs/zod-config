@@ -84,11 +84,11 @@ Zod Config supports both [Zod 4](https://zod.dev/v4) and [Zod 3](https://v3.zod.
 
 ```ts
 // Using Zod 4
-import { z } from "zod/v4";
+import { z } from "zod/v4"; // for ^4.0.0 zod versions, you can import from "zod" instead
 // Using Zod 4 Mini
-import { z } from "zod/v4-mini";
+import { z } from "zod/v4-mini"; // for ^4.0.0 zod versions, you can import from "zod/mini" instead
 // Using Zod 3
-import { z } from "zod"; // or "zod/v3"
+import { z } from "zod/v3";
 
 import { loadConfig } from "zod-config";
 import { envAdapter } from "zod-config/env-adapter";
