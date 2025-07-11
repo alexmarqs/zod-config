@@ -190,6 +190,7 @@ Loads the configuration from a `json` file.
 import { z } from 'zod';
 import { loadConfig } from 'zod-config';
 import { jsonAdapter } from 'zod-config/json-adapter';
+import path from 'path';
 
 const schemaConfig = z.object({
   MY_APP_PORT: z.string().regex(/^\d+$/),
@@ -225,6 +226,7 @@ npm install yaml
 import { z } from 'zod';
 import { loadConfig } from 'zod-config';
 import { yamlAdapter } from 'zod-config/yaml-adapter';
+import path from 'path';
 
 const schemaConfig = z.object({
   MY_APP_PORT: z.string().regex(/^\d+$/),
@@ -260,6 +262,7 @@ npm install smol-toml
 import { z } from 'zod';
 import { loadConfig } from 'zod-config';
 import { tomlAdapter } from 'zod-config/toml-adapter';
+import path from 'path';
 
 const schemaConfig = z.object({
   MY_APP_PORT: z.string().regex(/^\d+$/),
@@ -295,6 +298,7 @@ npm install dotenv
 import { z } from 'zod';
 import { loadConfig } from 'zod-config';
 import { dotEnvAdapter } from 'zod-config/dotenv-adapter';
+import path from 'path';
 
 const schemaConfig = z.object({
   MY_APP_PORT: z.string().regex(/^\d+$/),
@@ -321,9 +325,9 @@ const customConfig = await loadConfig({
 // .env file content: DATABASE_HOST=localhost\nDATABASE_PORT=5432
 const nestedConfig = await loadConfig({
   schema: z.object({
-    database: z.object({
-      host: z.string(),
-      port: z.string(),
+    DATABASE: z.object({
+      HOST: z.string(),
+      PORT: z.string(),
     }),
   }),
   adapters: dotEnvAdapter({
@@ -341,6 +345,7 @@ Loads configuration from TypeScript (`.ts`), JavaScript (`.js`), or JSON (`.json
 import { z } from 'zod';
 import { loadConfig } from 'zod-config';
 import { scriptAdapter } from 'zod-config/script-adapter';
+import path from 'path';
 
 const schemaConfig = z.object({
   port: z.string().regex(/^\d+$/),
@@ -389,6 +394,8 @@ This adapter can be useful when using version control to manage different config
 import { z } from 'zod';
 import { loadConfig } from 'zod-config';
 import { directoryAdapter } from 'zod-config/directory-adapter';
+import { scriptAdapter } from 'zod-config/script-adapter';
+import path from 'path';
 
 const schemaConfig = z.object({
   port: z.string().regex(/^\d+$/),
@@ -430,6 +437,7 @@ import { z } from 'zod';
 import { loadConfig } from 'zod-config';
 import { envAdapter } from 'zod-config/env-adapter';
 import { jsonAdapter } from 'zod-config/json-adapter';
+import path from 'path';
 
 const schemaConfig = z.object({
   port: z.string().regex(/^\d+$/),
@@ -465,6 +473,7 @@ import { z } from 'zod';
 import { loadConfigSync } from 'zod-config';
 import { envAdapter } from 'zod-config/env-adapter';
 import { jsonAdapter } from 'zod-config/json-adapter';
+import path from 'path';
 
 const schemaConfig = z.object({
   port: z.string().regex(/^\d+$/),
@@ -616,6 +625,7 @@ const config = await loadConfig({
       'API_KEY': 'my-key',
       'SECRET_TOKEN': 'should-be-dropped',
     },
+    nestingSeparator: '_',
   }),
 });
 
@@ -671,7 +681,7 @@ const complexConfig = await loadConfig({
       // Transform different prefixes to nested structure
       if (key.startsWith('API_')) {
         return {
-          key: key.replace('API_', '').toLowerCase().replace('_', '.'),
+          key: key.replace('API_', 'api.').toLowerCase(),
           value,
         };
       }
