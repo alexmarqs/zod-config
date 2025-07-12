@@ -62,7 +62,12 @@ yarn add zod-config zod # yarn
 
 ## Quick Start
 
-Zod Config provides a `loadConfig` function that takes a Zod Object schema and returns a promise that resolves to the configuration object - it supports both asynchronous and synchronous adapters / Zod schemas. The library also provides a `loadConfigSync` function version which takes the same configuration, but does not return a Promise anymore (note that you cannot provide asynchronous adapters / Zod schemas to `loadConfigSync`, see [Synchronous loading](#synchronous-loading) for more information).
+Zod Config provides both asynchronous and synchronous APIs for loading configuration:
+
+- **`loadConfig`**: Asynchronous function that takes a Zod Object schema and returns a promise resolving to the validated configuration object;
+- **`loadConfigSync`**: Synchronous version that takes the same configuration but returns the result directly without a promise;
+
+> **Note**: `loadConfigSync` only supports synchronous adapters and schemas. For details on compatibility, see [Synchronous loading](#synchronous-loading).
 
 Here are the available configuration options:
 
@@ -77,9 +82,9 @@ Here are the available configuration options:
 | `silent` | `boolean` | Whether to suppress errors. By default, it is `false`. | `false` | `yes` | `yes` |
 | `transform` | `(obj: { key: string; value: unknown }) => { key: string; value: unknown } \| false` | Function to transform key-value pairs before processing. If the function returns false, the key-value pair will be dropped. | `false` | `yes` | `yes` |
 
-From the package we also expose the necessary types in case you want to use them in your own adapters. Some of the options are shared between the global config and the adapter config, so you can use them in your own adapters as well. For specific adapter options, check the section of the adapter you are using. 
+From the package we also expose the necessary types in case you want to use them in your own adapters. Some of the options are shared between the global config and the adapter config, so you can use them in your own adapters as well. 
 
-This library provides some built in adapters to load the configuration from different sources via modules. You can easily import them from `zod-config/<built-in-adapter-module-name>` (see the examples below).
+This library provides some built in adapters to load the configuration from different sources via modules. You can easily import them from `zod-config/<built-in-adapter-module-name>`. For specific adapter options, check the section of the adapter you are using. 
 
 ### Compatibility
 
@@ -134,7 +139,7 @@ console.log(config.host)
 
 #### Env Adapter
 
-Loads the configuration from `process.env` or a custom object, allowing you to filter the keys using a regex (this can be useful when you have multiple adapters and you want to filter the keys to avoid conflicts or just to keep only the keys you need to process - it is also available in some other built-in adapter). It also supports creating nested objects from flat keys using the `nestingSeparator` property.
+Loads the configuration from `process.env` or a custom object, allowing you to filter the keys using a `regex` (this can be useful when you have multiple adapters and you want to filter the keys to avoid conflicts or just to keep only the keys you need to process). To support nested objects, you can use the `nestingSeparator` property that will be used to create nested objects from flat keys based on the separator.
 
 ```ts
 import { z } from 'zod';
@@ -288,7 +293,7 @@ const customConfig = await loadConfig({
 
 #### Dotenv Adapter
 
-Loads the configuration from a `.env` file. In order to use this adapter, you need to install `dotenv` (peer dependency), if you don't have it already. It also supports creating nested objects from flat keys using the `nestingSeparator` property.
+Loads the configuration from a `.env` file. In order to use this adapter, you need to install `dotenv` (peer dependency), if you don't have it already. To support nested objects, you can use the `nestingSeparator` property that will be used to create nested objects from flat keys based on the separator.
 
 ```bash
 npm install dotenv
@@ -588,7 +593,7 @@ The lenient matching works by comparing keys after:
 
 The `transform` property allows you to modify key-value pairs before they are processed by the schema. This is useful for normalizing data, filtering out unwanted keys, or transforming values. The transform function receives an object with `key` and `value` properties and can return either a transformed object or `false` to drop the key-value pair. The transform function can be applied at both the global level (affecting all adapters) and the adapter level (affecting only that specific adapter). When both are provided, the adapter-level transform takes precedence.
 
-> ⚠️ **Note**: The transform function is the first step in the data processing pipeline, before all the other capabilities of the library (e.g., key matching, nesting separator, etc.).
+> **Note**: The transform function is the first step in the data processing pipeline, before all the other capabilities of the library (e.g., key matching, nesting separator, etc.).
 
 ```ts
 import { z } from 'zod';
