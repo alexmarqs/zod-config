@@ -40,7 +40,9 @@ yarn add zod-config zod # yarn
 
 - [Quick Start](#quick-start)
 - [Compatibility](#compatibility)
-- [Default Adapter](#default-adapter)
+- [Basic Usage](#basic-usage)
+  - [Default Adapter](#default-adapter)
+  - [Synchronous loading](#synchronous-loading)
 - [Built In Adapters](#built-in-adapters)
   - [Env Adapter](#env-adapter)
   - [JSON Adapter](#json-adapter)
@@ -49,13 +51,13 @@ yarn add zod-config zod # yarn
   - [Dotenv Adapter](#dotenv-adapter)
   - [Script Adapter](#script-adapter)
   - [Directory Adapter](#directory-adapter)
-- [Combine multiple adapters](#combine-multiple-adapters)
-- [Synchronous loading](#synchronous-loading)
-- [Callbacks](#callbacks)
-- [Custom Logger](#custom-logger)
-- [Silent mode](#silent-mode)
-- [Lenient key matching](#lenient-key-matching)
-- [Transform function](#transform-function)
+- [Advanced Features](#advanced-features)
+  - [Combine multiple adapters](#combine-multiple-adapters)
+  - [Callbacks](#callbacks)
+  - [Custom Logger](#custom-logger)
+  - [Silent mode](#silent-mode)
+  - [Lenient key matching](#lenient-key-matching)
+  - [Transform function](#transform-function)
 - [Contributing notes](#contributing-notes)
 - [On the web](#on-the-web)
 
@@ -116,6 +118,8 @@ const config = await loadConfig({
   ],
 });
 ```
+
+## Basic Usage
 
 ### Default Adapter
 
@@ -434,6 +438,8 @@ const config = await loadConfig({
   }),
 });
 ```
+
+## Advanced Features
 
 ### Combine multiple adapters
 
