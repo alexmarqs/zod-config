@@ -71,20 +71,24 @@ Zod Config provides both asynchronous and synchronous APIs for loading configura
 
 Here are the available configuration options:
 
-| Property | Type | Description | Required | Global Option | Adapter Option |
+Here are the available configuration options for `loadConfig` and `loadConfigSync`:
+
+| Property | Type | Description | Required | Global | Adapter |
 | --- | --- | --- | --- | --- | --- |
-| `schema` | `AnyZodObject` | A Zod Object schema to validate the configuration. | `true` | `N/A` | `N/A` |
-| `adapters` | `Array<Adapter \| SyncAdapter> \| Adapter \| SyncAdapter` | Adapter(s) to load the configuration from. If not provided, process.env will be used. | `false` | `N/A` | `N/A` |
-| `onError` | `(error: Error) => void` | A callback to be called when an error occurs. | `false` | `yes` | `no` |
-| `onSuccess` | `(config: z.infer ) => void` | A callback to be called when the configuration is loaded successfully. | `false` | `yes` | `no` |
-| `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. | `false` | `yes` | `no` |
-| `keyMatching` | `'strict'` / `'lenient'` | How to match keys between the schema and the data of the adapters. By default, it uses `strict`. | `false` | `yes` | `yes` |
-| `silent` | `boolean` | Whether to suppress errors. By default, it is `false`. | `false` | `yes` | `yes` |
-| `transform` | `(obj: { key: string; value: unknown }) => { key: string; value: unknown } \| false` | Function to transform key-value pairs before processing. If the function returns `false`, the key-value pair will be dropped. | `false` | `yes` | `yes` |
+| `schema` | `AnyZodObject` | A Zod Object schema to validate the configuration. | ✅ | N/A | N/A |
+| `adapters` | `Array<Adapter \| SyncAdapter> \| Adapter \| SyncAdapter` | Adapter(s) to load the configuration from. If not provided, process.env will be used. | ❌ | N/A | N/A |
+| `onError` | `(error: Error) => void` | A callback to be called when an error occurs. | ❌ | ✅ | ❌ |
+| `onSuccess` | `(config: z.infer<T>) => void` | A callback to be called when the configuration is loaded successfully. | ❌ | ✅ | ❌ |
+| `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. | ❌ | ✅ | ❌ |
+| `keyMatching` | `'strict' \| 'lenient'` | How to match keys between the schema and the data of the adapters. By default, it uses `strict`. | ❌ | ✅ | ✅ |
+| `silent` | `boolean` | Whether to suppress errors. By default, it is `false`. | ❌ | ✅ | ✅ |
+| `transform` | `(obj: { key: string; value: unknown }) => { key: string; value: unknown } \| false` | Function to transform key-value pairs before processing. If the function returns `false`, the key-value pair will be dropped. | ❌ | ✅ | ✅ |
+
+> **Note**: Options marked as both "Global" and "Adapter" can be set at the global level (affecting all adapters) or at individual adapter level (affecting only that adapter). When both are provided, the adapter-level option takes precedence. For specific adapter options, check the section of the adapter you are using. 
 
 From the package we also expose the necessary types in case you want to use them in your own adapters. Some of the options are shared between the global config and the adapter config, so you can use them in your own adapters as well. 
 
-This library provides some built in adapters to load the configuration from different sources via modules. You can easily import them from `zod-config/<built-in-adapter-module-name>`. For specific adapter options, check the section of the adapter you are using. 
+This library provides some built in adapters to load the configuration from different sources via modules. You can easily import them from `zod-config/<built-in-adapter-module-name>`. 
 
 ### Compatibility
 
