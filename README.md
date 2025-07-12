@@ -77,8 +77,8 @@ Here are the available configuration options for `loadConfig` and `loadConfigSyn
 | --- | --- | --- | --- | --- | --- |
 | `schema` | `AnyZodObject` | A Zod Object schema to validate the configuration. | ✅ | N/A | N/A |
 | `adapters` | `Array<Adapter \| SyncAdapter> \| Adapter \| SyncAdapter` | Adapter(s) to load the configuration from. If not provided, process.env will be used. | ❌ | N/A | N/A |
-| `onError` | `(error: Error) => void` | A callback to be called when an error occurs. | ❌ | ✅ | ❌ |
-| `onSuccess` | `(config: z.infer<T>) => void` | A callback to be called when the configuration is loaded successfully. | ❌ | ✅ | ❌ |
+| `onError` | `(error: InferredErrorConfig<T>) => void)` | A callback to be called when an error occurs. | ❌ | ✅ | ❌ |
+| `onSuccess` | `(data: InferredDataConfig<S>) => void` | A callback to be called when the configuration is loaded successfully. | ❌ | ✅ | ❌ |
 | `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. | ❌ | ✅ | ❌ |
 | `keyMatching` | `'strict' \| 'lenient'` | How to match keys between the schema and the data of the adapters. By default, it uses `strict`. | ❌ | ✅ | ✅ |
 | `silent` | `boolean` | Whether to suppress errors. By default, it is `false`. | ❌ | ✅ | ✅ |
