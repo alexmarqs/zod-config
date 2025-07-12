@@ -80,7 +80,7 @@ Here are the available configuration options:
 | `logger` | `Logger` | A custom logger to be used to log messages. By default, it uses `console`. | `false` | `yes` | `no` |
 | `keyMatching` | `'strict'` / `'lenient'` | How to match keys between the schema and the data of the adapters. By default, it uses `strict`. | `false` | `yes` | `yes` |
 | `silent` | `boolean` | Whether to suppress errors. By default, it is `false`. | `false` | `yes` | `yes` |
-| `transform` | `(obj: { key: string; value: unknown }) => { key: string; value: unknown } \| false` | Function to transform key-value pairs before processing. If the function returns false, the key-value pair will be dropped. | `false` | `yes` | `yes` |
+| `transform` | `(obj: { key: string; value: unknown }) => { key: string; value: unknown } \| false` | Function to transform key-value pairs before processing. If the function returns `false`, the key-value pair will be dropped. | `false` | `yes` | `yes` |
 
 From the package we also expose the necessary types in case you want to use them in your own adapters. Some of the options are shared between the global config and the adapter config, so you can use them in your own adapters as well. 
 
