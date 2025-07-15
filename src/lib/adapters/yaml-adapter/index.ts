@@ -9,7 +9,13 @@ export type YamlAdapterProps = BaseAdapterProps & {
 
 const ADAPTER_NAME = "yaml adapter";
 
-export const yamlAdapter = ({ path, regex, silent }: YamlAdapterProps): SyncAdapter => {
+export const yamlAdapter = ({
+  path,
+  regex,
+  silent,
+  keyMatching,
+  transform,
+}: YamlAdapterProps): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
     read: () => {
@@ -28,5 +34,7 @@ export const yamlAdapter = ({ path, regex, silent }: YamlAdapterProps): SyncAdap
       }
     },
     silent,
+    keyMatching,
+    transform,
   };
 };

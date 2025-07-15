@@ -7,9 +7,11 @@ import type {
   Logger,
   SchemaConfig,
   SyncAdapter,
+  Transform,
 } from "../types";
 import { deepMerge, getSafeProcessEnv, processAdapterData } from "./utils";
 import { safeParseAsync } from "zod/v4/core";
+import { getResolvedConfig } from "./utils/resolved-config";
 
 /**
  * Load config from adapters asynchronously.
@@ -23,7 +25,7 @@ import { safeParseAsync } from "zod/v4/core";
 export const loadConfig = async <T extends SchemaConfig>(
   config: Config<T>,
 ): Promise<InferredDataConfig<T>> => {
-  const { schema, adapters, onError, onSuccess, keyMatching } = config;
+  const { schema, adapters, onError, onSuccess, keyMatching, silent, transform } = config;
   const logger = config.logger ?? console;
 
   // Read data from adapters
@@ -31,7 +33,9 @@ export const loadConfig = async <T extends SchemaConfig>(
     Array.isArray(adapters) ? adapters : adapters ? [adapters] : [],
     logger,
     schema,
-    keyMatching ?? "strict",
+    keyMatching,
+    silent,
+    transform,
   );
 
   let result = undefined;
@@ -69,7 +73,9 @@ const getDataFromAdapters = async (
   adapters: Array<Adapter | SyncAdapter>,
   logger: Logger,
   schema: SchemaConfig,
-  keyMatching: KeyMatching,
+  keyMatching?: KeyMatching,
+  silent?: boolean,
+  transform?: Transform,
 ) => {
   // If no adapters are provided, we will read from process.env
   if (!adapters || adapters.length === 0) {
@@ -79,11 +85,18 @@ const getDataFromAdapters = async (
   // Load data from all adapters, if any adapter fails, we will still return the data from other adapters
   const promiseResult = await Promise.all(
     adapters.map(async (adapter) => {
+      const resolvedConfig = getResolvedConfig(adapter, keyMatching, silent, transform);
+
       let data: Record<string, unknown>;
+
       try {
         data = await adapter.read();
+
+        if (!data) {
+          return {};
+        }
       } catch (error) {
-        if (!adapter.silent) {
+        if (!resolvedConfig.silent) {
           logger.warn(
             `Cannot read data from ${adapter.name}: ${
               error instanceof Error ? error.message : error
@@ -93,7 +106,13 @@ const getDataFromAdapters = async (
         return {};
       }
 
-      return processAdapterData(data, schema, keyMatching);
+      return processAdapterData(
+        data,
+        schema,
+        resolvedConfig.keyMatching,
+        resolvedConfig.transform,
+        resolvedConfig.nestingSeparator,
+      );
     }),
   );
 

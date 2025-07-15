@@ -23,8 +23,10 @@ const ADAPTER_NAME = "directory adapter";
 export const directoryAdapter = ({
   paths,
   adapters: adaptersSpecifiers,
-  silent,
   regex,
+  silent,
+  keyMatching,
+  transform,
 }: DirectoryAdapterProps): Adapter => {
   return {
     name: ADAPTER_NAME,
@@ -81,5 +83,7 @@ export const directoryAdapter = ({
       }
     },
     silent,
+    keyMatching,
+    transform,
   };
 };

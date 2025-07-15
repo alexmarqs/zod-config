@@ -5,11 +5,19 @@ import { readFileSync } from "node:fs";
 
 export type DotEnvAdapterProps = BaseAdapterProps & {
   path: string;
+  nestingSeparator?: string;
 };
 
 const ADAPTER_NAME = "dotenv adapter";
 
-export const dotEnvAdapter = ({ path, regex, silent }: DotEnvAdapterProps): SyncAdapter => {
+export const dotEnvAdapter = ({
+  path,
+  regex,
+  silent,
+  keyMatching,
+  transform,
+  nestingSeparator,
+}: DotEnvAdapterProps): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
     read: () => {
@@ -28,5 +36,8 @@ export const dotEnvAdapter = ({ path, regex, silent }: DotEnvAdapterProps): Sync
       }
     },
     silent,
+    keyMatching,
+    transform,
+    nestingSeparator,
   };
 };

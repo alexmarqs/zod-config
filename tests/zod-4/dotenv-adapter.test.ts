@@ -200,4 +200,51 @@ describe("dotenv adapter", () => {
     ).rejects.toThrowError(z.core.$ZodError);
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
+  it("should convert flat .env vars to nested objects with underscore delimiter", async () => {
+    const envContent = `
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_AUTH_USERNAME=admin
+DATABASE_AUTH_PASSWORD=secret
+APP_NAME=my-app
+`;
+
+    await writeFile(testFilePath, envContent);
+
+    const schema = z.object({
+      DATABASE: z.object({
+        HOST: z.string(),
+        PORT: z.string(),
+        AUTH: z.object({
+          USERNAME: z.string(),
+          PASSWORD: z.string(),
+        }),
+      }),
+      APP: z.object({
+        NAME: z.string(),
+      }),
+    });
+
+    const config = await loadConfig({
+      schema,
+      adapters: dotEnvAdapter({
+        path: testFilePath,
+        nestingSeparator: "_",
+      }),
+    });
+
+    expect(config).toEqual({
+      DATABASE: {
+        HOST: "localhost",
+        PORT: "5432",
+        AUTH: {
+          USERNAME: "admin",
+          PASSWORD: "secret",
+        },
+      },
+      APP: {
+        NAME: "my-app",
+      },
+    });
+  });
 });

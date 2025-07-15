@@ -16,7 +16,7 @@ export type ShapeConfig = z3.ZodRawShape | z.$ZodShape;
 /*
   Helper type for Zod v4 output inference that avoids infinite recursion.
 */
-type ZodV4OutputHelper<T> = T extends z.$ZodType<any> ? z.infer<T> : never;
+type ZodV4Output<T> = T extends z.$ZodType<any> ? z.infer<T> : never;
 
 /*
   This is a type that represents the data of the config.
@@ -24,7 +24,7 @@ type ZodV4OutputHelper<T> = T extends z.$ZodType<any> ? z.infer<T> : never;
 */
 export type InferredDataConfig<S extends SchemaConfig> = S extends z3.ZodType<infer T>
   ? T
-  : ZodV4OutputHelper<S>;
+  : ZodV4Output<S>;
 
 /*
   This is a type that represents the error of the config.
@@ -36,6 +36,9 @@ export type InferredErrorConfig<S extends SchemaConfig> = S extends z3.ZodType<i
     ? z.$ZodError<U>
     : never;
 
+/*
+  Base adapter type
+*/
 type BaseAdapter = {
   /**
    * Name of the adapter
@@ -43,10 +46,12 @@ type BaseAdapter = {
   name: string;
 
   /**
-   * Whether to suppress errors
+   * Separator to use for creating nested objects from flat keys (e.g., "." or "_")
+   * When provided, keys like "database.host" or "database_host" will be converted to { database: { host: value } }
+   * Only top-level keys get split, nested keys are not affected.
    */
-  silent?: boolean;
-};
+  nestingSeparator?: string;
+} & SharedConfigOptions;
 
 /**
  * Adapter type
@@ -85,11 +90,7 @@ export type BaseConfig<S extends SchemaConfig = SchemaConfig> = {
    * Logger to use
    */
   logger?: Logger;
-  /**
-   * How to handle casing differences.
-   */
-  keyMatching?: KeyMatching;
-};
+} & SharedConfigOptions;
 
 /**
  * Config type
@@ -126,14 +127,37 @@ export type Logger = {
  */
 export type BaseAdapterProps = {
   /**
-   * Regular expression to filter keys
+   * Regular expression to match keys to be processed.
    */
   regex?: RegExp;
+} & SharedConfigOptions;
+
+/**
+ * Shared config options between global config and adapter config
+ */
+export type SharedConfigOptions = {
   /**
    * Whether to suppress errors
    */
   silent?: boolean;
+  /**
+   * How to handle casing differences.
+   */
+  keyMatching?: KeyMatching;
+
+  /**
+   * Function to transform key-value pairs before processing.
+   * If the function returns false, the key-value pair will be dropped.
+   */
+  transform?: Transform;
 };
+
+/**
+ * Transform type
+ */
+export type Transform = (obj: { key: string; value: unknown }) =>
+  | { key: string; value: unknown }
+  | false;
 
 /**
  * Key matching type

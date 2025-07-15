@@ -8,7 +8,13 @@ export type TomlAdapterProps = BaseAdapterProps & {
 };
 const ADAPTER_NAME = "toml adapter";
 
-export const tomlAdapter = ({ path, regex, silent }: TomlAdapterProps): SyncAdapter => {
+export const tomlAdapter = ({
+  path,
+  regex,
+  silent,
+  keyMatching,
+  transform,
+}: TomlAdapterProps): SyncAdapter => {
   return {
     name: ADAPTER_NAME,
     read: () => {
@@ -27,5 +33,7 @@ export const tomlAdapter = ({ path, regex, silent }: TomlAdapterProps): SyncAdap
       }
     },
     silent,
+    keyMatching,
+    transform,
   };
 };
