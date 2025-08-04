@@ -23,7 +23,7 @@ describe("json5 adapter", () => {
   },
 
   // List of allowed IPs
-  allowedIPs: [
+  "allowedIPs": [
     '192.168.0.1',
     '10.0.0.1',  // Local access
     // '0.0.0.0', // Commented out for now
