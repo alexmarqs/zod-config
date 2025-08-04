@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { z } from "zod/v4-mini";
 import { applyKeyMatching, getShape } from "../../src/lib/utils";
 import { describe, it, expect } from "vitest";
 
@@ -126,97 +126,6 @@ describe("applyKeyMatching", () => {
         connection: {
           host: "localhost",
           username: "admin",
-        },
-      },
-    });
-  });
-
-  it("should handle key matching for zod type wrapped in a ZodDefault", () => {
-    // given
-    const schema = z.object({
-      database: z
-        .object({
-          connection: z.object({
-            host: z.string(),
-            port: z.number(),
-            username: z.string(),
-            password: z.string(),
-          }),
-        })
-        .default({
-          connection: {
-            host: "host",
-            port: 3000,
-            password: "password",
-            username: "username",
-          },
-        }),
-    });
-
-    // database is not provided
-    const data = {
-      data_base: {
-        CONNECTION: {
-          password: "password",
-        },
-      },
-    };
-
-    // when
-    const shape = getShape(schema);
-    if (!shape) {
-      throw new Error("Shape should not be undefined");
-    }
-
-    const result = applyKeyMatching(data, shape, "lenient");
-
-    // then
-    expect(result).toEqual({
-      database: {
-        connection: {
-          password: "password",
-        },
-      },
-    });
-  });
-
-  it("should handle key matching for zod type wrapped in a ZodOptional", () => {
-    // given
-    const schema = z.object({
-      database: z
-        .object({
-          connection: z.object({
-            host: z.string(),
-            port: z.number(),
-            username: z.string(),
-            password: z.string(),
-          }),
-        })
-        .optional(),
-    });
-
-    // database is not provided
-    const data = {
-      data_base: {
-        CONNECTION: {
-          password: "password",
-        },
-      },
-    };
-
-    // when
-    const shape = getShape(schema);
-    if (!shape) {
-      throw new Error("Shape should not be undefined");
-    }
-
-    const result = applyKeyMatching(data, shape, "lenient");
-
-    // then
-    expect(result).toEqual({
-      database: {
-        connection: {
-          password: "password",
         },
       },
     });

@@ -22,9 +22,7 @@
     "release:dry-run": "standard-version --skip.changelog --dry-run",
     "yalc:publish": "yalc publish"
   },
-  "files": [
-    "dist/**"
-  ],
+  "files": ["dist/**"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -43,6 +41,12 @@
       "import": "./dist/json-adapter.mjs",
       "module": "./dist/json-adapter.mjs",
       "require": "./dist/json-adapter.js"
+    },
+    "./json5-adapter": {
+      "types": "./dist/json5-adapter.d.ts",
+      "import": "./dist/json5-adapter.mjs",
+      "module": "./dist/json5-adapter.mjs",
+      "require": "./dist/json5-adapter.js"
     },
     "./dotenv-adapter": {
       "types": "./dist/dotenv-adapter.d.ts",
@@ -77,27 +81,14 @@
   },
   "typesVersions": {
     "*": {
-      "env-adapter": [
-        "./dist/env-adapter.d.ts"
-      ],
-      "json-adapter": [
-        "./dist/json-adapter.d.ts"
-      ],
-      "dotenv-adapter": [
-        "./dist/dotenv-adapter.d.ts"
-      ],
-      "script-adapter": [
-        "./dist/script-adapter.d.ts"
-      ],
-      "directory-adapter": [
-        "./dist/directory-adapter.d.ts"
-      ],
-      "yaml-adapter": [
-        "./dist/yaml-adapter.d.ts"
-      ],
-      "toml-adapter": [
-        "./dist/toml-adapter.d.ts"
-      ]
+      "env-adapter": ["./dist/env-adapter.d.ts"],
+      "json-adapter": ["./dist/json-adapter.d.ts"],
+      "json5-adapter": ["./dist/json5-adapter.d.ts"],
+      "dotenv-adapter": ["./dist/dotenv-adapter.d.ts"],
+      "script-adapter": ["./dist/script-adapter.d.ts"],
+      "directory-adapter": ["./dist/directory-adapter.d.ts"],
+      "yaml-adapter": ["./dist/yaml-adapter.d.ts"],
+      "toml-adapter": ["./dist/toml-adapter.d.ts"]
     }
   },
   "publishConfig": {
@@ -116,6 +107,7 @@
     "config",
     "env",
     "json",
+    "json5",
     "yaml",
     "toml",
     "dotenv",
@@ -127,6 +119,7 @@
     "@biomejs/biome": "1.7.3",
     "@types/node": "20.10.7",
     "dotenv": "16.4.1",
+    "json5": "2.2.3",
     "smol-toml": "1.3.1",
     "standard-version": "9.5.0",
     "tsup": "6.7.0",
@@ -137,6 +130,7 @@
   },
   "peerDependencies": {
     "dotenv": ">=15",
+    "json5": ">=2",
     "smol-toml": "^1.x",
     "yaml": "^2.x",
     "zod": "^3.25.0 || ^4.0.0"
@@ -149,6 +143,9 @@
       "optional": true
     },
     "smol-toml": {
+      "optional": true
+    },
+    "json5": {
       "optional": true
     }
   },

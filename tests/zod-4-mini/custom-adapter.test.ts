@@ -2,7 +2,7 @@ import { loadConfig } from "@/lib/config";
 import type { Adapter } from "@/types";
 import {} from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { z } from "zod/v4";
+import { z } from "zod/v4-mini";
 
 describe("custom adapter", () => {
   it("should return parsed data when schema is valid", async () => {
@@ -36,7 +36,7 @@ describe("custom adapter", () => {
     // given
     const schema = z.object({
       HOST: z.string(),
-      PORT: z.string().regex(/^\d+$/),
+      PORT: z.string().check(z.regex(/^\d+$/)),
     });
 
     const customAdapter1 = {

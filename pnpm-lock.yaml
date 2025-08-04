@@ -14,6 +14,9 @@ devDependencies:
   dotenv:
     specifier: 16.4.1
     version: 16.4.1
+  json5:
+    specifier: 2.2.3
+    version: 2.2.3
   smol-toml:
     specifier: 1.3.1
     version: 1.3.1
@@ -1831,6 +1834,12 @@ packages:
 
   /json-stringify-safe@5.0.1:
     resolution: {integrity: sha512-ZClg6AaYvamvYEE82d3Iyd3vSSIjQ+odgjaTzRuO3s7toCdFKczob2i0zCh7JE8kWn17yvAWhUVxvqGwUalsRA==}
+    dev: true
+
+  /json5@2.2.3:
+    resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
+    engines: {node: '>=6'}
+    hasBin: true
     dev: true
 
   /jsonparse@1.3.1:

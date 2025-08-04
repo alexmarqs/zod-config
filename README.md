@@ -46,6 +46,7 @@ yarn add zod-config zod # yarn
 - [Built In Adapters](#built-in-adapters)
   - [Env Adapter](#env-adapter)
   - [JSON Adapter](#json-adapter)
+  - [JSON5 Adapter](#json5-adapter)
   - [YAML Adapter](#yaml-adapter)
   - [TOML Adapter](#toml-adapter)
   - [Dotenv Adapter](#dotenv-adapter)
@@ -224,6 +225,42 @@ const customConfig = await loadConfig({
     path: filePath,
     regex: /^MY_APP_/,
   }),
+});
+```
+
+#### JSON5 Adapter
+
+Loads the configuration from a `json5` file. In order to use this adapter, you need to install `json5` (peer dependency), if you don't have it already.
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { json5Adapter } from 'zod-config/json5-adapter';
+import path from 'path';
+
+/** content of config.json5
+{
+  // Server settings
+  host: 'localhost',       // Single quotes + unquoted key
+  port: 3000,              // Trailing comma
+  allowedIPs: [
+    '192.168.0.1',
+    '10.0.0.1',  // Local access
+  ]
+}
+*/
+
+const filePath = path.join(__dirname, 'config.json5');
+
+const schemaConfig = z.object({
+  host: z.string(),
+  port: z.number(),
+  allowedIPs: z.array(z.string()),
+});
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: json5Adapter({ path: filePath }),
 });
 ```
 
