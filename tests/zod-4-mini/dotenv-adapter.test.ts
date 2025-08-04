@@ -4,7 +4,7 @@ import type { Logger } from "@/types";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { z } from "zod/v4";
+import { z } from "zod/v4-mini";
 
 describe("dotenv adapter", () => {
   const testFilePath = path.join(__dirname, ".env.test");
@@ -21,7 +21,7 @@ describe("dotenv adapter", () => {
     // given
     const schema = z.object({
       HOST: z.string(),
-      PORT: z.string().regex(/^\d+$/),
+      PORT: z.string().check(z.regex(/^\d+$/)),
     });
 
     // when
@@ -37,59 +37,6 @@ describe("dotenv adapter", () => {
     expect(config.PORT).toBe("3000");
   });
 
-  it("should throw zod error when schema is valid but data is invalid due to side effects .transform", async () => {
-    // given
-    const schema = z
-      .object({
-        HOST: z.string().transform((val) => val.toUpperCase()),
-        PORT: z.string().regex(/^\d+$/),
-      })
-      .transform((data) => {
-        return {
-          HOST: data.HOST,
-          PORT: "12345",
-        };
-      });
-
-    // when
-    const config = await loadConfig({
-      schema,
-      adapters: dotEnvAdapter({
-        path: testFilePath,
-      }),
-    });
-
-    // then
-    expect(config.HOST).toBe("LOCALHOST");
-    expect(config.PORT).toBe("12345");
-  });
-  it("should throw zod error when schema is valid but data is invalid due to side effects .preprocess", async () => {
-    // given
-    const schema = z.preprocess(
-      () => {
-        return {
-          HOST: "LOCALHOST",
-          PORT: "12345",
-        };
-      },
-      z.object({
-        HOST: z.string(),
-        PORT: z.string().regex(/^\d+$/),
-      }),
-    );
-
-    // when
-    const config = await loadConfig({
-      schema,
-      adapters: dotEnvAdapter({
-        path: testFilePath,
-      }),
-    });
-
-    // then
-    expect(config.HOST).toBe("LOCALHOST");
-    expect(config.PORT).toBe("12345");
-  });
   it("should return parsed data when schema is valid with regex key", async () => {
     // given
     const schema = z.object({

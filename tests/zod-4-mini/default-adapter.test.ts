@@ -1,13 +1,13 @@
 import { loadConfig } from "@/lib/config";
 import { describe, expect, it } from "vitest";
-import { z } from "zod/v4";
+import { z } from "zod/v4-mini";
 
 describe("default adapter", () => {
   it("should return parsed data when schema is valid", async () => {
     // given
     const schema = z.object({
       HOST: z.string(),
-      PORT: z.string().regex(/^\d+$/),
+      PORT: z.string().check(z.regex(/^\d+$/)),
     });
     process.env = {
       HOST: "localhost",

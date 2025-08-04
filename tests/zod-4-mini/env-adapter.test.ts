@@ -2,14 +2,14 @@ import { envAdapter } from "@/lib/adapters/env-adapter";
 import { loadConfig } from "@/lib/config";
 import {} from "node:fs/promises";
 import { describe, expect, it } from "vitest";
-import { z } from "zod/v4";
+import { z } from "zod/v4-mini";
 
 describe("env adapter", () => {
   it("should return parsed data when schema is valid", async () => {
     // given
     const schema = z.object({
       APP_NAME: z.string(),
-      PORT: z.string().regex(/^\d+$/),
+      PORT: z.string().check(z.regex(/^\d+$/)),
     });
 
     process.env = {
@@ -32,7 +32,7 @@ describe("env adapter", () => {
     // given
     const schema = z.object({
       APP_NAME: z.string(),
-      PORT: z.string().regex(/^\d+$/),
+      PORT: z.string().check(z.regex(/^\d+$/)),
     });
 
     // when
