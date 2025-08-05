@@ -514,6 +514,7 @@ The `loadConfig` function is asynchronous to allow for adapters that are asynchr
 The following default adapters are synchronous and can be used with `loadConfigSync`:
 - `envAdapter`
 - `jsonAdapter`
+- `json5Adapter`
 - `yamlAdapter`
 - `tomlAdapter`
 - `dotEnvAdapter`
