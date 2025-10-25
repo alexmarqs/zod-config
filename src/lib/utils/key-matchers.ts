@@ -84,6 +84,10 @@ function isZodOptional(input: unknown): input is z.$ZodOptional {
   return input instanceof z.$ZodOptional;
 }
 
+function isZodPrefault(input: unknown): input is z.$ZodPrefault {
+  return input instanceof z.$ZodPrefault;
+}
+
 function isZodObjectV3(input: unknown): input is AnyZodObject {
   return input instanceof ZodObject;
 }
@@ -113,7 +117,8 @@ function compareBy<T, R>(selector: (it: T) => R): (a: T, b: T) => boolean {
 }
 
 export function getShape(schema: z.$ZodType<unknown>): z.$ZodShape | undefined {
-  if (isZodDefault(schema) || isZodOptional(schema)) return getShape(schema._zod.def.innerType);
+  if (isZodDefault(schema) || isZodOptional(schema) || isZodPrefault(schema))
+    return getShape(schema._zod.def.innerType);
   if (isZodObject(schema)) return schema._zod.def.shape;
   if (isZodPipeTransformObject(schema)) return schema._zod.def.in._zod.def.shape;
   if (isZodPipePreprocessObject(schema)) return schema._zod.def.out._zod.def.shape;

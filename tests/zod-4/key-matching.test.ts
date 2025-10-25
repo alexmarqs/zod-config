@@ -3,6 +3,7 @@ import { z } from "zod/v4";
 
 import { loadConfig } from "@/index";
 import { inlineAdapter } from "../fixtures/utils-fixtures";
+import { envAdapter } from "@/lib/adapters/env-adapter";
 
 describe("Lenient key matching tests", () => {
   it("should perform lenient matching", async () => {
@@ -31,6 +32,38 @@ describe("Lenient key matching tests", () => {
         enabled: true,
         nestedProp: "Foo!",
         OTHER_PROP: "Test",
+      },
+    });
+  });
+
+  it("should perform lenient matching with prefault values", async () => {
+    const MyConfig = z.object({
+      one: z
+        .object({
+          two: z.string().default("foo"),
+        })
+        .prefault({}),
+    });
+
+    const mockedLogger = { warn: vi.fn() };
+
+    const config = await loadConfig({
+      logger: mockedLogger,
+      schema: MyConfig,
+      adapters: [
+        envAdapter({
+          customEnv: {
+            ONE__TWO: "bar",
+          },
+          keyMatching: "lenient",
+          nestingSeparator: "__",
+        }),
+      ],
+    });
+
+    expect(config).toEqual({
+      one: {
+        two: "bar",
       },
     });
   });
