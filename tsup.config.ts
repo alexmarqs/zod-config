@@ -14,7 +14,7 @@ export default defineConfig([
       "toml-adapter": "src/lib/adapters/toml-adapter/index.ts",
     },
     format: ["cjs", "esm"],
-    target: "node14",
+    target: "node18",
     splitting: false,
     sourcemap: false,
     clean: true,

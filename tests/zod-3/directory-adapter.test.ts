@@ -1,4 +1,5 @@
 import { rm, writeFile, mkdir } from "node:fs/promises";
+import path from "node:path";
 import { afterEach, vi, describe, it, beforeEach, beforeAll, afterAll, expect } from "vitest";
 import { z } from "zod/v3";
 
@@ -41,18 +42,18 @@ describe.each<DirectoryTestContext>([
         corge: z.string(),
       }),
     }),
-    directories: ["test-config-zod-3"],
+    directories: [path.resolve("test-config-zod-3")],
     files: [
       {
-        fileName: "test-config-zod-3/default.ts",
+        fileName: path.resolve("test-config-zod-3/default.ts"),
         content: `export default { foo: "hello", bar: 10, baz: { qux: "world", corge: "!" } };`,
       },
       {
-        fileName: "test-config-zod-3/development.ts",
+        fileName: path.resolve("test-config-zod-3/development.ts"),
         content: `export default { foo: "hiya" };`,
       },
       {
-        fileName: "test-config-zod-3/local-development.ts",
+        fileName: path.resolve("test-config-zod-3/local-development.ts"),
         content: `export default { baz: { qux: "hehee" } };`,
       },
     ],
