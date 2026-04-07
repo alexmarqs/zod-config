@@ -68,6 +68,7 @@ jobs:
         with:
           version: pnpm release
           publish: pnpm release:publish
+          createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
