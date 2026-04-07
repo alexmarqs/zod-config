@@ -1,4 +1,5 @@
 import { rm, writeFile, mkdir } from "node:fs/promises";
+import path from "node:path";
 import { afterEach, vi, describe, it, beforeEach, beforeAll, afterAll, expect } from "vitest";
 import { z } from "zod/v4";
 
@@ -31,18 +32,18 @@ describe("Directory adapter tests", () => {
     }),
   });
 
-  const directories = ["test-config"];
+  const directories = [path.resolve("test-config")];
   const files = [
     {
-      fileName: "test-config/default.ts",
+      fileName: path.resolve("test-config/default.ts"),
       content: `export default { foo: "hello", bar: 10, baz: { qux: "world", corge: "!" } };`,
     },
     {
-      fileName: "test-config/development.ts",
+      fileName: path.resolve("test-config/development.ts"),
       content: `export default { foo: "hiya" };`,
     },
     {
-      fileName: "test-config/local-development.ts",
+      fileName: path.resolve("test-config/local-development.ts"),
       content: `export default { baz: { qux: "hehee" } };`,
     },
   ];
