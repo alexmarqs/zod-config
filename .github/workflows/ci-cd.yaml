@@ -3,7 +3,6 @@ name: CI/CD
 on:
   push:
     branches: [main]
-    tags: ['v*']
   pull_request:
     branches: [main]
 
@@ -16,13 +15,13 @@ jobs:
         node-version: [18.x, 20.x]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        
+
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
@@ -39,21 +38,21 @@ jobs:
       - name: Run tests
         run: pnpm test
 
-  publish:
-    name: Publish
+  release:
+    name: Release
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: github.ref == 'refs/heads/main'
     needs:
       - test
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
       - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18.x
           cache: 'pnpm'
@@ -62,24 +61,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Extract tag info
-        id: tag
-        run: |
-          TAG=${GITHUB_REF#refs/tags/v}
-          if [[ $TAG == *"-rc."* ]]; then
-            echo "is_rc=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_rc=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Release RC to npm
-        if: steps.tag.outputs.is_rc == 'true'
-        run: npm publish --access public --tag rc
+      - name: Create Release PR or Publish
+        uses: changesets/action@v1
+        with:
+          version: pnpm release
+          publish: pnpm release:publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          
-      - name: Release Stable to npm
-        if: steps.tag.outputs.is_rc == 'false'
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
