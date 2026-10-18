@@ -53,8 +53,7 @@ export const awsSecretsManagerAdapter = ({
           try {
             data = JSON.parse(raw) ?? {};
           } catch {
-            // JSON.parse errors quote the input (the secret)
-            throw new Error("value is not valid JSON");
+            throw new Error("value is not valid JSON (set `key` to load it as a plain string)");
           }
         }
 
