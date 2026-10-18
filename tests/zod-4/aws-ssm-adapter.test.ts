@@ -283,9 +283,9 @@ describe("aws ssm adapter", () => {
 
     // when
     // then
-    await expect(awsSsmAdapter({ client, name: "/plain" }).read()).rejects.toThrow(
-      /^Failed to read AWS SSM parameter "\/plain": .*JSON/,
-    );
+    const read = awsSsmAdapter({ client, name: "/plain" }).read();
+    await expect(read).rejects.toThrow(/^Failed to read AWS SSM parameter "\/plain": .*JSON/);
+    await expect(read).rejects.not.toThrow("plain-value");
   });
 
   it("should return an empty object when the parameter has no value", async () => {

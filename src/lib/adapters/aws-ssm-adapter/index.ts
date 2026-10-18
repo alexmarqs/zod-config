@@ -50,7 +50,20 @@ const readParameter = async (client: SSMClient, name: string, key?: string) => {
 
   const raw = response.Parameter?.Value;
 
-  return raw ? (key ? { [key]: raw } : JSON.parse(raw) || {}) : {};
+  if (!raw) return {};
+
+  if (key) return { [key]: raw };
+
+  let data: Record<string, unknown>;
+
+  try {
+    data = JSON.parse(raw) ?? {};
+  } catch {
+    // JSON.parse errors quote the input (the secret)
+    throw new Error("value is not valid JSON");
+  }
+
+  return data;
 };
 
 const readPath = async (client: SSMClient, path: string) => {

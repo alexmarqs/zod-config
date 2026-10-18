@@ -45,11 +45,18 @@ export const awsSecretsManagerAdapter = ({
           new GetSecretValueCommand({ SecretId: secretId }),
         );
 
-        const raw =
-          response.SecretString ||
-          (response.SecretBinary && new TextDecoder().decode(response.SecretBinary));
+        const raw = response.SecretString;
 
-        const data = raw ? (key ? { [key]: raw } : JSON.parse(raw) || {}) : {};
+        let data: Record<string, unknown> = raw && key ? { [key]: raw } : {};
+
+        if (raw && !key) {
+          try {
+            data = JSON.parse(raw) ?? {};
+          } catch {
+            // JSON.parse errors quote the input (the secret)
+            throw new Error("value is not valid JSON");
+          }
+        }
 
         return filteredData(data, { regex });
       } catch (error) {

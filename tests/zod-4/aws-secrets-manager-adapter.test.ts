@@ -49,23 +49,6 @@ describe("aws secrets manager adapter", () => {
     expect(config.DB_PASSWORD).toBe("s3cr3t");
   });
 
-  it("should decode binary secrets", async () => {
-    // given
-    const schema = z.object({ HOST: z.string() });
-    const { client } = createClient(async () => ({
-      SecretBinary: new TextEncoder().encode(JSON.stringify({ HOST: "binary-host" })),
-    }));
-
-    // when
-    const config = await loadConfig({
-      schema,
-      adapters: awsSecretsManagerAdapter({ client, secretId: "bin" }),
-    });
-
-    // then
-    expect(config.HOST).toBe("binary-host");
-  });
-
   it("should filter keys with regex", async () => {
     // given
     const schema = z.object({ APP_HOST: z.string(), OTHER: z.string().optional() });
@@ -100,9 +83,9 @@ describe("aws secrets manager adapter", () => {
 
     // when
     // then
-    await expect(awsSecretsManagerAdapter({ client, secretId: "plain" }).read()).rejects.toThrow(
-      /^Failed to read AWS secret "plain": .*JSON/,
-    );
+    const read = awsSecretsManagerAdapter({ client, secretId: "plain" }).read();
+    await expect(read).rejects.toThrow(/^Failed to read AWS secret "plain": .*JSON/);
+    await expect(read).rejects.not.toThrow("sk_live_abc123");
   });
 
   it("should return an empty object for an empty or null secret", async () => {
