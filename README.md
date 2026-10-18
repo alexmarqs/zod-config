@@ -52,6 +52,8 @@ yarn add zod-config zod # yarn
   - [Dotenv Adapter](#dotenv-adapter)
   - [Script Adapter](#script-adapter)
   - [Directory Adapter](#directory-adapter)
+  - [AWS Secrets Manager Adapter](#aws-secrets-manager-adapter)
+  - [AWS SSM Adapter](#aws-ssm-adapter)
 - [Advanced Features](#advanced-features)
   - [Combine multiple adapters](#combine-multiple-adapters)
   - [Transform function](#transform-function)
@@ -475,6 +477,66 @@ const config = await loadConfig({
   }),
 });
 ```
+
+#### AWS Secrets Manager Adapter
+
+Loads the configuration from an [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) secret. Requires `@aws-sdk/client-secrets-manager` (peer dependency, `>=3.428.0`).
+
+```bash
+npm install @aws-sdk/client-secrets-manager
+```
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { awsSecretsManagerAdapter } from 'zod-config/aws-secrets-manager-adapter';
+
+// JSON secret {"DB_HOST": "...", "DB_PASSWORD": "..."} is loaded as key-value pairs
+const config = await loadConfig({
+  schema: z.object({ DB_HOST: z.string(), DB_PASSWORD: z.string() }),
+  adapters: awsSecretsManagerAdapter({ secretId: 'my-app/database' }),
+});
+
+// `key` exposes the whole secret as a string (like an env var)
+const stripe = await loadConfig({
+  schema: z.object({ STRIPE_KEY: z.string() }),
+  adapters: awsSecretsManagerAdapter({ secretId: 'my-app/stripe-key', key: 'STRIPE_KEY' }),
+});
+```
+
+Region, credentials and endpoint come from the AWS SDK defaults (`AWS_REGION`, `AWS_ENDPOINT_URL`, IAM role, ...). To configure it yourself, pass `client: new SecretsManagerClient({ ... })`.
+
+#### AWS SSM Adapter
+
+Loads the configuration from [AWS SSM Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html), either a single parameter (`name`) or every parameter under a `path`. Requires `@aws-sdk/client-ssm` (peer dependency, `>=3.428.0`). `SecureString` values are decrypted.
+
+```bash
+npm install @aws-sdk/client-ssm
+```
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { awsSsmAdapter } from 'zod-config/aws-ssm-adapter';
+
+// single parameter: works like the Secrets Manager adapter (JSON or `key`)
+const config = await loadConfig({
+  schema: z.object({ API_KEY: z.string() }),
+  adapters: awsSsmAdapter({ name: '/my-app/api-key', key: 'API_KEY' }),
+});
+
+// path: /my-app/prod/LOG_LEVEL, /my-app/prod/db/HOST, /my-app/prod/db/PORT
+const appConfig = await loadConfig({
+  schema: z.object({
+    LOG_LEVEL: z.string(),
+    db: z.object({ HOST: z.string(), PORT: z.coerce.number() }),
+  }),
+  adapters: awsSsmAdapter({ path: '/my-app/prod' }),
+});
+// { LOG_LEVEL: 'info', db: { HOST: 'db.internal', PORT: 5432 } }
+```
+
+With `path`, the prefix is stripped, sub-paths become nested objects and results are paginated (needs `ssm:GetParametersByPath`). Client and environment variables work as in the Secrets Manager adapter.
 
 ## Advanced Features
 
