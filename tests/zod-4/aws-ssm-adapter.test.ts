@@ -288,6 +288,34 @@ describe("aws ssm adapter", () => {
     await expect(read).rejects.not.toThrow("plain-value");
   });
 
+  it.each([
+    ["a string", '"plain-value"'],
+    ["a number", "8080"],
+    ["an array", '["plain-value"]'],
+  ])("should throw when the parameter JSON is %s instead of an object", async (_, value) => {
+    // given
+    const { client } = createClient(parameter(value));
+
+    // when
+    // then
+    const read = awsSsmAdapter({ client, name: "/scalar", regex: /.*/ }).read();
+    await expect(read).rejects.toThrow(
+      /^Failed to read AWS SSM parameter "\/scalar": .*not a JSON object/,
+    );
+    await expect(read).rejects.not.toThrow("plain-value");
+  });
+
+  it("should return an empty object for a null parameter", async () => {
+    // given
+    const { client } = createClient(parameter("null"));
+
+    // when
+    const data = await awsSsmAdapter({ client, name: "/null" }).read();
+
+    // then
+    expect(data).toEqual({});
+  });
+
   it("should return an empty object when the parameter has no value", async () => {
     // given
     const { client } = createClient(parameter(undefined));

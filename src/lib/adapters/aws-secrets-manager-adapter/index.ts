@@ -1,6 +1,6 @@
 import { GetSecretValueCommand, SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import type { Adapter, BaseAdapterProps } from "../../../types";
-import { filteredData } from "../../utils";
+import { filteredData, parseJsonObject } from "../../utils";
 
 export type AwsSecretsManagerAdapterProps = BaseAdapterProps & {
   /**
@@ -45,17 +45,13 @@ export const awsSecretsManagerAdapter = ({
           new GetSecretValueCommand({ SecretId: secretId }),
         );
 
+        if (response.SecretBinary) {
+          throw new Error("binary secrets are not supported (store the value as a string secret)");
+        }
+
         const raw = response.SecretString;
 
-        let data: Record<string, unknown> = raw && key ? { [key]: raw } : {};
-
-        if (raw && !key) {
-          try {
-            data = JSON.parse(raw) ?? {};
-          } catch {
-            throw new Error("value is not valid JSON (set `key` to load it as a plain string)");
-          }
-        }
+        const data = raw ? (key ? { [key]: raw } : parseJsonObject(raw)) : {};
 
         return filteredData(data, { regex });
       } catch (error) {

@@ -88,6 +88,32 @@ describe("aws secrets manager adapter", () => {
     await expect(read).rejects.not.toThrow("sk_live_abc123");
   });
 
+  it.each([
+    ["a string", '"sk_live_abc123"'],
+    ["a number", "8080"],
+    ["an array", '["sk_live_abc123"]'],
+  ])("should throw when the secret JSON is %s instead of an object", async (_, value) => {
+    // given
+    const { client } = createClient(async () => ({ SecretString: value }));
+
+    // when
+    // then
+    const read = awsSecretsManagerAdapter({ client, secretId: "scalar", regex: /.*/ }).read();
+    await expect(read).rejects.toThrow(/^Failed to read AWS secret "scalar": .*not a JSON object/);
+    await expect(read).rejects.not.toThrow("sk_live_abc123");
+  });
+
+  it("should throw for a binary secret", async () => {
+    // given
+    const { client } = createClient(async () => ({ SecretBinary: new Uint8Array([1, 2, 3]) }));
+
+    // when
+    // then
+    await expect(awsSecretsManagerAdapter({ client, secretId: "bin" }).read()).rejects.toThrow(
+      /^Failed to read AWS secret "bin": binary secrets are not supported/,
+    );
+  });
+
   it("should return an empty object for an empty or null secret", async () => {
     // given
     const empty = createClient(async () => ({ SecretString: "" })).client;

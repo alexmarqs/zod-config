@@ -1,6 +1,6 @@
 import { GetParameterCommand, GetParametersByPathCommand, SSMClient } from "@aws-sdk/client-ssm";
 import type { Adapter, BaseAdapterProps } from "../../../types";
-import { filteredData } from "../../utils";
+import { filteredData, parseJsonObject } from "../../utils";
 
 type ParameterSource =
   | {
@@ -54,15 +54,7 @@ const readParameter = async (client: SSMClient, name: string, key?: string) => {
 
   if (key) return { [key]: raw };
 
-  let data: Record<string, unknown>;
-
-  try {
-    data = JSON.parse(raw) ?? {};
-  } catch {
-    throw new Error("value is not valid JSON (set `key` to load it as a plain string)");
-  }
-
-  return data;
+  return parseJsonObject(raw);
 };
 
 const readPath = async (client: SSMClient, path: string) => {
