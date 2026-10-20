@@ -28,6 +28,22 @@ const getDefaultClient = () => {
 
 const ADAPTER_NAME = "aws secrets manager adapter";
 
+const readSecret = async (client: SecretsManagerClient, secretId: string, key?: string) => {
+  const response = await client.send(new GetSecretValueCommand({ SecretId: secretId }));
+
+  if (response.SecretBinary) {
+    throw new Error("binary secrets are not supported (store the value as a string secret)");
+  }
+
+  const raw = response.SecretString;
+
+  if (!raw) return {};
+
+  if (key) return { [key]: raw };
+
+  return parseJsonObject(raw, { hint: "set `key` to load it as a plain string" });
+};
+
 export const awsSecretsManagerAdapter = ({
   secretId,
   client,
@@ -41,17 +57,7 @@ export const awsSecretsManagerAdapter = ({
     name: ADAPTER_NAME,
     read: async () => {
       try {
-        const response = await (client ?? getDefaultClient()).send(
-          new GetSecretValueCommand({ SecretId: secretId }),
-        );
-
-        if (response.SecretBinary) {
-          throw new Error("binary secrets are not supported (store the value as a string secret)");
-        }
-
-        const raw = response.SecretString;
-
-        const data = raw ? (key ? { [key]: raw } : parseJsonObject(raw)) : {};
+        const data = await readSecret(client ?? getDefaultClient(), secretId, key);
 
         return filteredData(data, { regex });
       } catch (error) {

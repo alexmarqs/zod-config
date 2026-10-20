@@ -98,8 +98,10 @@ describe("aws secrets manager adapter", () => {
 
     // when
     // then
-    const read = awsSecretsManagerAdapter({ client, secretId: "scalar", regex: /.*/ }).read();
-    await expect(read).rejects.toThrow(/^Failed to read AWS secret "scalar": .*not a JSON object/);
+    const read = awsSecretsManagerAdapter({ client, secretId: "scalar" }).read();
+    await expect(read).rejects.toThrow(
+      /^Failed to read AWS secret "scalar": .*not an object \(set `key`/,
+    );
     await expect(read).rejects.not.toThrow("sk_live_abc123");
   });
 

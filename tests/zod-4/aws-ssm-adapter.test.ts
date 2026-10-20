@@ -298,9 +298,9 @@ describe("aws ssm adapter", () => {
 
     // when
     // then
-    const read = awsSsmAdapter({ client, name: "/scalar", regex: /.*/ }).read();
+    const read = awsSsmAdapter({ client, name: "/scalar" }).read();
     await expect(read).rejects.toThrow(
-      /^Failed to read AWS SSM parameter "\/scalar": .*not a JSON object/,
+      /^Failed to read AWS SSM parameter "\/scalar": .*not an object \(set `key`/,
     );
     await expect(read).rejects.not.toThrow("plain-value");
   });

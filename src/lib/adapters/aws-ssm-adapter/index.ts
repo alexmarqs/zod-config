@@ -54,7 +54,7 @@ const readParameter = async (client: SSMClient, name: string, key?: string) => {
 
   if (key) return { [key]: raw };
 
-  return parseJsonObject(raw);
+  return parseJsonObject(raw, { hint: "set `key` to load it as a plain string" });
 };
 
 const readPath = async (client: SSMClient, path: string) => {

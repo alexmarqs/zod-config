@@ -1,22 +1,28 @@
 import { isMergeableObject } from "@/lib/utils/is-mergeable-object";
 
+type Options = {
+  hint?: string;
+};
+
+const withHint = (message: string, hint?: string) => (hint ? `${message} (${hint})` : message);
+
 /**
- * Parses a JSON object for adapters reading secrets. Errors never include the raw value.
- * `null` yields an empty object.
+ * Parses a JSON object. `null` yields an empty object; any other non-object value throws.
+ * Errors never include the value, so it is safe for secrets.
  */
-export function parseJsonObject(raw: string): Record<string, unknown> {
+export function parseJsonObject(raw: string, { hint }: Options = {}): Record<string, unknown> {
   let data: unknown;
 
   try {
     data = JSON.parse(raw);
   } catch {
-    throw new Error("value is not valid JSON (set `key` to load it as a plain string)");
+    throw new Error(withHint("value is not valid JSON", hint));
   }
 
   if (data === null) return {};
 
   if (!isMergeableObject(data)) {
-    throw new Error("value is not a JSON object (set `key` to load it as a plain string)");
+    throw new Error(withHint("value is not an object", hint));
   }
 
   return data;
