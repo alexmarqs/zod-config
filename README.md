@@ -55,6 +55,7 @@ yarn add zod-config zod # yarn
   - [AWS Secrets Manager Adapter](#aws-secrets-manager-adapter)
   - [AWS SSM Adapter](#aws-ssm-adapter)
 - [Advanced Features](#advanced-features)
+  - [Load once](#load-once)
   - [Combine multiple adapters](#combine-multiple-adapters)
   - [Transform function](#transform-function)
   - [Lenient key matching](#lenient-key-matching)
@@ -543,6 +544,39 @@ With `path`, the prefix is stripped, sub-paths become nested objects and results
 IAM permissions: `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `path` (granted on the path itself, e.g. `arn:aws:ssm:<region>:<account>:parameter/my-app/prod`). `SecureString` parameters encrypted with a customer-managed KMS key also need `kms:Decrypt` on that key.
 
 ## Advanced Features
+
+### Load once
+
+`loadConfig` is stateless: it reads every configured source on each call. Caching is left to you. With remote sources such as AWS Secrets Manager or SSM, load the config once and reuse the result instead of calling `loadConfig` per request.
+
+If all your adapters are synchronous, call [`loadConfigSync`](#synchronous-loading) once at module scope and export the result.
+
+With ES modules, the simplest option is to export the result of a top-level `await loadConfig(...)` from a module such as `config.ts`. It loads once on first import (in AWS Lambda, during the init phase), and a failed load fails startup.
+
+To defer loading until the config is first needed, cache the load promise (manually add TTL if needed):
+
+```ts
+//...
+
+let configPromise: Promise<z.infer<typeof schema>> | undefined;
+
+export const getConfig = () => {
+  configPromise ??= loadConfig({
+    schema,
+    adapters: awsSecretsManagerAdapter({ secretId: 'my-app/config' }),
+  }).catch((error) => {
+    configPromise = undefined; // retry on the next call
+    throw error;
+  });
+
+  return configPromise;
+};
+
+export const handler = async () => {
+  const config = await getConfig();
+  // ...
+};
+```
 
 ### Combine multiple adapters
 
