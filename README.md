@@ -506,6 +506,8 @@ const stripe = await loadConfig({
 
 Region, credentials and endpoint come from the AWS SDK defaults (`AWS_REGION`, `AWS_ENDPOINT_URL`, IAM role, ...). To configure it yourself, pass `client: new SecretsManagerClient({ ... })`.
 
+IAM permissions: `secretsmanager:GetSecretValue` on the secret, plus `kms:Decrypt` on the key if the secret is encrypted with a customer-managed KMS key.
+
 #### AWS SSM Adapter
 
 Loads the configuration from [AWS SSM Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html), either a single parameter (`name`) or every parameter under a `path`. Requires `@aws-sdk/client-ssm` (peer dependency, `>=3.428.0`). `SecureString` values are decrypted.
@@ -536,7 +538,9 @@ const appConfig = await loadConfig({
 // { LOG_LEVEL: 'info', db: { HOST: 'db.internal', PORT: 5432 } }
 ```
 
-With `path`, the prefix is stripped, sub-paths become nested objects and results are paginated (needs `ssm:GetParametersByPath`). Client and environment variables work as in the Secrets Manager adapter.
+With `path`, the prefix is stripped, sub-paths become nested objects and results are paginated. Client and environment variables work as in the Secrets Manager adapter.
+
+IAM permissions: `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `path` (granted on the path itself, e.g. `arn:aws:ssm:<region>:<account>:parameter/my-app/prod`). `SecureString` parameters encrypted with a customer-managed KMS key also need `kms:Decrypt` on that key.
 
 ## Advanced Features
 
