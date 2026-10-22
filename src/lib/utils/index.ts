@@ -5,3 +5,4 @@ export * from "./key-matchers";
 export * from "./nesting-separator";
 export * from "./process-adapter-data";
 export * from "./get-safe-process-env";
+export * from "./parse-json-object";

@@ -52,7 +52,10 @@ yarn add zod-config zod # yarn
   - [Dotenv Adapter](#dotenv-adapter)
   - [Script Adapter](#script-adapter)
   - [Directory Adapter](#directory-adapter)
+  - [AWS Secrets Manager Adapter](#aws-secrets-manager-adapter)
+  - [AWS SSM Adapter](#aws-ssm-adapter)
 - [Advanced Features](#advanced-features)
+  - [Load once](#load-once)
   - [Combine multiple adapters](#combine-multiple-adapters)
   - [Transform function](#transform-function)
   - [Lenient key matching](#lenient-key-matching)
@@ -476,7 +479,104 @@ const config = await loadConfig({
 });
 ```
 
+#### AWS Secrets Manager Adapter
+
+Loads the configuration from an [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) secret. In order to use this adapter, you need to install `@aws-sdk/client-secrets-manager` (peer dependency), if you don't have it already.
+
+```bash
+npm install @aws-sdk/client-secrets-manager
+```
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { awsSecretsManagerAdapter } from 'zod-config/aws-secrets-manager-adapter';
+
+// JSON secret {"DB_HOST": "...", "DB_PASSWORD": "..."} is loaded as key-value pairs
+const config = await loadConfig({
+  schema: z.object({ DB_HOST: z.string(), DB_PASSWORD: z.string() }),
+  adapters: awsSecretsManagerAdapter({ secretId: 'my-app/database' }),
+});
+
+// `key` exposes the whole secret as a string (like an env var)
+const stripe = await loadConfig({
+  schema: z.object({ STRIPE_KEY: z.string() }),
+  adapters: awsSecretsManagerAdapter({ secretId: 'my-app/stripe-key', key: 'STRIPE_KEY' }),
+});
+```
+
+Region, credentials and endpoint come from the AWS SDK defaults (`AWS_REGION`, `AWS_ENDPOINT_URL`, IAM role, ...). To configure it yourself, pass `client: new SecretsManagerClient({ ... })`.
+
+IAM permissions: `secretsmanager:GetSecretValue` on the secret, plus `kms:Decrypt` on the key if the secret is encrypted with a customer-managed KMS key.
+
+#### AWS SSM Adapter
+
+Loads the configuration from [AWS SSM Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html), either a single parameter (`name`) or every parameter under a `path`. In order to use this adapter, you need to install `@aws-sdk/client-ssm` (peer dependency), if you don't have it already. `SecureString` values are decrypted.
+
+```bash
+npm install @aws-sdk/client-ssm
+```
+
+```ts
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { awsSsmAdapter } from 'zod-config/aws-ssm-adapter';
+
+// single parameter: works like the Secrets Manager adapter (JSON or `key`)
+const config = await loadConfig({
+  schema: z.object({ API_KEY: z.string() }),
+  adapters: awsSsmAdapter({ name: '/my-app/api-key', key: 'API_KEY' }),
+});
+
+// path: /my-app/prod/LOG_LEVEL, /my-app/prod/db/HOST, /my-app/prod/db/PORT
+const appConfig = await loadConfig({
+  schema: z.object({
+    LOG_LEVEL: z.string(),
+    db: z.object({ HOST: z.string(), PORT: z.coerce.number() }),
+  }),
+  adapters: awsSsmAdapter({ path: '/my-app/prod' }),
+});
+// { LOG_LEVEL: 'info', db: { HOST: 'db.internal', PORT: 5432 } }
+```
+
+With `path`, the prefix is stripped, sub-paths become nested objects and results are paginated. A parameter whose name is also a prefix of another parameter's name (e.g. `/my-app/prod/db` and `/my-app/prod/db/HOST`) cannot be loaded from the same path, since `db` would have to be both a value and an object; this raises a nested key conflict error. Exclude one of them with `regex`, and if you still need it, load it with a second adapter. Client and environment variables work as in the Secrets Manager adapter.
+
+IAM permissions: `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `path` (granted on the path itself, e.g. `arn:aws:ssm:<region>:<account>:parameter/my-app/prod`). `SecureString` parameters encrypted with a customer-managed KMS key also need `kms:Decrypt` on that key.
+
 ## Advanced Features
+
+### Load once
+
+`loadConfig` is stateless: it reads every configured source on each call. Caching is left to you. With remote sources such as AWS Secrets Manager or SSM, load the config once and reuse the result instead of calling `loadConfig` per request.
+
+If all your adapters are synchronous, call [`loadConfigSync`](#synchronous-loading) once at module scope and export the result.
+
+With ES modules, the simplest option is to export the result of a top-level `await loadConfig(...)` from a module such as `config.ts`. It loads once on first import (in AWS Lambda, during the init phase), and a failed load fails startup.
+
+To defer loading until the config is first needed, cache the load promise (manually add TTL if needed):
+
+```ts
+//...
+
+let configPromise: Promise<z.infer<typeof schema>> | undefined;
+
+export const getConfig = () => {
+  configPromise ??= loadConfig({
+    schema,
+    adapters: awsSecretsManagerAdapter({ secretId: 'my-app/config' }),
+  }).catch((error) => {
+    configPromise = undefined; // retry on the next call
+    throw error;
+  });
+
+  return configPromise;
+};
+
+export const handler = async () => {
+  const config = await getConfig();
+  // ...
+};
+```
 
 ### Combine multiple adapters
 

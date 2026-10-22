@@ -12,6 +12,8 @@ export default defineConfig([
       "directory-adapter": "src/lib/adapters/directory-adapter/index.ts",
       "yaml-adapter": "src/lib/adapters/yaml-adapter/index.ts",
       "toml-adapter": "src/lib/adapters/toml-adapter/index.ts",
+      "aws-secrets-manager-adapter": "src/lib/adapters/aws-secrets-manager-adapter/index.ts",
+      "aws-ssm-adapter": "src/lib/adapters/aws-ssm-adapter/index.ts",
     },
     format: ["cjs", "esm"],
     target: "node18",
