@@ -481,7 +481,7 @@ const config = await loadConfig({
 
 #### AWS Secrets Manager Adapter
 
-Loads the configuration from an [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) secret. Requires `@aws-sdk/client-secrets-manager` (peer dependency, `>=3.428.0`).
+Loads the configuration from an [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) secret. In order to use this adapter, you need to install `@aws-sdk/client-secrets-manager` (peer dependency), if you don't have it already.
 
 ```bash
 npm install @aws-sdk/client-secrets-manager
@@ -511,7 +511,7 @@ IAM permissions: `secretsmanager:GetSecretValue` on the secret, plus `kms:Decryp
 
 #### AWS SSM Adapter
 
-Loads the configuration from [AWS SSM Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html), either a single parameter (`name`) or every parameter under a `path`. Requires `@aws-sdk/client-ssm` (peer dependency, `>=3.428.0`). `SecureString` values are decrypted.
+Loads the configuration from [AWS SSM Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html), either a single parameter (`name`) or every parameter under a `path`. In order to use this adapter, you need to install `@aws-sdk/client-ssm` (peer dependency), if you don't have it already. `SecureString` values are decrypted.
 
 ```bash
 npm install @aws-sdk/client-ssm
@@ -539,7 +539,7 @@ const appConfig = await loadConfig({
 // { LOG_LEVEL: 'info', db: { HOST: 'db.internal', PORT: 5432 } }
 ```
 
-With `path`, the prefix is stripped, sub-paths become nested objects and results are paginated. Client and environment variables work as in the Secrets Manager adapter.
+With `path`, the prefix is stripped, sub-paths become nested objects and results are paginated. A parameter whose name is also a prefix of another parameter's name (e.g. `/my-app/prod/db` and `/my-app/prod/db/HOST`) cannot be loaded from the same path, since `db` would have to be both a value and an object; this raises a nested key conflict error. Exclude one of them with `regex`, and if you still need it, load it with a second adapter. Client and environment variables work as in the Secrets Manager adapter.
 
 IAM permissions: `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `path` (granted on the path itself, e.g. `arn:aws:ssm:<region>:<account>:parameter/my-app/prod`). `SecureString` parameters encrypted with a customer-managed KMS key also need `kms:Decrypt` on that key.
 
