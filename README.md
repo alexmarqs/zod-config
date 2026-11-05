@@ -539,7 +539,17 @@ const appConfig = await loadConfig({
 // { LOG_LEVEL: 'info', db: { HOST: 'db.internal', PORT: 5432 } }
 ```
 
-With `path`, the prefix is stripped, sub-paths become nested objects and results are paginated. A parameter whose name is also a prefix of another parameter's name (e.g. `/my-app/prod/db` and `/my-app/prod/db/HOST`) cannot be loaded from the same path, since `db` would have to be both a value and an object; this raises a nested key conflict error. Exclude one of them with `regex`, and if you still need it, load it with a second adapter. Client and environment variables work as in the Secrets Manager adapter.
+With `path`, the prefix is stripped, sub-paths become nested objects and results are paginated. A parameter whose name is also a prefix of another parameter's name (e.g. `/my-app/prod/db` and `/my-app/prod/db/HOST`) cannot be loaded from the same path, since `db` would have to be both a value and an object; this raises a nested key conflict error. Exclude the conflicting name with `regex`, and load that parameter with a second adapter under a different key. Reusing `db` makes `deepMerge` keep either the string or the nested object, depending on adapter order.
+
+```ts
+adapters: [
+  awsSsmAdapter({ path: '/my-app/prod', regex: /^(?!db$).+/ }),
+  awsSsmAdapter({ name: '/my-app/prod/db', key: 'DB_VALUE' }),
+],
+// { LOG_LEVEL, db: { HOST, PORT }, DB_VALUE }
+```
+
+Client and environment variables work as in the Secrets Manager adapter.
 
 IAM permissions: `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `path` (granted on the path itself, e.g. `arn:aws:ssm:<region>:<account>:parameter/my-app/prod`). `SecureString` parameters encrypted with a customer-managed KMS key also need `kms:Decrypt` on that key.
 
@@ -551,7 +561,7 @@ IAM permissions: `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `p
 
 If all your adapters are synchronous, call [`loadConfigSync`](#synchronous-loading) once at module scope and export the result.
 
-With ES modules, the simplest option is to export the result of a top-level `await loadConfig(...)` from a module such as `config.ts`. It loads once on first import (in AWS Lambda, during the init phase), and a failed load fails startup.
+With ES modules, the simplest option is to export the result of a top-level `await loadConfig(...)` from a module such as `config.ts`. It loads once on first import (in AWS Lambda, during the init phase). Startup fails when the schema rejects the result. An adapter read error is only a warning: `loadConfig` continues with empty data from that adapter, so a schema of optional fields or defaults still starts.
 
 To defer loading until the config is first needed, cache the load promise (manually add TTL if needed):
 
@@ -565,7 +575,7 @@ export const getConfig = () => {
     schema,
     adapters: awsSecretsManagerAdapter({ secretId: 'my-app/config' }),
   }).catch((error) => {
-    configPromise = undefined; // retry on the next call
+    configPromise = undefined; // cleared only when loadConfig throws
     throw error;
   });
 
@@ -577,6 +587,8 @@ export const handler = async () => {
   // ...
 };
 ```
+
+The `.catch` runs only when `loadConfig` throws. Required fields with no defaults do that after an empty read, so the next call tries AWS again. If every field is optional or has a default, validation succeeds and those defaults stay cached until the process restarts. Leave out `onError` here: it swallows the validation error, so the cache is kept.
 
 ### Combine multiple adapters
 
