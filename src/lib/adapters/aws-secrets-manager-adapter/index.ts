@@ -37,9 +37,9 @@ const readSecret = async (client: SecretsManagerClient, secretId: string, key?: 
 
   const raw = response.SecretString;
 
-  if (!raw) return {};
+  if (key) return raw === undefined ? {} : { [key]: raw };
 
-  if (key) return { [key]: raw };
+  if (!raw) return {};
 
   return parseJsonObject(raw, { hint: "set `key` to load it as a plain string" });
 };
