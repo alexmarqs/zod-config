@@ -49,6 +49,21 @@ describe("aws secrets manager adapter", () => {
     expect(config.DB_PASSWORD).toBe("s3cr3t");
   });
 
+  it("should expose an empty secret string under `key`", async () => {
+    // given
+    const schema = z.object({ TOKEN: z.string() });
+    const { client } = createClient(async () => ({ SecretString: "" }));
+
+    // when
+    const config = await loadConfig({
+      schema,
+      adapters: awsSecretsManagerAdapter({ client, secretId: "blank", key: "TOKEN" }),
+    });
+
+    // then
+    expect(config).toEqual({ TOKEN: "" });
+  });
+
   it("should filter keys with regex", async () => {
     // given
     const schema = z.object({ APP_HOST: z.string(), OTHER: z.string().optional() });

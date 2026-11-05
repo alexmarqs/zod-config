@@ -54,6 +54,21 @@ describe("aws ssm adapter", () => {
     expect(config.API_KEY).toBe("s3cr3t");
   });
 
+  it("should expose an empty parameter string under `key`", async () => {
+    // given
+    const schema = z.object({ TOKEN: z.string() });
+    const { client } = createClient(parameter(""));
+
+    // when
+    const config = await loadConfig({
+      schema,
+      adapters: awsSsmAdapter({ client, name: "/app/token", key: "TOKEN" }),
+    });
+
+    // then
+    expect(config).toEqual({ TOKEN: "" });
+  });
+
   it("should keep a JSON parameter as a string under `key` for the schema to parse", async () => {
     // given
     const schema = z.object({
