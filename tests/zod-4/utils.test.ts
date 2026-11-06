@@ -2,6 +2,7 @@ import {
   deepMerge,
   filterByRegex,
   isMergeableObject,
+  parseJsonObject,
   processAdapterData,
 } from "../../src/lib/utils";
 import { describe, it, expect } from "vitest";
@@ -75,6 +76,35 @@ describe("filterByRegex", () => {
 
     // then
     expect(filteredData).toEqual({});
+  });
+});
+
+describe("parseJsonObject", () => {
+  it("should parse a JSON object and return an empty object for null", () => {
+    expect(parseJsonObject('{"A":"1"}')).toEqual({ A: "1" });
+    expect(parseJsonObject("null")).toEqual({});
+  });
+
+  it("should throw without exposing the value for invalid JSON", () => {
+    expect(() => parseJsonObject("s3cr3t")).toThrow(/^value is not valid JSON$/);
+    expect(() => parseJsonObject("s3cr3t")).not.toThrow("s3cr3t");
+  });
+
+  it.each(['"s3cr3t"', "8080", "false", '["s3cr3t"]'])(
+    "should throw without exposing the value for non-object JSON %s",
+    (raw) => {
+      expect(() => parseJsonObject(raw)).toThrow(/^value is not an object$/);
+      expect(() => parseJsonObject(raw)).not.toThrow("s3cr3t");
+    },
+  );
+
+  it("should append the hint to the error messages", () => {
+    expect(() => parseJsonObject("s3cr3t", { hint: "use `key`" })).toThrow(
+      /^value is not valid JSON \(use `key`\)$/,
+    );
+    expect(() => parseJsonObject("8080", { hint: "use `key`" })).toThrow(
+      /^value is not an object \(use `key`\)$/,
+    );
   });
 });
 
