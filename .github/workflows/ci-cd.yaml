@@ -55,21 +55,19 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
-      - name: Use Node.js 22.x
+      # Node 24 ships npm >= 11.5.1, required for npm trusted publishing.
+      # `changeset publish` delegates to `pnpm publish`, which spawns the npm
+      # bundled with this Node version. Do not install npm globally: npm 12
+      # changes `npm info --json` and changesets then treats every version as unpublished.
+      - name: Use Node.js 24.x
         uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: "pnpm"
           registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      # Trusted publishing needs npm >= 11.5.1. Node 22 still ships npm 10.
-      # Stay on npm 11: npm 12 changed `npm info --json` and changesets then
-      # treats every version as unpublished.
-      - name: Install npm for trusted publishing
-        run: npm install -g npm@^11.5.1
 
       - name: Create Release PR or Publish
         uses: changesets/action@v1
