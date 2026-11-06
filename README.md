@@ -539,17 +539,7 @@ const appConfig = await loadConfig({
 // { LOG_LEVEL: 'info', db: { HOST: 'db.internal', PORT: 5432 } }
 ```
 
-With `path`, the prefix is stripped, sub-paths become nested objects and results are paginated. A parameter whose name is also a prefix of another parameter's name (e.g. `/my-app/prod/db` and `/my-app/prod/db/HOST`) cannot be loaded from the same path, since `db` would have to be both a value and an object; this raises a nested key conflict error. Exclude the conflicting name with `regex`, and load that parameter with a second adapter under a different key. Reusing `db` makes `deepMerge` keep either the string or the nested object, depending on adapter order.
-
-```ts
-adapters: [
-  awsSsmAdapter({ path: '/my-app/prod', regex: /^(?!db$).+/ }),
-  awsSsmAdapter({ name: '/my-app/prod/db', key: 'DB_VALUE' }),
-],
-// { LOG_LEVEL, db: { HOST, PORT }, DB_VALUE }
-```
-
-Client and environment variables work as in the Secrets Manager adapter.
+With `path`, the prefix is stripped, sub-paths become nested objects and results are paginated. A parameter whose name is also a prefix of another parameter's name (e.g. `/my-app/prod/db` and `/my-app/prod/db/HOST`) cannot be loaded from the same path, since `db` would have to be both a value and an object; this raises a nested key conflict error. Exclude the conflicting name with `regex`, and load that parameter with a second adapter under a different key.
 
 IAM permissions: `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `path` (granted on the path itself, e.g. `arn:aws:ssm:<region>:<account>:parameter/my-app/prod`). `SecureString` parameters encrypted with a customer-managed KMS key also need `kms:Decrypt` on that key.
 
