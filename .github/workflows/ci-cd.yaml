@@ -44,6 +44,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs:
       - test
+    permissions:
+      contents: write
+      id-token: write
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,15 +55,21 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
-      - name: Use Node.js 18.x
+      - name: Use Node.js 22.x
         uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: 22.x
           cache: "pnpm"
           registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      # Trusted publishing needs npm >= 11.5.1. Node 22 still ships npm 10.
+      # Stay on npm 11: npm 12 changed `npm info --json` and changesets then
+      # treats every version as unpublished.
+      - name: Install npm for trusted publishing
+        run: npm install -g npm@^11.5.1
 
       - name: Create Release PR or Publish
         uses: changesets/action@v1
@@ -71,4 +81,5 @@ jobs:
           createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # A real token in .npmrc is used instead of OIDC. Leave this empty.
+          NODE_AUTH_TOKEN: ""
