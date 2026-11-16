@@ -1,5 +1,6 @@
 import type { Transform } from "@/types";
 import { applyNestingSeparatorKeyValue } from "./nesting-separator";
+import { isUnsafeKey } from "./unsafe-keys";
 
 /**
  * Applies transformations to the data.
@@ -46,7 +47,8 @@ export const applyDataTransformation = (
     // Apply nesting separator if provided
     if (nestingSeparator) {
       applyNestingSeparatorKeyValue(acc, finalKey, finalValue, nestingSeparator);
-    } else {
+    } else if (!isUnsafeKey(finalKey)) {
+      // a key such as `__proto__` would replace the prototype of the data object
       acc[finalKey] = finalValue;
     }
 

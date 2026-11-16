@@ -1,4 +1,5 @@
 import { isMergeableObject } from "@/lib/utils/is-mergeable-object";
+import { isUnsafeKey } from "@/lib/utils/unsafe-keys";
 
 export function deepMerge(
   target: Partial<Record<string, unknown>>,
@@ -16,6 +17,9 @@ export function deepMerge(
 
   if (isMergeableObject(target) && isMergeableObject(source)) {
     Object.keys(source).forEach((key) => {
+      // never merge into the prototype chain (prototype pollution)
+      if (isUnsafeKey(key)) return;
+
       if (source[key] === undefined) return;
 
       if (!isMergeableObject(source[key])) {
