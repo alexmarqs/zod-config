@@ -91,10 +91,21 @@ describe("unsafe keys", () => {
 
     applyNestingSeparatorKeyValue(acc, "db.host", "localhost", ".");
     applyNestingSeparatorKeyValue(acc, "db.__proto__.x", "1", ".");
-    applyNestingSeparatorKeyValue(acc, "prototype.x", "1", ".");
     applyNestingSeparatorKeyValue(acc, "x.constructor", "1", ".");
 
     expect(acc).toEqual({ db: { host: "localhost" } });
+  });
+
+  it("should keep a path segment named prototype as a regular nested key", () => {
+    const config = loadConfigSync({
+      schema: z.object({ prototype: z.object({ db: z.object({ HOST: z.string() }) }) }),
+      adapters: [
+        envAdapter({ customEnv: { "prototype/db/HOST": "db.internal" }, nestingSeparator: "/" }),
+      ],
+    });
+
+    expect(config).toEqual({ prototype: { db: { HOST: "db.internal" } } });
+    expect(Object.keys(Object.prototype)).toEqual([]);
   });
 
   it("should treat inherited property names as regular nested keys", () => {

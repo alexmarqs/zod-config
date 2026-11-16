@@ -1,4 +1,4 @@
-import { isUnsafePathKey } from "./unsafe-keys";
+import { isUnsafeKey } from "./unsafe-keys";
 
 /**
  * Applies nesting separator to a single key-value pair within an accumulator object.
@@ -10,7 +10,7 @@ export function applyNestingSeparatorKeyValue(
   separator: string,
 ): void {
   if (!separator) {
-    if (!isUnsafePathKey(key)) {
+    if (!isUnsafeKey(key)) {
       acc[key] = value;
     }
     return;
@@ -19,7 +19,7 @@ export function applyNestingSeparatorKeyValue(
   const parts = key.split(separator);
 
   // never walk into the prototype chain (prototype pollution): the whole key is dropped
-  if (parts.some(isUnsafePathKey)) {
+  if (parts.some(isUnsafeKey)) {
     return;
   }
 
