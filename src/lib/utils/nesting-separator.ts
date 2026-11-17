@@ -1,3 +1,5 @@
+import { isUnsafeKey } from "./unsafe-keys";
+
 /**
  * Applies nesting separator to a single key-value pair within an accumulator object.
  */
@@ -8,11 +10,19 @@ export function applyNestingSeparatorKeyValue(
   separator: string,
 ): void {
   if (!separator) {
-    acc[key] = value;
+    if (!isUnsafeKey(key)) {
+      acc[key] = value;
+    }
     return;
   }
 
   const parts = key.split(separator);
+
+  // never walk into the prototype chain (prototype pollution): the whole key is dropped
+  if (parts.some(isUnsafeKey)) {
+    return;
+  }
+
   let current = acc;
 
   for (let i = 0; i < parts.length; i++) {
@@ -20,7 +30,7 @@ export function applyNestingSeparatorKeyValue(
 
     if (i === parts.length - 1) {
       // Last part - assign the value (e.g. database.host = localhost)
-      if (part in current) {
+      if (Object.hasOwn(current, part)) {
         if (typeof current[part] === "object" && current[part] !== null) {
           throw new Error(
             `Nested key conflict: "${key}" cannot be assigned because "${parts
@@ -32,7 +42,7 @@ export function applyNestingSeparatorKeyValue(
       current[part] = value;
     } else {
       // Intermediate part - ensure object exists
-      if (part in current) {
+      if (Object.hasOwn(current, part)) {
         if (typeof current[part] !== "object" || current[part] === null) {
           // Find which env var created this primitive value
           const conflictingPath = parts.slice(0, i + 1).join(separator);
