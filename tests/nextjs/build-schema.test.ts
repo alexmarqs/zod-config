@@ -64,6 +64,27 @@ describe("buildObjectSchema", () => {
     expect(() => buildObjectSchema({ B: undefined as any })).toThrow(
       'Invalid schema for "B": expected a Zod schema',
     );
+    expect(() => buildObjectSchema({ C: {} as any })).toThrow(
+      'Invalid schema for "C": expected a Zod schema',
+    );
+  });
+
+  it("should keep a zod 3 key that was set but parses to undefined, like z.object does", () => {
+    const shape = {
+      FEATURE: z3
+        .string()
+        .optional()
+        .transform((value) => (value === "off" ? undefined : value)),
+      OTHER: z3.string().optional(),
+    };
+    const schema = buildObjectSchema(shape) as any;
+
+    const result = schema.safeParse({ FEATURE: "off" });
+
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual(z3.object(shape).parse({ FEATURE: "off" }));
+    // set but undefined after the transform: kept; never set: still left out
+    expect(Object.keys(result.data)).toEqual(["FEATURE"]);
   });
 
   it("should accept an empty shape", () => {

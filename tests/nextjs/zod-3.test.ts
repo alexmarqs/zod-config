@@ -38,6 +38,24 @@ describe("loadEnvConfig (nextjs, zod 3, server side)", () => {
     });
   });
 
+  it("should keep a variable that is set but transformed to undefined", () => {
+    process.env = {};
+
+    const env = loadEnvConfig({
+      server: {
+        FEATURE: z
+          .string()
+          .optional()
+          .transform((value) => (value === "off" ? undefined : value)),
+      },
+      runtimeEnv: { FEATURE: "off" },
+    });
+
+    expect("FEATURE" in env).toBe(true);
+    const defaults: Record<string, string | undefined> = { FEATURE: "on" };
+    expect({ ...defaults, ...env }.FEATURE).toBeUndefined();
+  });
+
   it("should pass a ZodError with the missing variable in the path to onError", () => {
     process.env = { API_SECRET: "s3cret" };
 

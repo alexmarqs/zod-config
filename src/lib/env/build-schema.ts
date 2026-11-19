@@ -65,7 +65,12 @@ const withoutReceivedValue = (issue: z3.ZodIssue, ZodErrorCtor: Zod3ErrorConstru
  */
 export const buildObjectSchema = (shape: Record<string, FieldSchema>): SchemaConfig => {
   for (const [key, field] of Object.entries(shape)) {
-    if (typeof field !== "object" || field === null) {
+    // a Zod 4 schema has `_zod`, a Zod 3 schema has `safeParse`
+    if (
+      typeof field !== "object" ||
+      field === null ||
+      !("_zod" in field || typeof (field as z3.ZodTypeAny).safeParse === "function")
+    ) {
       throw new Error(`Invalid schema for "${key}": expected a Zod schema`);
     }
   }
@@ -98,7 +103,9 @@ export const buildObjectSchema = (shape: Record<string, FieldSchema>): SchemaCon
         const result = v3Shape[key].safeParse(data?.[key]);
 
         if (result.success) {
-          if (result.data !== undefined) {
+          // Like z.object: keep a key that was set even when it parses to `undefined`, and
+          // leave out an optional key that was not set.
+          if (result.data !== undefined || (data !== undefined && Object.hasOwn(data, key))) {
             output[key] = result.data;
           }
           continue;
