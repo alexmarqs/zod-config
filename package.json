@@ -7,6 +7,7 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "sideEffects": false,
   "scripts": {
     "build": "tsup",
     "prepublishOnly": "pnpm build",
@@ -22,15 +23,19 @@
     "release:publish": "changeset publish",
     "yalc:publish": "yalc publish"
   },
-  "files": [
-    "dist/**"
-  ],
+  "files": ["dist/**"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "module": "./dist/index.mjs",
       "require": "./dist/index.js"
+    },
+    "./nextjs": {
+      "types": "./dist/nextjs.d.ts",
+      "import": "./dist/nextjs.mjs",
+      "module": "./dist/nextjs.mjs",
+      "require": "./dist/nextjs.js"
     },
     "./env-adapter": {
       "types": "./dist/env-adapter.d.ts",
@@ -95,36 +100,17 @@
   },
   "typesVersions": {
     "*": {
-      "env-adapter": [
-        "./dist/env-adapter.d.ts"
-      ],
-      "json-adapter": [
-        "./dist/json-adapter.d.ts"
-      ],
-      "json5-adapter": [
-        "./dist/json5-adapter.d.ts"
-      ],
-      "dotenv-adapter": [
-        "./dist/dotenv-adapter.d.ts"
-      ],
-      "script-adapter": [
-        "./dist/script-adapter.d.ts"
-      ],
-      "directory-adapter": [
-        "./dist/directory-adapter.d.ts"
-      ],
-      "yaml-adapter": [
-        "./dist/yaml-adapter.d.ts"
-      ],
-      "toml-adapter": [
-        "./dist/toml-adapter.d.ts"
-      ],
-      "aws-secrets-manager-adapter": [
-        "./dist/aws-secrets-manager-adapter.d.ts"
-      ],
-      "aws-ssm-adapter": [
-        "./dist/aws-ssm-adapter.d.ts"
-      ]
+      "nextjs": ["./dist/nextjs.d.ts"],
+      "env-adapter": ["./dist/env-adapter.d.ts"],
+      "json-adapter": ["./dist/json-adapter.d.ts"],
+      "json5-adapter": ["./dist/json5-adapter.d.ts"],
+      "dotenv-adapter": ["./dist/dotenv-adapter.d.ts"],
+      "script-adapter": ["./dist/script-adapter.d.ts"],
+      "directory-adapter": ["./dist/directory-adapter.d.ts"],
+      "yaml-adapter": ["./dist/yaml-adapter.d.ts"],
+      "toml-adapter": ["./dist/toml-adapter.d.ts"],
+      "aws-secrets-manager-adapter": ["./dist/aws-secrets-manager-adapter.d.ts"],
+      "aws-ssm-adapter": ["./dist/aws-ssm-adapter.d.ts"]
     }
   },
   "publishConfig": {
@@ -148,12 +134,19 @@
     "toml",
     "dotenv",
     "typescript",
+    "nextjs",
+    "environment-variables",
+    "secrets",
     "adapters",
     "typesafe",
     "aws",
     "secrets-manager",
     "ssm",
-    "parameter-store"
+    "parameter-store",
+    "env-validation",
+    "type-safe",
+    "validation",
+    "runtime-config"
   ],
   "devDependencies": {
     "@aws-sdk/client-secrets-manager": "^3.1152.0",
@@ -178,7 +171,7 @@
     "json5": ">=2",
     "smol-toml": "^1.x",
     "yaml": "^2.x",
-    "zod": "^3.25.0 || ^4.0.0"
+    "zod": "^3.25.1 || ^4.0.0"
   },
   "peerDependenciesMeta": {
     "@aws-sdk/client-secrets-manager": {

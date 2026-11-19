@@ -45,7 +45,7 @@ export const loadConfig = async <T extends SchemaConfig>(
     // v4
     result = await safeParseAsync(schema, data);
   } else {
-    // v3
+    // ZOD3: remove in next major (v3 branch)
     result = await schema.safeParseAsync(data);
   }
 

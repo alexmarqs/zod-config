@@ -4,6 +4,7 @@ export default defineConfig([
   {
     entry: {
       index: "src/index.ts",
+      nextjs: "src/nextjs.ts",
       "json-adapter": "src/lib/adapters/json-adapter/index.ts",
       "json5-adapter": "src/lib/adapters/json5-adapter/index.ts",
       "env-adapter": "src/lib/adapters/env-adapter/index.ts",

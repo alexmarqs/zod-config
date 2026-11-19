@@ -26,6 +26,7 @@
 - ✨ **Flexible**. [Combine multiple adapters](#combine-multiple-adapters) to load the configuration from different sources. We deeply merge the configuration from different sources, following the order of the adapters provided; Create your own adapters easily; Use the callback functions to handle errors and success due to the async nature of the adapters;
 - 🪴 **Easy to use**. Zod Config is designed to be easy to use, with a simple API;
 - 🔄 **Async / Sync support**. Zod Config provides both asynchronous and synchronous APIs to fit different application needs;
+- ▲ **Next.js, Vite, Astro, TanStack Start**. Type-safe [environment variables](#type-safe-environment-variables) with server and client schemas, and [secrets loaded at server start](#nextjs-loading-secrets-at-startup) from any adapter, such as AWS Secrets Manager or SSM;
 
 
 ## Install
@@ -54,6 +55,10 @@ yarn add zod-config zod # yarn
   - [Directory Adapter](#directory-adapter)
   - [AWS Secrets Manager Adapter](#aws-secrets-manager-adapter)
   - [AWS SSM Adapter](#aws-ssm-adapter)
+- [Type-safe Environment Variables](#type-safe-environment-variables)
+  - [Next.js](#nextjs)
+  - [Vite, Astro, TanStack Start and other frameworks](#vite-astro-tanstack-start-and-other-frameworks)
+  - [Next.js: loading secrets at startup](#nextjs-loading-secrets-at-startup)
 - [Advanced Features](#advanced-features)
   - [Load once](#load-once)
   - [Combine multiple adapters](#combine-multiple-adapters)
@@ -98,7 +103,10 @@ This library provides some built in adapters to load the configuration from diff
 
 ### Compatibility
 
-Zod Config supports both [Zod 4](https://zod.dev/v4) and [Zod 3](https://v3.zod.dev/) out of the box. To start using it, just make sure you have the correct versions of `zod-config` (zod-config@^1.0.0) and `zod` (zod@^3.25.0 or zod@^4.0.0)! 
+Zod Config supports both [Zod 4](https://zod.dev/v4) and [Zod 3](https://v3.zod.dev/) out of the box. To start using it, just make sure you have the correct versions of `zod-config` (zod-config@^1.0.0) and `zod` (zod@^3.25.1 or zod@^4.0.0)! 
+
+> [!WARNING]
+> Zod 3 support is deprecated and will be removed in the next major version. Use Zod 4 or Zod 4 Mini for new code.
 
 ```ts
 // Using Zod 4
@@ -542,6 +550,109 @@ const appConfig = await loadConfig({
 With `path`, the prefix is stripped, sub-paths become nested objects and results are paginated. A parameter whose name is also a prefix of another parameter's name (e.g. `/my-app/prod/db` and `/my-app/prod/db/HOST`) cannot be loaded from the same path, since `db` would have to be both a value and an object; this raises a nested key conflict error. Exclude the conflicting name with `regex`, and load that parameter with a second adapter under a different key.
 
 IAM permissions: `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `path` (granted on the path itself, e.g. `arn:aws:ssm:<region>:<account>:parameter/my-app/prod`). `SecureString` parameters encrypted with a customer-managed KMS key also need `kms:Decrypt` on that key.
+
+## Type-safe Environment Variables
+
+Validate environment variables with Zod in apps that have a browser bundle, such as Next.js, Vite, Astro and TanStack Start: separate server and client schemas, public prefix enforcement, and protection against reading server variables in the browser. Synchronous.
+
+### Next.js
+
+`zod-config/nextjs` fixes the client prefix to `NEXT_PUBLIC_`:
+
+```ts
+// src/env.ts
+import { loadEnvConfig } from "zod-config/nextjs";
+import { z } from "zod";
+
+export const env = loadEnvConfig({
+  // server-only, read from process.env
+  server: {
+    DATABASE_URL: z.url(),
+    PORT: z.coerce.number().default(3000),
+  },
+  // available in the browser, keys must start with NEXT_PUBLIC_
+  client: {
+    NEXT_PUBLIC_APP_URL: z.url(),
+  },
+  // one entry per client key, so Next.js can inline the values
+  runtimeEnv: {
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  },
+});
+```
+
+```ts
+import { env } from "@/env";
+
+env.PORT; // number
+env.NEXT_PUBLIC_APP_URL; // string, on the server and in the browser
+env.DATABASE_URL; // string on the server, throws in the browser
+```
+
+An invalid environment throws an `Error` that lists each invalid variable and why:
+
+```
+Error: Invalid environment variables:
+  DATABASE_URL: Invalid input: expected string, received undefined
+  PORT: Invalid input: expected number, received NaN
+```
+
+| Option | Description |
+|---|---|
+| `server`, `client` | Objects of Zod schemas. At least one is required. |
+| `runtimeEnv` | Required when `client` has keys, with one entry per client key. Server keys are optional: on the server they take priority over `process.env`, which provides the rest. Use them for explicit values or on a runtime without `process.env`. |
+| `onError` | `(error) => void`, called with the Zod error (use `error.issues`) before the `Error` above is thrown. Throw from it to replace that error. Unlike `loadConfig`'s `onError`, it does not swallow the failure. |
+| `skipValidation` | Return raw values without running Zod, e.g. `SKIP_ENV_VALIDATION=true next build` when secrets are not available while building. Defaults and coercion are not applied. |
+| `isServer` | Override server detection (default `typeof window === "undefined"`), e.g. in jsdom tests. |
+
+### Vite, Astro, TanStack Start and other frameworks
+
+The same function is exported from `zod-config` with a `clientPrefix` option, so it works with any framework that exposes public variables by prefix:
+
+```ts
+import { loadEnvConfig } from "zod-config";
+
+export const env = loadEnvConfig({
+  clientPrefix: "VITE_", // Vite and TanStack Start: "VITE_", Astro: "PUBLIC_"
+  client: { VITE_API_URL: z.url() },
+  runtimeEnv: import.meta.env,
+});
+```
+
+On the server, `server` variables are read from `runtimeEnv` first, then `process.env`; in the browser they are never read. In a single-page app the file runs in the browser, so validation happens when the app loads.
+
+In TanStack Start, read `server` variables inside `createServerFn`: route loaders also run in the browser, where server values are never available.
+
+Use it for apps with a browser bundle. For plain environment loading on a server, use [`loadConfig`](#basic-usage) with the env adapter.
+
+### Next.js: loading secrets at startup
+
+If your secrets live outside environment variables (AWS Secrets Manager, SSM, a vault, a file), load them when the server starts. `preloadEnvConfig` reads any zod-config adapters and copies the values into `process.env`, so `env.ts` stays as above. Call it from [`instrumentation.ts`](https://nextjs.org/docs/app/guides/instrumentation), which Next.js runs once per server start:
+
+```ts
+// instrumentation.ts
+export async function register() {
+  const { preloadEnvConfig } = await import("zod-config/nextjs");
+
+  await preloadEnvConfig({
+    adapters: async () => {
+      const { awsSecretsManagerAdapter } = await import("zod-config/aws-secrets-manager-adapter");
+      return [awsSecretsManagerAdapter({ secretId: "my-app/production" })];
+    },
+    // enabled: process.env.NODE_ENV === "production" (default)
+  });
+}
+```
+
+- `adapters` returns any [built-in adapters](#built-in-adapters) or your own; later adapters override earlier ones.
+- `enabled` defaults to production only: in development nothing is fetched and you use `.env.local`. Set it yourself to decide when secrets are loaded.
+- Variables that are already set are never overwritten, and only top-level string, number and boolean values are copied.
+- It does not run during `next build` (use `skipValidation` there) or on the Edge runtime. With a remote source, every new server instance makes its own call, including each serverless cold start.
+
+> [!NOTE]
+> `preloadEnvConfig` only fills `process.env`, so it also works with [T3 Env](https://env.t3.gg) or anything else that reads `process.env`.
+
+Coming from T3 Env? `createEnv` becomes `loadEnvConfig` and `onValidationError` becomes `onError`, which receives the Zod error rather than the issues array. Your `runtimeEnv` works as it is. Its server entries are optional (without them, server values come from `process.env`), but client entries must stay: client values are only read from `runtimeEnv`.
 
 ## Advanced Features
 
