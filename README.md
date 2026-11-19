@@ -602,7 +602,7 @@ Error: Invalid environment variables:
 | `server`, `client` | Objects of Zod schemas. At least one is required. |
 | `runtimeEnv` | Required when `client` has keys, with one entry per client key. Server keys are optional: on the server they take priority over `process.env`, which provides the rest. Use them for explicit values or on a runtime without `process.env`. |
 | `onError` | `(error) => void`, called with the Zod error (use `error.issues`) before the `Error` above is thrown. Throw from it to replace that error. Unlike `loadConfig`'s `onError`, it does not swallow the failure. |
-| `skipValidation` | Return raw values without running Zod, e.g. `skipValidation: process.env.SKIP_ENV_VALIDATION === "true"` with `SKIP_ENV_VALIDATION=true next build` when secrets are not available while building. Defaults and coercion are not applied. |
+| `skipValidation` | Return raw values without running Zod, e.g. `skipValidation: process.env.SKIP_ENV_VALIDATION === "true"` with `SKIP_ENV_VALIDATION=true next build` when secrets are not available while building. Defaults and coercion are not applied. Pages that read these secrets must render at request time, or the build bakes in missing values. |
 | `isServer` | Override server detection (default `typeof window === "undefined"`), e.g. in jsdom tests. |
 
 ### Vite, Astro, TanStack Start and other frameworks
