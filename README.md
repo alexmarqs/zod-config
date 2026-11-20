@@ -596,6 +596,13 @@ Error: Invalid environment variables:
   PORT: Invalid input: expected number, received NaN
 ```
 
+To validate when `next dev` or `next build` starts, before any page runs, import the file at the top of `next.config.ts`:
+
+```ts
+// next.config.ts
+import "./src/env";
+```
+
 | Option | Description |
 |---|---|
 | `server`, `client` | Objects of Zod schemas. At least one is required. |
