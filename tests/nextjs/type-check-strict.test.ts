@@ -32,6 +32,7 @@ const strictRequiresEveryClientKey = () => {
     server: { API_SECRET: z.string() },
     client: { EXPO_PUBLIC_A: z.string(), EXPO_PUBLIC_B: z.string().optional() },
     runtimeEnv: {
+      API_SECRET: process.env.API_SECRET,
       EXPO_PUBLIC_A: process.env.EXPO_PUBLIC_A,
       EXPO_PUBLIC_B: process.env.EXPO_PUBLIC_B,
     },
@@ -64,12 +65,13 @@ const strictRequiresEveryClientKey = () => {
   });
 };
 
-const strictServerKeysAreOptional = () => {
+const strictRequiresServerKeysToo = () => {
+  // like T3 Env's runtimeEnvStrict: every declared key, server and client, must be listed
+  // @ts-expect-error API_SECRET is missing
   loadEnvConfig({
     clientPrefix: "EXPO_PUBLIC_",
     server: { API_SECRET: z.string() },
     client: { EXPO_PUBLIC_A: z.string() },
-    // server values come from process.env, so listing them is optional
     runtimeEnv: { EXPO_PUBLIC_A: "a" },
     strict: true,
   });
@@ -78,7 +80,7 @@ const strictServerKeysAreOptional = () => {
     clientPrefix: "EXPO_PUBLIC_",
     server: { API_SECRET: z.string() },
     client: { EXPO_PUBLIC_A: z.string() },
-    runtimeEnv: { EXPO_PUBLIC_A: "a", API_SECRET: "s" },
+    runtimeEnv: { EXPO_PUBLIC_A: "a", API_SECRET: process.env.API_SECRET },
     strict: true,
   });
 };
@@ -104,7 +106,7 @@ describe("loadEnvConfig (generic) strict types", () => {
   it("is checked by tsc", () => {
     expectTypeOf(looseByDefault).toBeFunction();
     expectTypeOf(strictRequiresEveryClientKey).toBeFunction();
-    expectTypeOf(strictServerKeysAreOptional).toBeFunction();
+    expectTypeOf(strictRequiresServerKeysToo).toBeFunction();
     expectTypeOf(strictRejectsWholeObjects).toBeFunction();
     expectTypeOf(strictWithoutClientKeys).toBeFunction();
   });

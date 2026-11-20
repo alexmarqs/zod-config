@@ -93,8 +93,17 @@ export type ServerRuntimeEnv<TServer> = {
 /**
  * A `runtimeEnv` that names every `client` key, for bundlers that only inline public variables
  * written out in full (e.g. `process.env.NEXT_PUBLIC_NAME`). Server keys are optional, and
- * undeclared keys are rejected. Used by `zod-config/nextjs`, and by `zod-config` with `strict`.
+ * undeclared keys are rejected (when written inline). Used by `zod-config/nextjs`.
  */
 export type ListedRuntimeEnv<TServer, TClient> = {
   [K in Extract<keyof TClient, string>]: string | undefined;
 } & ServerRuntimeEnv<TServer>;
+
+/**
+ * A `runtimeEnv` that names every declared key, `server` and `client`, and rejects undeclared
+ * ones (when written inline). Used by `zod-config` with `strict: true`, like T3 Env's
+ * `runtimeEnvStrict`.
+ */
+export type StrictRuntimeEnv<TServer, TClient> = {
+  [K in Extract<keyof TServer | keyof TClient, string>]: string | undefined;
+};

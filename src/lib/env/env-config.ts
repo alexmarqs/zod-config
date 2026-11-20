@@ -1,5 +1,5 @@
 import { type LoadEnvConfigInput, loadEnvConfigWithPrefix } from "./load-env-config";
-import type { BaseEnvConfigOptions, EnvConfigOutput, FieldSchema, ListedRuntimeEnv } from "./types";
+import type { BaseEnvConfigOptions, EnvConfigOutput, FieldSchema, StrictRuntimeEnv } from "./types";
 
 /**
  * Options for the framework-agnostic `loadEnvConfig`.
@@ -39,20 +39,22 @@ export type EnvConfigOptions<
              */
             runtimeEnv: Record<string, unknown>;
             /**
-             * Type-check that `runtimeEnv` lists every `client` key (and no undeclared key), for
-             * bundlers that only inline public variables written out in full, such as
+             * Type-check that `runtimeEnv` lists every declared key, `server` and `client` (and,
+             * when written inline, no undeclared key), like T3 Env's `runtimeEnvStrict`. For
+             * bundlers that only inline variables written out in full, such as
              * `process.env.EXPO_PUBLIC_NAME`. Type-level only. Defaults to `false`.
              */
             strict?: false;
           }
         | {
             /**
-             * One entry per `client` key; `server` keys are optional.
+             * One entry per declared key, `server` and `client`.
              */
-            runtimeEnv: ListedRuntimeEnv<TServer, TClient>;
+            runtimeEnv: StrictRuntimeEnv<TServer, TClient>;
             /**
-             * Type-check that `runtimeEnv` lists every `client` key (and no undeclared key), for
-             * bundlers that only inline public variables written out in full, such as
+             * Type-check that `runtimeEnv` lists every declared key, `server` and `client` (and,
+             * when written inline, no undeclared key), like T3 Env's `runtimeEnvStrict`. For
+             * bundlers that only inline variables written out in full, such as
              * `process.env.EXPO_PUBLIC_NAME`. Type-level only. Defaults to `false`.
              */
             strict: true;
