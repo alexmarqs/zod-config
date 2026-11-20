@@ -633,7 +633,7 @@ If your bundler only inlines variables written out in full (e.g. `process.env.EX
 
 Use it for apps with a browser bundle. For plain environment loading on a server, use [`loadConfig`](#basic-usage) with the env adapter.
 
-Coming from T3 Env? `createEnv` becomes `loadEnvConfig` and `onValidationError` becomes `onError`, which receives the Zod error rather than the issues array. Your `runtimeEnv` works as it is. Its server entries are optional (without them, server values come from `process.env`), but client entries must stay: client values are only read from `runtimeEnv`.
+Coming from T3 Env or a similar library? `createEnv` becomes `loadEnvConfig` and `onValidationError` becomes `onError`, which receives the Zod error rather than the issues array. Your `runtimeEnv` works as it is. Its server entries are optional (without them, server values come from `process.env`), but client entries must stay: client values are only read from `runtimeEnv`.
 
 ## Advanced Features
 
