@@ -173,11 +173,11 @@ describe("zodConfigEnv without a definition (zod-config/vite)", () => {
 
   it("should throw pointing at the explicit form when there is no env.config file", async () => {
     await expect(runConfigHook(zodConfigEnv(), { root })).rejects.toThrowError(
-      /no env\.config\.ts in src\/ or the project root\. Create it there, or import the definition and pass it: zodConfigEnv\(envConfig\)/,
+      /no env\.config file \(\.ts, \.js, \.mjs, …\) in src\/ or the project root\. Create one there, or import the definition and pass it: zodConfigEnv\(envConfig\)/,
     );
   });
 
-  it("should restart the dev server when env.config.ts or a file it imports changes", async () => {
+  it("should restart the dev server when env.config.ts changes", async () => {
     writeFileSync(
       path.join(root, "schemas.ts"),
       'import { z } from "zod";\nexport const url = z.url();\n',
@@ -203,12 +203,10 @@ describe("zodConfigEnv without a definition (zod-config/vite)", () => {
     };
     (plugin.configureServer as (server: unknown) => void)(server);
 
-    expect(server.watcher.add).toHaveBeenCalledWith(
-      expect.arrayContaining([path.join(root, "env.config.ts"), path.join(root, "schemas.ts")]),
-    );
-    onChange(path.join(root, "index.ts"));
-    expect(server.restart).not.toHaveBeenCalled();
+    expect(server.watcher.add).toHaveBeenCalledWith(path.join(root, "env.config.ts"));
     onChange(path.join(root, "schemas.ts"));
+    expect(server.restart).not.toHaveBeenCalled();
+    onChange(path.join(root, "env.config.ts"));
     expect(server.restart).toHaveBeenCalledTimes(1);
   });
 
@@ -237,8 +235,46 @@ describe("zodConfigEnv without a definition (zod-config/vite)", () => {
       runConfigHook(zodConfigEnv(), { root, resolve: { alias: { "@": root } } }),
     ).rejects.toThrowError(/Invalid environment variables:\n {2}DATABASE_URL: Invalid URL/);
     await expect(runConfigHook(zodConfigEnv(), { root })).rejects.toThrowError(
-      /zodConfigEnv: could not load env\.config\.ts: Cannot find module '@\/schemas' imported from 'env\.config\.ts'/,
+      /^zodConfigEnv: could not load env\.config\.ts: Cannot find module '@\/schemas'$/,
     );
+  });
+
+  it("should resolve array aliases and tsconfig paths, from src/", async () => {
+    writeFileSync(
+      path.join(root, "tsconfig.json"),
+      '{ "compilerOptions": { "paths": { "~/*": ["./src/*"] } } }',
+    );
+    mkdirSync(path.join(root, "src"));
+    writeFileSync(
+      path.join(root, "src/schemas.ts"),
+      'import { z } from "zod";\nexport const url = z.url();\n',
+    );
+    writeFileSync(
+      path.join(root, "src/env.config.ts"),
+      'import { url } from "~/schemas";\nimport { url as same } from "@/schemas";\nenum Level { Info = "info" }\nexport default { clientPrefix: "VITE_", server: { DATABASE_URL: url, OTHER_URL: same }, level: Level.Info };\n',
+    );
+    process.env = { DATABASE_URL: "nope", OTHER_URL: "https://ok.dev" };
+
+    await expect(
+      runConfigHook(zodConfigEnv(), {
+        root,
+        resolve: { alias: [{ find: "@", replacement: path.join(root, "src") }] },
+      }),
+    ).rejects.toThrowError(/Invalid environment variables:\n {2}DATABASE_URL: Invalid URL$/);
+  });
+
+  it("should point at installing jiti or passing the definition when jiti is missing", async () => {
+    // Outside the repository, where jiti cannot be resolved.
+    const outside = mkdtempSync(path.join(tmpdir(), "zod-config-no-jiti-"));
+    writeFileSync(path.join(outside, "env.config.ts"), "export default {};\n");
+
+    try {
+      await expect(runConfigHook(zodConfigEnv(), { root: outside })).rejects.toThrowError(
+        /^zodConfigEnv: finding the env\.config file needs jiti\. Install it \(npm i -D jiti\), or import the definition and pass it: zodConfigEnv\(envConfig\)$/,
+      );
+    } finally {
+      rmSync(outside, { recursive: true, force: true });
+    }
   });
 
   it("should throw when env.config.ts exports no definition", async () => {

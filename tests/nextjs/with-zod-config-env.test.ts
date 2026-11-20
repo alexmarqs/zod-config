@@ -1,6 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
-import { withZodConfigEnv } from "@/nextjs";
+import { withZodConfigEnv } from "@/nextjs-config";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4";
 
@@ -68,10 +69,6 @@ describe("withZodConfigEnv (zod-config/nextjs)", () => {
   });
 });
 
-// The lookup reaches Node modules through `process.getBuiltinModule` (Node.js 20.16+). On older
-// versions only the error that points at passing the definition can be tested.
-const itWithLookup = (process as { getBuiltinModule?: unknown }).getBuiltinModule ? it : it.skip;
-
 describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
   let root: string;
 
@@ -97,7 +94,7 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     process.env = originalEnv;
   });
 
-  itWithLookup("should load the default export of src/env.config.ts", () => {
+  it("should load the default export of src/env.config.ts", () => {
     writeEnvConfig("src/env.config.ts", "export default");
 
     expect(() => withZodConfigEnv({})).toThrowError(
@@ -109,28 +106,56 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     expect(withZodConfigEnv(nextConfig)).toBe(nextConfig);
   });
 
-  itWithLookup("should load a named envConfig export from env.config.ts in the root", () => {
+  it("should load a named envConfig export from env.config.ts in the root", () => {
     writeEnvConfig("env.config.ts", "export const envConfig =");
 
     expect(() => withZodConfigEnv({})).toThrowError(/DATABASE_URL/);
   });
 
-  it("should point at passing the definition on Node.js without process.getBuiltinModule", () => {
-    writeEnvConfig("src/env.config.ts", "export default");
-    const proc = process as { getBuiltinModule?: unknown };
-    const getBuiltinModule = proc.getBuiltinModule;
-    proc.getBuiltinModule = undefined;
+  it("should load a TypeScript env.config in src/ with tsconfig paths through jiti", () => {
+    writeFileSync(
+      path.join(root, "tsconfig.json"),
+      '{ "compilerOptions": { "paths": { "@/*": ["./src/*"] } } }',
+    );
+    mkdirSync(path.join(root, "src"));
+    writeFileSync(
+      path.join(root, "src/schemas.ts"),
+      'import { z } from "zod";\nexport const url = z.url();\n',
+    );
+    writeFileSync(
+      path.join(root, "src/env.config.ts"),
+      'import { url } from "@/schemas";\nenum Level { Info = "info" }\nconst level: string = Level.Info;\nexport default { server: { DATABASE_URL: url }, level };\n',
+    );
+    process.env = { DATABASE_URL: "nope" };
 
-    try {
-      expect(() => withZodConfigEnv({})).toThrowError(
-        /needs Node\.js 20\.16 or later\. Import the definition and pass it instead, which works on any version: withZodConfigEnv\(nextConfig, envConfig\)/,
-      );
-    } finally {
-      proc.getBuiltinModule = getBuiltinModule;
-    }
+    expect(() => withZodConfigEnv({})).toThrowError(
+      /Invalid environment variables:\n {2}DATABASE_URL: Invalid URL/,
+    );
   });
 
-  itWithLookup("should load a CommonJS env.config.cjs that assigns module.exports", () => {
+  describe("without jiti", () => {
+    let outside: string;
+
+    // Outside the repository, where jiti cannot be resolved (and neither can zod).
+    beforeEach(() => {
+      outside = mkdtempSync(path.join(tmpdir(), "zod-config-no-jiti-"));
+      vi.spyOn(process, "cwd").mockReturnValue(outside);
+    });
+
+    afterEach(() => {
+      rmSync(outside, { recursive: true, force: true });
+    });
+
+    it("should point at installing jiti or passing the definition", () => {
+      writeFileSync(path.join(outside, "env.config.ts"), "export default {};\n");
+
+      expect(() => withZodConfigEnv({})).toThrowError(
+        /^withZodConfigEnv: finding the env\.config file needs jiti\. Install it \(npm i jiti\), or import the definition and pass it: withZodConfigEnv\(nextConfig, envConfig\)$/,
+      );
+    });
+  });
+
+  it("should load a CommonJS env.config.cjs that assigns module.exports", () => {
     writeFileSync(
       path.join(root, "env.config.cjs"),
       'const { z } = require("zod");\nmodule.exports = { server: { DATABASE_URL: z.url() } };\n',
@@ -141,7 +166,7 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     );
   });
 
-  itWithLookup("should keep the original error as cause when env.config fails to load", () => {
+  it("should keep the original error as cause when env.config fails to load", () => {
     writeFileSync(path.join(root, "env.config.cjs"), 'throw new Error("boom");\n');
 
     let thrown: Error | undefined;
@@ -155,7 +180,7 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     expect((thrown?.cause as Error).message).toBe("boom");
   });
 
-  itWithLookup("should report a non-Error thrown by env.config", () => {
+  it("should report a non-Error thrown by env.config", () => {
     writeFileSync(path.join(root, "env.config.cjs"), 'throw "boom";\n');
 
     expect(() => withZodConfigEnv({})).toThrowError(
@@ -163,23 +188,17 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     );
   });
 
-  itWithLookup(
-    "should name the wrapper and the relative file when nothing usable is exported",
-    () => {
-      writeFileSync(path.join(root, "env.config.cjs"), "module.exports = { other: 1 };\n");
+  it("should name the wrapper and the relative file when nothing usable is exported", () => {
+    writeFileSync(path.join(root, "env.config.cjs"), "module.exports = { other: 1 };\n");
 
-      expect(() => withZodConfigEnv({})).toThrowError(
-        /^withZodConfigEnv: env\.config\.cjs must export the result of defineEnvConfig/,
-      );
-    },
-  );
+    expect(() => withZodConfigEnv({})).toThrowError(
+      /^withZodConfigEnv: env\.config\.cjs must export the result of defineEnvConfig/,
+    );
+  });
 
-  itWithLookup(
-    "should throw pointing at the explicit form when there is no env.config file",
-    () => {
-      expect(() => withZodConfigEnv({})).toThrowError(
-        /no env\.config\.ts in src\/ or the project root\. Create it there, or import the definition and pass it: withZodConfigEnv\(nextConfig, envConfig\)/,
-      );
-    },
-  );
+  it("should throw pointing at the explicit form when there is no env.config file", () => {
+    expect(() => withZodConfigEnv({})).toThrowError(
+      /no env\.config file \(\.ts, \.js, \.mjs, …\) in src\/ or the project root\. Create one there, or import the definition and pass it: withZodConfigEnv\(nextConfig, envConfig\)/,
+    );
+  });
 });

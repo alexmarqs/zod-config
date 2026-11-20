@@ -1,5 +1,6 @@
 import { loadEnvConfig } from "@/index";
-import { loadEnvConfig as loadNextEnvConfig, withZodConfigEnv } from "@/nextjs";
+import { loadEnvConfig as loadNextEnvConfig } from "@/nextjs";
+import { withZodConfigEnv } from "@/nextjs-config";
 import { zodConfigEnv } from "@/vite";
 import type { Plugin } from "vite";
 import { describe, expectTypeOf, it } from "vitest";

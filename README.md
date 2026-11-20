@@ -583,18 +583,19 @@ export const env = loadEnvConfig({
 });
 ```
 
-3. Validate it when `next dev` or `next build` starts. The wrapper finds `env.config.ts` in `src/` or the project root (Node.js 20.16+):
+3. Validate it when `next dev` or `next build` starts. The wrapper finds `env.config.ts` in `src/` or the project root and loads it with [jiti](https://github.com/unjs/jiti). Install it as a regular dependency (`npm i jiti`): `next start` reads the config too.
 
 ```ts
 // next.config.ts
-import { withZodConfigEnv } from "zod-config/nextjs";
+import { withZodConfigEnv } from "zod-config/nextjs/config";
 
 export default withZodConfigEnv({
   // your Next.js config
 });
 ```
 
-Is `env.config.ts` in another folder, or is your Node.js older than 20.16? Import it and pass it: `withZodConfigEnv(nextConfig, envConfig)`. Using path aliases such as `@/` in it? Put `env.config.ts` in the project root: Next.js only resolves them there when it loads `next.config.ts`. Prefer a single file? Pass the options straight to `loadEnvConfig` in `src/env.ts` and add `import "./src/env";` at the top of `next.config.ts`.
+- Without jiti, or with `env.config.ts` in another folder? Import it and pass it: `withZodConfigEnv(nextConfig, envConfig)`.
+- Prefer a single file? Pass the options straight to `loadEnvConfig` in `src/env.ts` and add `import "./src/env";` at the top of `next.config.ts`.
 
 ### Vite, Astro, TanStack Start
 
@@ -622,7 +623,7 @@ import envConfig from "./env.config";
 export const env = loadEnvConfig({ ...envConfig, runtimeEnv: import.meta.env });
 ```
 
-3. Validate it when `vite dev` or `vite build` starts. The plugin finds `env.config.ts` in `src/` or the project root (Vite 6.1+):
+3. Validate it when `vite dev` or `vite build` starts. The plugin finds `env.config.ts` in `src/` or the project root and loads it with [jiti](https://github.com/unjs/jiti) (`npm i -D jiti`):
 
 ```ts
 // vite.config.ts (in Astro: `vite.plugins` in astro.config.ts)
@@ -634,7 +635,7 @@ export default defineConfig({
 });
 ```
 
-Is `env.config.ts` in another folder, or is your Vite older than 6.1? Import it and pass it: `zodConfigEnv(envConfig)`.
+Without jiti, or with `env.config.ts` in another folder? Import it and pass it: `zodConfigEnv(envConfig)`.
 
 ### Options
 

@@ -1,4 +1,3 @@
-import { envConfigCandidates, envConfigLoadError, pickEnvConfig } from "./lib/env/find-env-config";
 import {
   type EnvSchemaInput,
   type LoadEnvConfigInput,
@@ -84,69 +83,6 @@ export const defineEnvConfig = <
 
 /**
  * The options of `loadEnvConfig` without `runtimeEnv`, as returned by `defineEnvConfig`, so that
- * both `loadEnvConfig` and `withZodConfigEnv` can use it.
+ * both `loadEnvConfig` and `withZodConfigEnv` (from `zod-config/nextjs/config`) can use it.
  */
 export type ZodConfigEnvOptions = EnvSchemaInput;
-
-const WRAPPER_CALL = "withZodConfigEnv(nextConfig, envConfig)";
-
-// Alternative considered: `jiti`, which reads tsconfig paths and works on any Node version, but
-// is a 1.7 MB dependency.
-// Loads `env.config.*` from `src/` or the project root. Node modules are reached through
-// `process.getBuiltinModule` because this entry is also bundled for the browser. The `.ts` file
-// is loaded by Next.js's config loader or by Node's type stripping.
-const requireEnvConfig = (): ZodConfigEnvOptions => {
-  const getBuiltinModule = (process as { getBuiltinModule?: (id: string) => unknown } | undefined)
-    ?.getBuiltinModule;
-
-  if (!getBuiltinModule) {
-    throw new Error(
-      `withZodConfigEnv: finding env.config.ts needs Node.js 20.16 or later. Import the definition and pass it instead, which works on any version: ${WRAPPER_CALL}`,
-    );
-  }
-
-  const fs = getBuiltinModule("node:fs") as typeof import("node:fs");
-  const path = getBuiltinModule("node:path") as typeof import("node:path");
-  const { createRequire } = getBuiltinModule("node:module") as typeof import("node:module");
-
-  const root = process.cwd();
-  const file = envConfigCandidates(root, path.join).find((candidate) => fs.existsSync(candidate));
-
-  if (!file) {
-    throw new Error(
-      `withZodConfigEnv: no env.config.ts in src/ or the project root. Create it there, or import the definition and pass it: ${WRAPPER_CALL}`,
-    );
-  }
-
-  let module: unknown;
-  try {
-    module = createRequire(path.join(root, "noop.js"))(file);
-  } catch (error) {
-    throw envConfigLoadError("withZodConfigEnv", path.relative(root, file), root, error);
-  }
-
-  return pickEnvConfig(module, "withZodConfigEnv", path.relative(root, file));
-};
-
-/**
- * Wraps the Next.js config to validate the environment when `next dev`, `next build` or
- * `next start` reads `next.config.ts`, before any page runs.
- *
- * Without `envConfig` it loads the definition from `env.config.ts` in `src/` or the project
- * root. Pass the definition to use another file.
- *
- * Values are read from `process.env`, which Next.js has already filled from the `.env` files.
- * The config is returned unchanged.
- */
-export const withZodConfigEnv = <TNextConfig>(
-  nextConfig: TNextConfig,
-  envConfig?: ZodConfigEnvOptions,
-): TNextConfig => {
-  loadEnvConfigWithPrefix(NEXT_PUBLIC_PREFIX, {
-    ...(envConfig ?? requireEnvConfig()),
-    runtimeEnv: process.env,
-    isServer: true,
-  });
-
-  return nextConfig;
-};

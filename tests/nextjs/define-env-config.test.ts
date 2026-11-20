@@ -2,8 +2,8 @@ import { defineEnvConfig, loadEnvConfig } from "@/index";
 import {
   defineEnvConfig as defineNextEnvConfig,
   loadEnvConfig as loadNextEnvConfig,
-  withZodConfigEnv,
 } from "@/nextjs";
+import { withZodConfigEnv } from "@/nextjs-config";
 import { zodConfigEnv } from "@/vite";
 import type { Plugin } from "vite";
 import { afterEach, describe, expect, expectTypeOf, it } from "vitest";

@@ -23,6 +23,9 @@ devDependencies:
   dotenv:
     specifier: 16.4.1
     version: 16.4.1
+  jiti:
+    specifier: 2.7.0
+    version: 2.7.0
   json5:
     specifier: 2.2.3
     version: 2.2.3
@@ -40,7 +43,7 @@ devDependencies:
     version: 5.1.3
   vite:
     specifier: 6.4.2
-    version: 6.4.2(@types/node@20.10.7)(yaml@2.7.0)
+    version: 6.4.2(@types/node@20.10.7)(jiti@2.7.0)(yaml@2.7.0)
   vitest:
     specifier: 4.1.2
     version: 4.1.2(@types/node@20.10.7)(vite@6.4.2)
@@ -1382,7 +1385,7 @@ packages:
       '@vitest/spy': 4.1.2
       estree-walker: 3.0.3
       magic-string: 0.30.21
-      vite: 6.4.2(@types/node@20.10.7)(yaml@2.7.0)
+      vite: 6.4.2(@types/node@20.10.7)(jiti@2.7.0)(yaml@2.7.0)
     dev: true
 
   /@vitest/pretty-format@4.1.2:
@@ -1928,6 +1931,11 @@ packages:
       '@isaacs/cliui': 8.0.2
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
+    dev: true
+
+  /jiti@2.7.0:
+    resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
+    hasBin: true
     dev: true
 
   /joycon@3.1.1:
@@ -2648,7 +2656,7 @@ packages:
     engines: {node: '>= 4.0.0'}
     dev: true
 
-  /vite@6.4.2(@types/node@20.10.7)(yaml@2.7.0):
+  /vite@6.4.2(@types/node@20.10.7)(jiti@2.7.0)(yaml@2.7.0):
     resolution: {integrity: sha512-2N/55r4JDJ4gdrCvGgINMy+HH3iRpNIz8K6SFwVsA+JbQScLiC+clmAxBgwiSPgcG9U15QmvqCGWzMbqda5zGQ==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
@@ -2691,6 +2699,7 @@ packages:
       '@types/node': 20.10.7
       esbuild: 0.25.12
       fdir: 6.5.0(picomatch@4.0.4)
+      jiti: 2.7.0
       picomatch: 4.0.4
       postcss: 8.5.8
       rollup: 4.60.1
@@ -2754,7 +2763,7 @@ packages:
       tinyexec: 1.0.4
       tinyglobby: 0.2.15
       tinyrainbow: 3.1.0
-      vite: 6.4.2(@types/node@20.10.7)(yaml@2.7.0)
+      vite: 6.4.2(@types/node@20.10.7)(jiti@2.7.0)(yaml@2.7.0)
       why-is-node-running: 2.3.0
     transitivePeerDependencies:
       - msw
