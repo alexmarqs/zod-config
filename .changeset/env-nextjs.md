@@ -2,7 +2,7 @@
 "zod-config": minor
 ---
 
-Add `loadEnvConfig()`, exported from `zod-config/nextjs` (Next.js preset) and from `zod-config` (any framework, with `clientPrefix`): synchronous, type-safe environment validation with separate server and client schemas, public-prefix enforcement, and runtime protection against reading server variables in the browser. Also adds `preloadEnvConfig()` to load server secrets from adapters such as AWS Secrets Manager or SSM when the Next.js server starts.
+Add `loadEnvConfig()`, exported from `zod-config/nextjs` (Next.js preset) and from `zod-config` (any framework, with `clientPrefix`): synchronous, type-safe environment validation with separate server and client schemas, public-prefix enforcement, and runtime protection against reading server variables in the browser.
 
 Zod 3 is no longer imported at runtime, so it is not bundled for Zod 4 users.
 

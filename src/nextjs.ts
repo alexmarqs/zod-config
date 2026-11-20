@@ -58,6 +58,3 @@ export const loadEnvConfig = <
     options as LoadEnvConfigInput,
   ) as EnvConfigOutput<TServer, TClient>;
 };
-
-export { preloadEnvConfig } from "./lib/env/preload-env-config";
-export type { PreloadEnvConfigOptions } from "./lib/env/preload-env-config";

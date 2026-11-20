@@ -26,7 +26,7 @@
 - ✨ **Flexible**. [Combine multiple adapters](#combine-multiple-adapters) to load the configuration from different sources. We deeply merge the configuration from different sources, following the order of the adapters provided; Create your own adapters easily; Use the callback functions to handle errors and success due to the async nature of the adapters;
 - 🪴 **Easy to use**. Zod Config is designed to be easy to use, with a simple API;
 - 🔄 **Async / Sync support**. Zod Config provides both asynchronous and synchronous APIs to fit different application needs;
-- ▲ **Next.js, Vite, Astro, TanStack Start**. Type-safe [environment variables](#type-safe-environment-variables) with server and client schemas, and [secrets loaded at server start](#nextjs-loading-secrets-at-startup) from any adapter, such as AWS Secrets Manager or SSM;
+- ▲ **Next.js, Vite, Astro, TanStack Start**. Type-safe [environment variables](#type-safe-environment-variables) with server and client schemas;
 
 
 ## Install
@@ -58,7 +58,6 @@ yarn add zod-config zod # yarn
 - [Type-safe Environment Variables](#type-safe-environment-variables)
   - [Next.js](#nextjs)
   - [Vite, Astro, TanStack Start and other frameworks](#vite-astro-tanstack-start-and-other-frameworks)
-  - [Next.js: loading secrets at startup](#nextjs-loading-secrets-at-startup)
 - [Advanced Features](#advanced-features)
   - [Load once](#load-once)
   - [Combine multiple adapters](#combine-multiple-adapters)
@@ -624,33 +623,6 @@ On the server, `server` variables are read from `runtimeEnv` first, then `proces
 In TanStack Start, read `server` variables inside `createServerFn`: route loaders also run in the browser, where server values are never available.
 
 Use it for apps with a browser bundle. For plain environment loading on a server, use [`loadConfig`](#basic-usage) with the env adapter.
-
-### Next.js: loading secrets at startup
-
-If your secrets live outside environment variables (AWS Secrets Manager, SSM, a vault, a file), load them when the server starts. `preloadEnvConfig` reads any zod-config adapters and copies the values into `process.env`, so `env.ts` stays as above. Call it from [`instrumentation.ts`](https://nextjs.org/docs/app/guides/instrumentation), which Next.js runs once per server start:
-
-```ts
-// instrumentation.ts
-export async function register() {
-  const { preloadEnvConfig } = await import("zod-config/nextjs");
-
-  await preloadEnvConfig({
-    adapters: async () => {
-      const { awsSecretsManagerAdapter } = await import("zod-config/aws-secrets-manager-adapter");
-      return [awsSecretsManagerAdapter({ secretId: "my-app/production" })];
-    },
-    // enabled: process.env.NODE_ENV === "production" (default)
-  });
-}
-```
-
-- `adapters` returns any [built-in adapters](#built-in-adapters) or your own; later adapters override earlier ones.
-- `enabled` defaults to production only: in development nothing is fetched and you use `.env.local`. Set it yourself to decide when secrets are loaded.
-- Variables that are already set are never overwritten, and only top-level string, number and boolean values are copied.
-- It does not run during `next build` (use `skipValidation` there) or on the Edge runtime. With a remote source, every new server instance makes its own call, including each serverless cold start.
-
-> [!NOTE]
-> `preloadEnvConfig` only fills `process.env`, so it also works with [T3 Env](https://env.t3.gg) or anything else that reads `process.env`.
 
 Coming from T3 Env? `createEnv` becomes `loadEnvConfig` and `onValidationError` becomes `onError`, which receives the Zod error rather than the issues array. Your `runtimeEnv` works as it is. Its server entries are optional (without them, server values come from `process.env`), but client entries must stay: client values are only read from `runtimeEnv`.
 
