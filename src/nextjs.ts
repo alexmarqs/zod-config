@@ -1,4 +1,4 @@
-import { envConfigCandidates, pickEnvConfig } from "./lib/env/find-env-config";
+import { envConfigCandidates, envConfigLoadError, pickEnvConfig } from "./lib/env/find-env-config";
 import {
   type EnvSchemaInput,
   type LoadEnvConfigInput,
@@ -118,15 +118,14 @@ const requireEnvConfig = (): ZodConfigEnvOptions => {
     );
   }
 
-  let module: { default?: unknown; envConfig?: unknown };
+  let module: unknown;
   try {
     module = createRequire(path.join(root, "noop.js"))(file);
   } catch (error) {
-    const message = (error as Error).message.replaceAll(`${root}/`, "");
-    throw new Error(`withZodConfigEnv: could not load ${path.relative(root, file)}: ${message}`);
+    throw envConfigLoadError("withZodConfigEnv", path.relative(root, file), root, error);
   }
 
-  return pickEnvConfig(module, file);
+  return pickEnvConfig(module, "withZodConfigEnv", path.relative(root, file));
 };
 
 /**

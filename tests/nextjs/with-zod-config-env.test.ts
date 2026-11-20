@@ -126,6 +126,47 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     }
   });
 
+  it("should load a CommonJS env.config.cjs that assigns module.exports", () => {
+    writeFileSync(
+      path.join(root, "env.config.cjs"),
+      'const { z } = require("zod");\nmodule.exports = { server: { DATABASE_URL: z.url() } };\n',
+    );
+
+    expect(() => withZodConfigEnv({})).toThrowError(
+      /Invalid environment variables:\n {2}DATABASE_URL: /,
+    );
+  });
+
+  it("should keep the original error as cause when env.config fails to load", () => {
+    writeFileSync(path.join(root, "env.config.cjs"), 'throw new Error("boom");\n');
+
+    let thrown: Error | undefined;
+    try {
+      withZodConfigEnv({});
+    } catch (error) {
+      thrown = error as Error;
+    }
+
+    expect(thrown?.message).toBe("withZodConfigEnv: could not load env.config.cjs: boom");
+    expect((thrown?.cause as Error).message).toBe("boom");
+  });
+
+  it("should report a non-Error thrown by env.config", () => {
+    writeFileSync(path.join(root, "env.config.cjs"), 'throw "boom";\n');
+
+    expect(() => withZodConfigEnv({})).toThrowError(
+      "withZodConfigEnv: could not load env.config.cjs: boom",
+    );
+  });
+
+  it("should name the wrapper and the relative file when nothing usable is exported", () => {
+    writeFileSync(path.join(root, "env.config.cjs"), "module.exports = { other: 1 };\n");
+
+    expect(() => withZodConfigEnv({})).toThrowError(
+      /^withZodConfigEnv: env\.config\.cjs must export the result of defineEnvConfig/,
+    );
+  });
+
   it("should throw pointing at the explicit form when there is no env.config file", () => {
     expect(() => withZodConfigEnv({})).toThrowError(
       /no env\.config\.ts in src\/ or the project root\. Create it there, or import the definition and pass it: withZodConfigEnv\(nextConfig, envConfig\)/,

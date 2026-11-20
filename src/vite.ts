@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import * as vite from "vite";
 import type { Plugin } from "vite";
-import { envConfigCandidates, pickEnvConfig } from "./lib/env/find-env-config";
+import { envConfigCandidates, envConfigLoadError, pickEnvConfig } from "./lib/env/find-env-config";
 import { type EnvSchemaInput, loadEnvConfigWithPrefix } from "./lib/env/load-env-config";
 
 /**
@@ -48,11 +48,13 @@ const importEnvConfig = async (
   try {
     loaded = await runnerImport(file, { root, logLevel: "silent", resolve: resolveOptions });
   } catch (error) {
-    const message = (error as Error).message.replaceAll(`${root}/`, "");
-    throw new Error(`zodConfigEnv: could not load ${relative(root, file)}: ${message}`);
+    throw envConfigLoadError("zodConfigEnv", relative(root, file), root, error);
   }
 
-  return { options: pickEnvConfig(loaded.module, file), files: [file, ...loaded.dependencies] };
+  return {
+    options: pickEnvConfig(loaded.module, "zodConfigEnv", relative(root, file)),
+    files: [file, ...loaded.dependencies],
+  };
 };
 
 /**

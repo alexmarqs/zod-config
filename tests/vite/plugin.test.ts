@@ -245,7 +245,7 @@ describe("zodConfigEnv without a definition (zod-config/vite)", () => {
     writeFileSync(path.join(root, "env.config.ts"), "export const other = 1;\n");
 
     await expect(runConfigHook(zodConfigEnv(), { root })).rejects.toThrowError(
-      /must export the result of defineEnvConfig/,
+      /^zodConfigEnv: env\.config\.ts must export the result of defineEnvConfig/,
     );
   });
 });
