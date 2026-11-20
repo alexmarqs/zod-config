@@ -629,7 +629,7 @@ On the server, `server` variables are read from `runtimeEnv` first, then `proces
 
 In TanStack Start, read `server` variables inside `createServerFn`: route loaders also run in the browser, where server values are never available.
 
-If your bundler only inlines variables written out in full (e.g. `process.env.EXPO_PUBLIC_API_URL` in Expo), list every `server` and `client` variable in `runtimeEnv` and set `strict: true`: TypeScript then reports a missing or misspelled key, like T3 Env's `runtimeEnvStrict`.
+If your bundler only inlines variables written out in full (e.g. `process.env.EXPO_PUBLIC_API_URL` in Expo), list every `server` and `client` variable in `runtimeEnv` and set `strict: true`: TypeScript then reports a missing or misspelled key.
 
 Use it for apps with a browser bundle. For plain environment loading on a server, use [`loadConfig`](#basic-usage) with the env adapter.
 

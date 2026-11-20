@@ -40,7 +40,7 @@ export type EnvConfigOptions<
             runtimeEnv: Record<string, unknown>;
             /**
              * Type-check that `runtimeEnv` lists every declared key, `server` and `client` (and,
-             * when written inline, no undeclared key), like T3 Env's `runtimeEnvStrict`. For
+             * when written inline, no undeclared key). For
              * bundlers that only inline variables written out in full, such as
              * `process.env.EXPO_PUBLIC_NAME`. Type-level only. Defaults to `false`.
              */
@@ -53,7 +53,7 @@ export type EnvConfigOptions<
             runtimeEnv: StrictRuntimeEnv<TServer, TClient>;
             /**
              * Type-check that `runtimeEnv` lists every declared key, `server` and `client` (and,
-             * when written inline, no undeclared key), like T3 Env's `runtimeEnvStrict`. For
+             * when written inline, no undeclared key). For
              * bundlers that only inline variables written out in full, such as
              * `process.env.EXPO_PUBLIC_NAME`. Type-level only. Defaults to `false`.
              */

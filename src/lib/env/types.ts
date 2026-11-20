@@ -101,8 +101,7 @@ export type ListedRuntimeEnv<TServer, TClient> = {
 
 /**
  * A `runtimeEnv` that names every declared key, `server` and `client`, and rejects undeclared
- * ones (when written inline). Used by `zod-config` with `strict: true`, like T3 Env's
- * `runtimeEnvStrict`.
+ * ones (when written inline). Used by `zod-config` with `strict: true`.
  */
 export type StrictRuntimeEnv<TServer, TClient> = {
   [K in Extract<keyof TServer | keyof TClient, string>]: string | undefined;

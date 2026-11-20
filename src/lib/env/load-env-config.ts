@@ -101,8 +101,8 @@ export const loadEnvConfigWithPrefix = (
   const values: Record<string, unknown> = {};
 
   if (isServer) {
-    // Server values: an entry in `runtimeEnv` wins (what the caller passes explicitly, as in T3
-    // Env), and `process.env` fills in the rest. `runtimeEnv` also covers runtimes without
+    // Server values: an entry in `runtimeEnv` wins (what the caller passes explicitly), and
+    // `process.env` fills in the rest. `runtimeEnv` also covers runtimes without
     // `process.env`, and Vite and Astro, which expose `.env` values on `import.meta.env`.
     pickValues(values, getSafeProcessEnv(), serverKeys);
     pickValues(values, options.runtimeEnv ?? {}, serverKeys);
