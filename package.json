@@ -184,7 +184,7 @@
     "@aws-sdk/client-secrets-manager": "^3.428.0",
     "@aws-sdk/client-ssm": "^3.428.0",
     "dotenv": ">=15",
-    "jiti": "^2.7.0",
+    "jiti": ">=2.0.0",
     "json5": ">=2",
     "smol-toml": "^1.x",
     "vite": "^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0",

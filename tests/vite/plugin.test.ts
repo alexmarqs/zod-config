@@ -270,7 +270,7 @@ describe("zodConfigEnv without a definition (zod-config/vite)", () => {
 
     try {
       await expect(runConfigHook(zodConfigEnv(), { root: outside })).rejects.toThrowError(
-        /^zodConfigEnv: finding the env\.config file needs jiti\. Install it \(npm i -D jiti\), or import the definition and pass it: zodConfigEnv\(envConfig\)$/,
+        /^zodConfigEnv: finding the env\.config file needs jiti 2 or later\. Install it \(npm i -D jiti\), or import the definition and pass it: zodConfigEnv\(envConfig\)$/,
       );
     } finally {
       rmSync(outside, { recursive: true, force: true });

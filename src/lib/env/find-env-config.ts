@@ -29,6 +29,17 @@ type Caller = {
   install: string;
 };
 
+const supportsTsconfigPaths = (requireFromRoot: (id: string) => unknown) => {
+  try {
+    const { version } = requireFromRoot("jiti/package.json") as { version: string };
+    const [major, minor] = version.split(".").map(Number);
+
+    return major > 2 || (major === 2 && minor >= 7);
+  } catch {
+    return true;
+  }
+};
+
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
@@ -60,14 +71,18 @@ export const loadEnvConfigFile = (
   }
 
   // Resolved from the app, where it is installed.
-  let createJiti: CreateJiti;
+  const requireFromRoot = createRequire(join(root, "package.json"));
+  let createJiti: CreateJiti | undefined;
   try {
-    ({ createJiti } = createRequire(join(root, "package.json"))("jiti") as {
-      createJiti: CreateJiti;
-    });
+    ({ createJiti } = requireFromRoot("jiti") as { createJiti?: CreateJiti });
   } catch {
+    // Not installed.
+  }
+
+  // jiti 1.x, e.g. hoisted from another package, has no `createJiti`.
+  if (typeof createJiti !== "function") {
     throw new Error(
-      `${caller.name}: finding the env.config file needs jiti. Install it (${caller.install}), or import the definition and pass it: ${caller.call}`,
+      `${caller.name}: finding the env.config file needs jiti 2 or later. Install it (${caller.install}), or import the definition and pass it: ${caller.call}`,
     );
   }
 
@@ -89,6 +104,11 @@ export const loadEnvConfigFile = (
     )[0];
     for (const prefix of [`${root}/`, `${root}\\`, `${root.replaceAll("\\", "/")}/`]) {
       message = message.replaceAll(prefix, "");
+    }
+
+    // jiti reads `tsconfig.json` paths from 2.7; older versions only know the `alias` option.
+    if (message.startsWith("Cannot find module") && !supportsTsconfigPaths(requireFromRoot)) {
+      message += ". Path aliases from tsconfig.json need jiti 2.7 or later";
     }
 
     const loadError = new Error(`${caller.name}: could not load ${name}: ${message}`);

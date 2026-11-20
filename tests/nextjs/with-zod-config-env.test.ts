@@ -150,9 +150,30 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
       writeFileSync(path.join(outside, "env.config.ts"), "export default {};\n");
 
       expect(() => withZodConfigEnv({})).toThrowError(
-        /^withZodConfigEnv: finding the env\.config file needs jiti\. Install it \(npm i jiti\), or import the definition and pass it: withZodConfigEnv\(nextConfig, envConfig\)$/,
+        /^withZodConfigEnv: finding the env\.config file needs jiti 2 or later\. Install it \(npm i jiti\), or import the definition and pass it: withZodConfigEnv\(nextConfig, envConfig\)$/,
       );
     });
+  });
+
+  it("should point at jiti 2 when only jiti 1.x is installed", () => {
+    // A stand-in for jiti 1.x: a function export, without `createJiti`.
+    const outside = mkdtempSync(path.join(tmpdir(), "zod-config-jiti-1-"));
+    mkdirSync(path.join(outside, "node_modules/jiti"), { recursive: true });
+    writeFileSync(
+      path.join(outside, "node_modules/jiti/package.json"),
+      '{ "name": "jiti", "version": "1.21.7", "main": "index.js" }',
+    );
+    writeFileSync(path.join(outside, "node_modules/jiti/index.js"), "module.exports = () => {};\n");
+    writeFileSync(path.join(outside, "env.config.cjs"), "module.exports = { server: {} };\n");
+    vi.spyOn(process, "cwd").mockReturnValue(outside);
+
+    try {
+      expect(() => withZodConfigEnv({})).toThrowError(
+        /^withZodConfigEnv: finding the env\.config file needs jiti 2 or later\. Install it \(npm i jiti\)/,
+      );
+    } finally {
+      rmSync(outside, { recursive: true, force: true });
+    }
   });
 
   it("should load a CommonJS env.config.cjs that assigns module.exports", () => {
