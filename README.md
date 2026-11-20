@@ -57,7 +57,7 @@ yarn add zod-config zod # yarn
   - [AWS SSM Adapter](#aws-ssm-adapter)
 - [Type-safe Environment Variables](#type-safe-environment-variables)
   - [Next.js](#nextjs)
-  - [Vite, Astro, TanStack Start and other frameworks](#vite-astro-tanstack-start-and-other-frameworks)
+  - [Vite, Astro, TanStack Start](#vite-astro-tanstack-start)
   - [Options](#options)
 - [Advanced Features](#advanced-features)
   - [Load once](#load-once)
@@ -553,77 +553,51 @@ IAM permissions: `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `p
 
 ## Type-safe Environment Variables
 
-`loadEnvConfig` validates the environment of apps with a browser bundle (Next.js, Vite, Astro, TanStack Start) with Zod. It keeps `server` and `client` variables apart, checks the public prefix, and throws if browser code reads a server variable. It is synchronous.
+`loadEnvConfig` validates the environment of apps with a browser bundle with Zod. It keeps `server` and `client` variables apart, checks the public prefix, and throws if browser code reads a server variable.
 
 ### Next.js
 
-`zod-config/nextjs` fixes the client prefix to `NEXT_PUBLIC_`:
+1. Describe the environment (client keys must start with `NEXT_PUBLIC_`):
+
+```ts
+// src/env.config.ts
+import { defineEnvConfig } from "zod-config/nextjs";
+import { z } from "zod";
+
+export const envConfig = defineEnvConfig({
+  server: { DATABASE_URL: z.url() },
+  client: { NEXT_PUBLIC_APP_URL: z.url() },
+});
+```
+
+2. Load it, listing each client key so Next.js can inline it:
 
 ```ts
 // src/env.ts
 import { loadEnvConfig } from "zod-config/nextjs";
-import { z } from "zod";
+import { envConfig } from "./env.config";
 
 export const env = loadEnvConfig({
-  // server-only, read from process.env
-  server: {
-    DATABASE_URL: z.url(),
-    PORT: z.coerce.number().default(3000),
-  },
-  // available in the browser, keys must start with NEXT_PUBLIC_
-  client: {
-    NEXT_PUBLIC_APP_URL: z.url(),
-  },
-  // one entry per client key, so Next.js can inline the values
-  runtimeEnv: {
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-  },
+  ...envConfig,
+  runtimeEnv: { NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL },
 });
 ```
 
-```ts
-import { env } from "@/env";
-
-env.PORT; // number
-env.NEXT_PUBLIC_APP_URL; // string, on the server and in the browser
-env.DATABASE_URL; // string on the server, throws in the browser
-```
-
-An invalid environment throws an `Error` that lists each invalid variable and why:
-
-```
-Error: Invalid environment variables:
-  DATABASE_URL: Invalid input: expected string, received undefined
-  PORT: Invalid input: expected number, received NaN
-```
-
-The file is validated when it is first imported. To validate when `next dev` or `next build` starts, import it at the top of `next.config.ts`:
+3. Validate it when `next dev` or `next build` starts:
 
 ```ts
 // next.config.ts
-import "./src/env";
-```
+import { withZodConfigEnv } from "zod-config/nextjs";
+import { envConfig } from "./src/env.config";
 
-### Vite, Astro, TanStack Start and other frameworks
-
-Import `loadEnvConfig` from `zod-config` and set `clientPrefix` to your framework's public prefix:
-
-```ts
-// src/env.ts
-import { loadEnvConfig } from "zod-config";
-import { z } from "zod";
-
-export const env = loadEnvConfig({
-  clientPrefix: "VITE_", // Vite and TanStack Start: "VITE_", Astro: "PUBLIC_"
-  server: { DATABASE_URL: z.url() },
-  client: { VITE_API_URL: z.url() },
-  runtimeEnv: import.meta.env,
+export default withZodConfigEnv(envConfig)({
+  // your Next.js config
 });
 ```
 
-`server` variables are read from `runtimeEnv` first, then `process.env`, and only on the server. In TanStack Start, read them inside `createServerFn`: route loaders also run in the browser.
+### Vite, Astro, TanStack Start
 
-In a single-page app, `env.ts` runs in the browser, so a missing variable only shows up when the app loads. To check it when `vite dev` or `vite build` starts, move the definition to its own file and pass it to the `zod-config/vite` plugin:
+1. Describe the environment with your framework's public prefix:
 
 ```ts
 // src/env.config.ts
@@ -631,11 +605,13 @@ import { defineEnvConfig } from "zod-config";
 import { z } from "zod";
 
 export const envConfig = defineEnvConfig({
-  clientPrefix: "VITE_",
+  clientPrefix: "VITE_", // Astro: "PUBLIC_"
   server: { DATABASE_URL: z.url() },
   client: { VITE_API_URL: z.url() },
 });
 ```
+
+2. Load it:
 
 ```ts
 // src/env.ts
@@ -644,6 +620,8 @@ import { envConfig } from "./env.config";
 
 export const env = loadEnvConfig({ ...envConfig, runtimeEnv: import.meta.env });
 ```
+
+3. Validate it when `vite dev` or `vite build` starts:
 
 ```ts
 // vite.config.ts (in Astro: `vite.plugins` in astro.config.ts)
@@ -656,23 +634,21 @@ export default defineConfig({
 });
 ```
 
-The plugin reads `.env` files the way Vite does and stops the command with the same error. It does not change the bundle, and it does nothing under Vitest. `zod-config/nextjs` has the same pair for Next.js: `defineEnvConfig` and `withZodConfigEnv(envConfig)(nextConfig)`.
-
 ### Options
+
+`defineEnvConfig` takes `server`, `client`, `clientPrefix`, `onError` and `skipValidation`. Pass `runtimeEnv`, `isServer` and `strict` to `loadEnvConfig`.
 
 | Option | Description |
 |---|---|
 | `server`, `client` | Objects of Zod schemas. At least one is required. |
 | `clientPrefix` | `zod-config` only. Required when `client` has keys. |
 | `runtimeEnv` | Where values come from. Required when `client` has keys. With `zod-config/nextjs`, list each client key as `process.env.NEXT_PUBLIC_NAME`. On the server, entries take priority over `process.env`. |
-| `onError` | `(error) => void`, called with the Zod error (use `error.issues`) before the `Error` above is thrown. Throw from it to replace that error. Unlike `loadConfig`'s `onError`, it does not swallow the failure. |
+| `onError` | `(error) => void`, called with the Zod error (use `error.issues`) before an `Error` listing each invalid variable is thrown. Throw from it to replace that error. Unlike `loadConfig`'s `onError`, it does not swallow the failure. |
 | `skipValidation` | Return raw values without running Zod, e.g. `skipValidation: process.env.SKIP_ENV_VALIDATION === "true"` when secrets are not available while building. Defaults and coercion are not applied. Pages that read these secrets must render at request time, or the build bakes in missing values. |
 | `isServer` | Override server detection (default `typeof window === "undefined"`), e.g. in jsdom tests. |
 | `strict` | `zod-config` only. Type-checks that `runtimeEnv` lists every `server` and `client` key, for bundlers that only inline variables written out in full (e.g. `process.env.EXPO_PUBLIC_API_URL` in Expo). |
 
-Use it for apps with a browser bundle. For plain environment loading on a server, use [`loadConfig`](#basic-usage) with the env adapter.
-
-Coming from T3 Env or a similar library? `createEnv` becomes `loadEnvConfig` and `onValidationError` becomes `onError`, which receives the Zod error rather than the issues array. Your `runtimeEnv` works as it is. Its server entries are optional (without them, server values come from `process.env`), but client entries must stay: client values are only read from `runtimeEnv`.
+For plain environment loading on a server, use [`loadConfig`](#basic-usage) with the env adapter.
 
 ## Advanced Features
 
