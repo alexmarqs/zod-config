@@ -1,6 +1,13 @@
-import { type LoadEnvConfigInput, loadEnvConfigWithPrefix } from "./lib/env/load-env-config";
+import {
+  type EnvSchemaInput,
+  type LoadEnvConfigInput,
+  defineEnvConfigInput,
+  loadEnvConfigWithPrefix,
+} from "./lib/env/load-env-config";
 import type {
   BaseEnvConfigOptions,
+  EnvConfigDefinition,
+  EnvConfigDefinitionInput,
   EnvConfigOutput,
   FieldSchema,
   ListedRuntimeEnv,
@@ -56,3 +63,45 @@ export const loadEnvConfig = <
     options as LoadEnvConfigInput,
   ) as EnvConfigOutput<TServer, TClient>;
 };
+
+/**
+ * Describe the environment once, in its own file, to share it between `loadEnvConfig` and
+ * `withZodConfigEnv`. It only checks the types and returns the definition: nothing is read or
+ * validated here.
+ */
+export const defineEnvConfig = <
+  TServer extends Record<string, FieldSchema> = Record<never, never>,
+  TClient extends Record<string, FieldSchema> = Record<never, never>,
+>(
+  definition: EnvConfigDefinitionInput<NextPublicPrefix, TServer, TClient>,
+): EnvConfigDefinition<TServer, TClient> => {
+  return defineEnvConfigInput(definition as EnvSchemaInput) as EnvConfigDefinition<
+    TServer,
+    TClient
+  >;
+};
+
+/**
+ * The options of `loadEnvConfig` without `runtimeEnv`, as returned by `defineEnvConfig`, so that
+ * both `loadEnvConfig` and `withZodConfigEnv` can use it.
+ */
+export type ZodConfigEnvOptions = EnvSchemaInput;
+
+/**
+ * Wraps the Next.js config to validate the environment when `next dev`, `next build` or
+ * `next start` reads `next.config.ts`, before any page runs.
+ *
+ * Values are read from `process.env`, which Next.js has already filled from the `.env` files.
+ * The config is returned unchanged.
+ */
+export const withZodConfigEnv =
+  (options: ZodConfigEnvOptions) =>
+  <TNextConfig>(nextConfig: TNextConfig): TNextConfig => {
+    loadEnvConfigWithPrefix(NEXT_PUBLIC_PREFIX, {
+      ...options,
+      runtimeEnv: process.env,
+      isServer: true,
+    });
+
+    return nextConfig;
+  };

@@ -1,5 +1,17 @@
-import { type LoadEnvConfigInput, loadEnvConfigWithPrefix } from "./load-env-config";
-import type { BaseEnvConfigOptions, EnvConfigOutput, FieldSchema, StrictRuntimeEnv } from "./types";
+import {
+  type EnvSchemaInput,
+  type LoadEnvConfigInput,
+  defineEnvConfigInput,
+  loadEnvConfigWithPrefix,
+} from "./load-env-config";
+import type {
+  BaseEnvConfigOptions,
+  EnvConfigDefinition,
+  EnvConfigDefinitionInput,
+  EnvConfigOutput,
+  FieldSchema,
+  StrictRuntimeEnv,
+} from "./types";
 
 /**
  * Options for the framework-agnostic `loadEnvConfig`.
@@ -85,4 +97,31 @@ export const loadEnvConfig = <
     options?.clientPrefix,
     options as LoadEnvConfigInput,
   ) as EnvConfigOutput<TServer, TClient>;
+};
+
+/**
+ * Describe the environment once, in its own file, to share it between `loadEnvConfig` and a
+ * build plugin such as `zodConfigEnv` from `zod-config/vite`:
+ *
+ * ```ts
+ * export const envConfig = defineEnvConfig({ clientPrefix: "VITE_", client: { ... } });
+ * export const env = loadEnvConfig({ ...envConfig, runtimeEnv: import.meta.env });
+ * ```
+ *
+ * It only checks the types and returns the definition: nothing is read or validated here.
+ */
+export const defineEnvConfig = <
+  TPrefix extends string = never,
+  TServer extends Record<string, FieldSchema> = Record<never, never>,
+  TClient extends Record<string, FieldSchema> = Record<never, never>,
+>(
+  definition: EnvConfigDefinitionInput<TPrefix, TServer, TClient> &
+    (keyof TClient extends never ? { clientPrefix?: TPrefix } : { clientPrefix: TPrefix }),
+): EnvConfigDefinition<TServer, TClient> &
+  (keyof TClient extends never ? { clientPrefix?: TPrefix } : { clientPrefix: TPrefix }) => {
+  return defineEnvConfigInput(definition as EnvSchemaInput) as EnvConfigDefinition<
+    TServer,
+    TClient
+  > &
+    (keyof TClient extends never ? { clientPrefix?: TPrefix } : { clientPrefix: TPrefix });
 };

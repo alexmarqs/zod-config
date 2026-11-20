@@ -4,6 +4,8 @@
 
 Add `loadEnvConfig()`, exported from `zod-config/nextjs` (Next.js preset) and from `zod-config` (any framework, with `clientPrefix`): synchronous, type-safe environment validation with separate server and client schemas, public-prefix enforcement, and runtime protection against reading server variables in the browser. With `strict: true`, the generic export also type-checks that `runtimeEnv` lists every server and client key.
 
+Add build-time validation from a definition shared with `loadEnvConfig`, written once with `defineEnvConfig()` (exported from `zod-config` and `zod-config/nextjs`): the `zodConfigEnv()` Vite plugin, exported from `zod-config/vite`, stops `vite dev` and `vite build` on an invalid environment, and `withZodConfigEnv()`, exported from `zod-config/nextjs`, does the same for the Next.js config. `vite` is a new optional peer dependency, only needed for `zod-config/vite`.
+
 Zod 3 is no longer imported at runtime, so it is not bundled for Zod 4 users.
 
 Zod 3 support is deprecated and will be removed in the next major version.

@@ -4,14 +4,31 @@ import { getSafeProcessEnv } from "../utils/get-safe-process-env";
 import { type FieldSchema, buildObjectSchema } from "./build-schema";
 import type { EnvConfigError } from "./types";
 
-export type LoadEnvConfigInput = {
+/**
+ * The options that describe the environment, without where its values come from. Kept in its
+ * own file by apps that share it between `loadEnvConfig` and a build plugin.
+ */
+export type EnvSchemaInput = {
   server?: Record<string, FieldSchema>;
   client?: Record<string, FieldSchema>;
-  runtimeEnv?: Record<string, unknown>;
   onError?: (error: EnvConfigError) => void;
   skipValidation?: boolean;
+};
+
+export type LoadEnvConfigInput = EnvSchemaInput & {
+  runtimeEnv?: Record<string, unknown>;
   isServer?: boolean;
 };
+
+/**
+ * Shared implementation of `defineEnvConfig`: returns the definition with `server` and `client`
+ * always present, so its type is the same with or without them.
+ */
+export const defineEnvConfigInput = <T extends EnvSchemaInput>(definition: T) => ({
+  ...definition,
+  server: definition?.server ?? {},
+  client: definition?.client ?? {},
+});
 
 const isValidationError = (error: unknown): error is EnvConfigError =>
   typeof error === "object" && error !== null && Array.isArray((error as EnvConfigError).issues);
