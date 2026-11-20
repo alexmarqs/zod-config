@@ -83,7 +83,7 @@ describe("defineEnvConfig", () => {
     }>();
 
     const nextConfig = { reactStrictMode: true };
-    expect(withZodConfigEnv(envConfig)(nextConfig)).toBe(nextConfig);
+    expect(withZodConfigEnv(nextConfig, envConfig)).toBe(nextConfig);
   });
 });
 

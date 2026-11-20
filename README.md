@@ -564,7 +564,7 @@ IAM permissions: `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `p
 import { defineEnvConfig } from "zod-config/nextjs";
 import { z } from "zod";
 
-export const envConfig = defineEnvConfig({
+export default defineEnvConfig({
   server: { DATABASE_URL: z.url() },
   client: { NEXT_PUBLIC_APP_URL: z.url() },
 });
@@ -575,7 +575,7 @@ export const envConfig = defineEnvConfig({
 ```ts
 // src/env.ts
 import { loadEnvConfig } from "zod-config/nextjs";
-import { envConfig } from "./env.config";
+import envConfig from "./env.config";
 
 export const env = loadEnvConfig({
   ...envConfig,
@@ -583,17 +583,18 @@ export const env = loadEnvConfig({
 });
 ```
 
-3. Validate it when `next dev` or `next build` starts:
+3. Validate it when `next dev` or `next build` starts. The wrapper finds `env.config.ts` in `src/` or the project root:
 
 ```ts
 // next.config.ts
 import { withZodConfigEnv } from "zod-config/nextjs";
-import { envConfig } from "./src/env.config";
 
-export default withZodConfigEnv(envConfig)({
+export default withZodConfigEnv({
   // your Next.js config
 });
 ```
+
+Kept somewhere else? Import it and pass it: `withZodConfigEnv(nextConfig, envConfig)`. Using path aliases such as `@/` in it? Put `env.config.ts` in the project root: Next.js only resolves them there when it loads `next.config.ts`. Prefer a single file? Pass the options straight to `loadEnvConfig` in `src/env.ts` and add `import "./src/env";` at the top of `next.config.ts`.
 
 ### Vite, Astro, TanStack Start
 
@@ -604,7 +605,7 @@ export default withZodConfigEnv(envConfig)({
 import { defineEnvConfig } from "zod-config";
 import { z } from "zod";
 
-export const envConfig = defineEnvConfig({
+export default defineEnvConfig({
   clientPrefix: "VITE_", // Astro: "PUBLIC_"
   server: { DATABASE_URL: z.url() },
   client: { VITE_API_URL: z.url() },
@@ -616,23 +617,24 @@ export const envConfig = defineEnvConfig({
 ```ts
 // src/env.ts
 import { loadEnvConfig } from "zod-config";
-import { envConfig } from "./env.config";
+import envConfig from "./env.config";
 
 export const env = loadEnvConfig({ ...envConfig, runtimeEnv: import.meta.env });
 ```
 
-3. Validate it when `vite dev` or `vite build` starts:
+3. Validate it when `vite dev` or `vite build` starts. The plugin finds `env.config.ts` in `src/` or the project root (Vite 6.1+):
 
 ```ts
 // vite.config.ts (in Astro: `vite.plugins` in astro.config.ts)
 import { defineConfig } from "vite";
 import { zodConfigEnv } from "zod-config/vite";
-import { envConfig } from "./src/env.config";
 
 export default defineConfig({
-  plugins: [zodConfigEnv(envConfig)],
+  plugins: [zodConfigEnv()],
 });
 ```
+
+Kept somewhere else, or on an older Vite? Import it and pass it: `zodConfigEnv(envConfig)`. Aliases set in the Vite config (`resolve.alias`) also work in `env.config.ts`.
 
 ### Options
 

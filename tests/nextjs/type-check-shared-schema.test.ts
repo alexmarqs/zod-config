@@ -57,7 +57,7 @@ const nextSchemaSharedWithTheWrapper = () => {
 
   // the wrapper returns the config with its own type
   const nextConfig = { reactStrictMode: true };
-  expectTypeOf(withZodConfigEnv(envSchema)(nextConfig)).toEqualTypeOf<{
+  expectTypeOf(withZodConfigEnv(nextConfig, envSchema)).toEqualTypeOf<{
     reactStrictMode: boolean;
   }>();
 
