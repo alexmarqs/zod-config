@@ -565,7 +565,7 @@ import { defineEnvConfig } from "zod-config/nextjs";
 import { z } from "zod";
 
 export default defineEnvConfig({
-  server: { DATABASE_URL: z.url() },
+  server: { DATABASE_URL: z.url() }, // Zod 3: z.string().url()
   client: { NEXT_PUBLIC_APP_URL: z.url() },
 });
 ```
