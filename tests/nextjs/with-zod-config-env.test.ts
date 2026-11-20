@@ -68,6 +68,10 @@ describe("withZodConfigEnv (zod-config/nextjs)", () => {
   });
 });
 
+// The lookup reaches Node modules through `process.getBuiltinModule` (Node.js 20.16+). On older
+// versions only the error that points at passing the definition can be tested.
+const itWithLookup = (process as { getBuiltinModule?: unknown }).getBuiltinModule ? it : it.skip;
+
 describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
   let root: string;
 
@@ -93,7 +97,7 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     process.env = originalEnv;
   });
 
-  it("should load the default export of src/env.config.ts", () => {
+  itWithLookup("should load the default export of src/env.config.ts", () => {
     writeEnvConfig("src/env.config.ts", "export default");
 
     expect(() => withZodConfigEnv({})).toThrowError(
@@ -105,7 +109,7 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     expect(withZodConfigEnv(nextConfig)).toBe(nextConfig);
   });
 
-  it("should load a named envConfig export from env.config.ts in the root", () => {
+  itWithLookup("should load a named envConfig export from env.config.ts in the root", () => {
     writeEnvConfig("env.config.ts", "export const envConfig =");
 
     expect(() => withZodConfigEnv({})).toThrowError(/DATABASE_URL/);
@@ -126,7 +130,7 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     }
   });
 
-  it("should load a CommonJS env.config.cjs that assigns module.exports", () => {
+  itWithLookup("should load a CommonJS env.config.cjs that assigns module.exports", () => {
     writeFileSync(
       path.join(root, "env.config.cjs"),
       'const { z } = require("zod");\nmodule.exports = { server: { DATABASE_URL: z.url() } };\n',
@@ -137,7 +141,7 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     );
   });
 
-  it("should keep the original error as cause when env.config fails to load", () => {
+  itWithLookup("should keep the original error as cause when env.config fails to load", () => {
     writeFileSync(path.join(root, "env.config.cjs"), 'throw new Error("boom");\n');
 
     let thrown: Error | undefined;
@@ -151,7 +155,7 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     expect((thrown?.cause as Error).message).toBe("boom");
   });
 
-  it("should report a non-Error thrown by env.config", () => {
+  itWithLookup("should report a non-Error thrown by env.config", () => {
     writeFileSync(path.join(root, "env.config.cjs"), 'throw "boom";\n');
 
     expect(() => withZodConfigEnv({})).toThrowError(
@@ -159,17 +163,23 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     );
   });
 
-  it("should name the wrapper and the relative file when nothing usable is exported", () => {
-    writeFileSync(path.join(root, "env.config.cjs"), "module.exports = { other: 1 };\n");
+  itWithLookup(
+    "should name the wrapper and the relative file when nothing usable is exported",
+    () => {
+      writeFileSync(path.join(root, "env.config.cjs"), "module.exports = { other: 1 };\n");
 
-    expect(() => withZodConfigEnv({})).toThrowError(
-      /^withZodConfigEnv: env\.config\.cjs must export the result of defineEnvConfig/,
-    );
-  });
+      expect(() => withZodConfigEnv({})).toThrowError(
+        /^withZodConfigEnv: env\.config\.cjs must export the result of defineEnvConfig/,
+      );
+    },
+  );
 
-  it("should throw pointing at the explicit form when there is no env.config file", () => {
-    expect(() => withZodConfigEnv({})).toThrowError(
-      /no env\.config\.ts in src\/ or the project root\. Create it there, or import the definition and pass it: withZodConfigEnv\(nextConfig, envConfig\)/,
-    );
-  });
+  itWithLookup(
+    "should throw pointing at the explicit form when there is no env.config file",
+    () => {
+      expect(() => withZodConfigEnv({})).toThrowError(
+        /no env\.config\.ts in src\/ or the project root\. Create it there, or import the definition and pass it: withZodConfigEnv\(nextConfig, envConfig\)/,
+      );
+    },
+  );
 });
