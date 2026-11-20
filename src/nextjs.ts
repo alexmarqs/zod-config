@@ -1,5 +1,11 @@
 import { type LoadEnvConfigInput, loadEnvConfigWithPrefix } from "./lib/env/load-env-config";
-import type { BaseEnvConfigOptions, EnvConfigOutput, FieldSchema } from "./lib/env/types";
+import type {
+  BaseEnvConfigOptions,
+  EnvConfigOutput,
+  FieldSchema,
+  ListedRuntimeEnv,
+  ServerRuntimeEnv,
+} from "./lib/env/types";
 
 export type { EnvConfigError, EnvConfigOutput } from "./lib/env/types";
 
@@ -26,16 +32,8 @@ export type EnvConfigOptions<
          * inline the value into the browser bundle. Server keys are optional: on the server they
          * take priority over `process.env`, which provides any server value not listed here.
          */
-        runtimeEnv: {
-          [K in Extract<keyof TClient, string>]: string | undefined;
-        } & ServerRuntimeEnv<TServer>;
+        runtimeEnv: ListedRuntimeEnv<TServer, TClient>;
       });
-
-/**
- * Optional server entries in `runtimeEnv`: explicit values, or values on runtimes without
- * `process.env`.
- */
-type ServerRuntimeEnv<TServer> = { [K in Extract<keyof TServer, string>]?: string | undefined };
 
 /**
  * Synchronously load and validate Next.js environment variables.

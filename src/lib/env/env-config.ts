@@ -1,5 +1,5 @@
 import { type LoadEnvConfigInput, loadEnvConfigWithPrefix } from "./load-env-config";
-import type { BaseEnvConfigOptions, EnvConfigOutput, FieldSchema } from "./types";
+import type { BaseEnvConfigOptions, EnvConfigOutput, FieldSchema, ListedRuntimeEnv } from "./types";
 
 /**
  * Options for the framework-agnostic `loadEnvConfig`.
@@ -21,18 +21,43 @@ export type EnvConfigOptions<
          * over `process.env`.
          */
         runtimeEnv?: Record<string, unknown>;
+        /**
+         * Has no effect without `client` keys.
+         */
+        strict?: boolean;
       }
     : {
         /**
          * Prefix your framework uses for browser-accessible variables, e.g. `VITE_` or `PUBLIC_`.
          */
         clientPrefix: TPrefix;
-        /**
-         * Object holding the values at runtime, e.g. `import.meta.env`. Only declared keys are
-         * read from it, and `server` keys only on the server.
-         */
-        runtimeEnv: Record<string, unknown>;
-      });
+      } & (
+        | {
+            /**
+             * Object holding the values at runtime, e.g. `import.meta.env`. Only declared keys
+             * are read from it, and `server` keys only on the server.
+             */
+            runtimeEnv: Record<string, unknown>;
+            /**
+             * Type-check that `runtimeEnv` lists every `client` key (and no undeclared key), for
+             * bundlers that only inline public variables written out in full, such as
+             * `process.env.EXPO_PUBLIC_NAME`. Type-level only. Defaults to `false`.
+             */
+            strict?: false;
+          }
+        | {
+            /**
+             * One entry per `client` key; `server` keys are optional.
+             */
+            runtimeEnv: ListedRuntimeEnv<TServer, TClient>;
+            /**
+             * Type-check that `runtimeEnv` lists every `client` key (and no undeclared key), for
+             * bundlers that only inline public variables written out in full, such as
+             * `process.env.EXPO_PUBLIC_NAME`. Type-level only. Defaults to `false`.
+             */
+            strict: true;
+          }
+      ));
 
 /**
  * Synchronously load and validate environment variables for an app with a browser bundle

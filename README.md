@@ -622,6 +622,8 @@ On the server, `server` variables are read from `runtimeEnv` first, then `proces
 
 In TanStack Start, read `server` variables inside `createServerFn`: route loaders also run in the browser, where server values are never available.
 
+If your bundler only inlines public variables written out in full (e.g. `process.env.EXPO_PUBLIC_API_URL` in Expo), list each one in `runtimeEnv` and set `strict: true`: TypeScript then reports a missing or misspelled client key.
+
 Use it for apps with a browser bundle. For plain environment loading on a server, use [`loadConfig`](#basic-usage) with the env adapter.
 
 Coming from T3 Env? `createEnv` becomes `loadEnvConfig` and `onValidationError` becomes `onError`, which receives the Zod error rather than the issues array. Your `runtimeEnv` works as it is. Its server entries are optional (without them, server values come from `process.env`), but client entries must stay: client values are only read from `runtimeEnv`.

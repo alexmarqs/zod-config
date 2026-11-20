@@ -81,3 +81,20 @@ export type EnvConfigOutput<TServer, TClient> = Simplify<
     }
   >
 >;
+
+/**
+ * Optional server entries in `runtimeEnv`: explicit values, or values on runtimes without
+ * `process.env`.
+ */
+export type ServerRuntimeEnv<TServer> = {
+  [K in Extract<keyof TServer, string>]?: string | undefined;
+};
+
+/**
+ * A `runtimeEnv` that names every `client` key, for bundlers that only inline public variables
+ * written out in full (e.g. `process.env.NEXT_PUBLIC_NAME`). Server keys are optional, and
+ * undeclared keys are rejected. Used by `zod-config/nextjs`, and by `zod-config` with `strict`.
+ */
+export type ListedRuntimeEnv<TServer, TClient> = {
+  [K in Extract<keyof TClient, string>]: string | undefined;
+} & ServerRuntimeEnv<TServer>;
