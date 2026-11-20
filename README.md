@@ -583,7 +583,7 @@ export const env = loadEnvConfig({
 });
 ```
 
-3. Validate it when `next dev` or `next build` starts. The wrapper finds `env.config.ts` in `src/` or the project root:
+3. Validate it when `next dev` or `next build` starts. The wrapper finds `env.config.ts` in `src/` or the project root (Node.js 20.16+):
 
 ```ts
 // next.config.ts
@@ -594,7 +594,7 @@ export default withZodConfigEnv({
 });
 ```
 
-Kept somewhere else? Import it and pass it: `withZodConfigEnv(nextConfig, envConfig)`. Using path aliases such as `@/` in it? Put `env.config.ts` in the project root: Next.js only resolves them there when it loads `next.config.ts`. Prefer a single file? Pass the options straight to `loadEnvConfig` in `src/env.ts` and add `import "./src/env";` at the top of `next.config.ts`.
+Is `env.config.ts` in another folder, or is your Node.js older than 20.16? Import it and pass it: `withZodConfigEnv(nextConfig, envConfig)`. Using path aliases such as `@/` in it? Put `env.config.ts` in the project root: Next.js only resolves them there when it loads `next.config.ts`. Prefer a single file? Pass the options straight to `loadEnvConfig` in `src/env.ts` and add `import "./src/env";` at the top of `next.config.ts`.
 
 ### Vite, Astro, TanStack Start
 
@@ -634,7 +634,7 @@ export default defineConfig({
 });
 ```
 
-Kept somewhere else, or on an older Vite? Import it and pass it: `zodConfigEnv(envConfig)`. Aliases set in the Vite config (`resolve.alias`) also work in `env.config.ts`.
+Is `env.config.ts` in another folder, or is your Vite older than 6.1? Import it and pass it: `zodConfigEnv(envConfig)`.
 
 ### Options
 
