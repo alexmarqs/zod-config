@@ -595,7 +595,7 @@ import { createJiti } from "jiti";
 await createJiti(import.meta.url, { tsconfigPaths: true }).import("./src/env.ts");
 ```
 
-B and C need jiti as a regular dependency (`npm i jiti`), because `next start` reads the config too.
+`next start` reads the config too, so with any of the three, `env.ts` must be among the deployed files. B and C also need jiti as a regular dependency (`npm i jiti`).
 
 ### Vite, Astro, TanStack Start
 
