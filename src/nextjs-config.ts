@@ -20,6 +20,10 @@ export type ZodConfigEnvOptions = {
  * regular dependency: `next start` reads the config too. From a `next.config.ts`, importing the
  * env file (`import "./src/env"`) does the same without jiti.
  *
+ * The env file is looked up from the folder `next` runs in (`process.cwd()`). When that is not
+ * the project folder, e.g. `next build apps/web`, pass an absolute `file`: jiti and tsconfig.json
+ * are then taken from that file's package.
+ *
  * The config is returned unchanged.
  *
  * Node.js only: import it from `zod-config/nextjs/config`. It is kept out of `zod-config/nextjs`,
@@ -35,6 +39,7 @@ export const withZodConfigEnv = <TNextConfig>(
       name: "withZodConfigEnv",
       withoutJiti:
         'Install it (npm i jiti), or import the env file in next.config.ts instead: import "./src/env"',
+      aliasSources: 'the "paths" of tsconfig.json',
     },
     { file: options.file },
   );

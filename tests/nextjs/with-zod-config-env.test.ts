@@ -81,6 +81,25 @@ export const env = loadEnvConfig({
     );
   });
 
+  it("should load an absolute file from another folder, with that project's jiti and tsconfig", () => {
+    // Like `next build apps/web` from a monorepo root: the cwd has no jiti and no tsconfig.json.
+    writeFileSync(path.join(root, "package.json"), "{}");
+    mkdirSync(path.join(root, "src"));
+    writeFileSync(path.join(root, "src/a.ts"), "export const a = 1;\n");
+    writeEnvFile("src/env.ts", 'import { a } from "~/a";\nvoid a;');
+    const elsewhere = mkdtempSync(path.join(tmpdir(), "zod-config-cwd-"));
+    vi.spyOn(process, "cwd").mockReturnValue(elsewhere);
+
+    try {
+      expect(() => withZodConfigEnv({})).toThrowError(/no env file/);
+      expect(() => withZodConfigEnv({}, { file: path.join(root, "src/env.ts") })).toThrowError(
+        /^Invalid environment variables/,
+      );
+    } finally {
+      rmSync(elsewhere, { recursive: true, force: true });
+    }
+  });
+
   it("should resolve tsconfig paths in the env file", () => {
     mkdirSync(path.join(root, "src"));
     writeFileSync(path.join(root, "src/a.ts"), "export const a = 1;\n");
@@ -100,7 +119,7 @@ export const env = loadEnvConfig({
     }
 
     expect(thrown?.message).toBe(
-      "withZodConfigEnv: could not load src/env.ts: Cannot find module '#missing/a'",
+      "withZodConfigEnv: could not load src/env.ts: Cannot find module '#missing/a'. If it is a path alias, declare it in the \"paths\" of tsconfig.json",
     );
     expect(thrown?.cause).toBeInstanceOf(Error);
   });
@@ -113,7 +132,7 @@ export const env = loadEnvConfig({
 
   it("should throw when there is no env file", () => {
     expect(() => withZodConfigEnv({})).toThrowError(
-      'withZodConfigEnv: no env file (env.ts, env.js, …) in src/ or the project root. Create src/env.ts with loadEnvConfig, or set the "file" option',
+      `withZodConfigEnv: no env file (env.ts, env.js, …) in src/ or the root of ${root}. Create src/env.ts with loadEnvConfig, or set the "file" option`,
     );
   });
 

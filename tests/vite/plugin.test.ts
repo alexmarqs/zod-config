@@ -2,23 +2,28 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { zodConfigEnv } from "@/vite";
-import type { ConfigEnv, Plugin, UserConfig } from "vite";
+import { type Plugin, type UserConfig, resolveConfig } from "vite";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const originalEnv = process.env;
 const source = path.resolve(__dirname, "../../src");
 
-// Calls the plugin's `config` hook the way Vite does when it reads the config.
-const runConfigHook = (
+// Resolves a Vite config with the plugin, the way `vite dev` and `vite build` do: NODE_ENV
+// defaults to "production" for a build and to "development" for the dev server.
+const runVite = (
   plugin: Plugin,
   config: UserConfig,
   mode = "development",
-  command: ConfigEnv["command"] = "build",
-) => {
-  const hook = plugin.config as (config: UserConfig, env: ConfigEnv) => unknown;
-
-  return hook(config, { mode, command } as ConfigEnv);
-};
+  command: "build" | "serve" = "build",
+  isPreview = false,
+) =>
+  resolveConfig(
+    { configFile: false, logLevel: "silent", ...config, plugins: [plugin] },
+    command,
+    mode,
+    command === "build" ? "production" : "development",
+    isPreview,
+  );
 
 describe("zodConfigEnv (zod-config/vite)", () => {
   let root: string;
@@ -60,43 +65,43 @@ export const env = loadEnvConfig({
     process.env = originalEnv;
   });
 
-  it("should throw listing each invalid variable when they are missing", () => {
+  it("should throw listing each invalid variable when they are missing", async () => {
     writeEnvFile();
 
-    expect(() => runConfigHook(zodConfigEnv(), { root })).toThrowError(
+    await expect(runVite(zodConfigEnv(), { root })).rejects.toThrowError(
       /^Invalid environment variables:\n {2}DATABASE_URL: .*\n {2}VITE_API_URL: /,
     );
   });
 
-  it("should pass with the values from a .env file in the root", () => {
+  it("should pass with the values from a .env file in the root", async () => {
     writeEnvFile();
     writeFileSync(
       path.join(root, ".env"),
       "DATABASE_URL=https://db.dev\nVITE_API_URL=https://api.dev\n",
     );
 
-    expect(runConfigHook(zodConfigEnv(), { root })).toBeUndefined();
+    await expect(runVite(zodConfigEnv(), { root })).resolves.toBeDefined();
   });
 
-  it("should pass with the values from process.env and no .env file", () => {
+  it("should pass with the values from process.env and no .env file", async () => {
     writeEnvFile();
     process.env = { DATABASE_URL: "https://db.dev", VITE_API_URL: "https://api.dev" };
 
-    expect(runConfigHook(zodConfigEnv(), { root })).toBeUndefined();
+    await expect(runVite(zodConfigEnv(), { root })).resolves.toBeDefined();
   });
 
-  it("should read the .env file of the current mode", () => {
+  it("should read the .env file of the current mode", async () => {
     writeEnvFile();
     writeFileSync(path.join(root, ".env"), "DATABASE_URL=https://db.dev\n");
     writeFileSync(path.join(root, ".env.staging"), "VITE_API_URL=https://api.staging\n");
 
-    expect(runConfigHook(zodConfigEnv(), { root }, "staging")).toBeUndefined();
-    expect(() => runConfigHook(zodConfigEnv(), { root }, "production")).toThrowError(
+    await expect(runVite(zodConfigEnv(), { root }, "staging")).resolves.toBeDefined();
+    await expect(runVite(zodConfigEnv(), { root }, "production")).rejects.toThrowError(
       /VITE_API_URL/,
     );
   });
 
-  it("should read .env files from envDir, resolved from the root", () => {
+  it("should read .env files from envDir, resolved from the root", async () => {
     writeEnvFile();
     const envDir = mkdtempSync(path.join(root, "env-"));
     writeFileSync(
@@ -104,50 +109,101 @@ export const env = loadEnvConfig({
       "DATABASE_URL=https://db.dev\nVITE_API_URL=https://api.dev\n",
     );
 
-    expect(runConfigHook(zodConfigEnv(), { root, envDir: path.basename(envDir) })).toBeUndefined();
+    await expect(
+      runVite(zodConfigEnv(), { root, envDir: path.basename(envDir) }),
+    ).resolves.toBeDefined();
   });
 
-  it("should not read .env files when envDir is false", () => {
+  it("should not read .env files when envDir is false", async () => {
     writeEnvFile();
     writeFileSync(
       path.join(root, ".env"),
       "DATABASE_URL=https://db.dev\nVITE_API_URL=https://api.dev\n",
     );
 
-    expect(() => runConfigHook(zodConfigEnv(), { root, envDir: false } as UserConfig)).toThrowError(
-      /Invalid environment variables/,
-    );
+    await expect(
+      runVite(zodConfigEnv(), { root, envDir: false } as UserConfig),
+    ).rejects.toThrowError(/Invalid environment variables/);
   });
 
-  it("should expose MODE, DEV and PROD and restore process.env afterwards", () => {
-    writeEnvFile(
-      "src/env.ts",
-      'if (import.meta.env.MODE !== "staging" || import.meta.env.DEV !== true || import.meta.env.PROD !== false) throw new Error("wrong mode");',
+  // The env file throws its view of Vite's own variables, so each test can assert on it.
+  const viteVariables =
+    "throw new Error(JSON.stringify([import.meta.env.MODE, import.meta.env.DEV, import.meta.env.PROD, import.meta.env.BASE_URL, import.meta.env.SSR]));";
+
+  it("should expose Vite's MODE, DEV, PROD, BASE_URL and SSR to the env file", async () => {
+    writeEnvFile("src/env.ts", viteVariables);
+
+    process.env = {};
+    await expect(runVite(zodConfigEnv(), { root }, "staging", "serve")).rejects.toThrowError(
+      '["staging",true,false,"/",true]',
     );
+
+    process.env = {};
+    await expect(
+      runVite(zodConfigEnv(), { root, base: "/app/" }, "production", "build"),
+    ).rejects.toThrowError('["production",false,true,"/app/",true]');
+  });
+
+  it("should restore process.env after running the env file", async () => {
+    writeEnvFile();
     const env = { DATABASE_URL: "https://db.dev", VITE_API_URL: "https://api.dev" };
     process.env = env;
 
-    expect(runConfigHook(zodConfigEnv(), { root }, "staging", "serve")).toBeUndefined();
+    await runVite(zodConfigEnv(), { root });
     expect(process.env).toBe(env);
-    expect(() => runConfigHook(zodConfigEnv(), { root }, "production")).toThrowError("wrong mode");
+
+    writeEnvFile("src/env.ts", 'throw new Error("boom");');
+    await expect(runVite(zodConfigEnv(), { root })).rejects.toThrowError("boom");
     expect(process.env).toBe(env);
   });
 
-  it("should find env.ts in the root, and a file given with the file option", () => {
+  it("should follow NODE_ENV for DEV and PROD, like the app does", async () => {
+    writeEnvFile("src/env.ts", viteVariables);
+
+    // `NODE_ENV=development vite build` is not a production build.
+    process.env = { NODE_ENV: "development" };
+    await expect(runVite(zodConfigEnv(), { root }, "production", "build")).rejects.toThrowError(
+      '["production",true,false,"/",true]',
+    );
+
+    process.env = { NODE_ENV: "production" };
+    await expect(runVite(zodConfigEnv(), { root }, "development", "serve")).rejects.toThrowError(
+      '["development",false,true,"/",true]',
+    );
+  });
+
+  it("should use the root and envDir that another plugin sets", async () => {
+    writeEnvFile();
+    const envDir = mkdtempSync(path.join(root, "env-"));
+    writeFileSync(
+      path.join(envDir, ".env"),
+      "DATABASE_URL=https://db.dev\nVITE_API_URL=https://api.dev\n",
+    );
+    const other: Plugin = { name: "sets-root", config: () => ({ root, envDir }) };
+
+    await expect(
+      resolveConfig(
+        { configFile: false, logLevel: "silent", plugins: [zodConfigEnv(), other] },
+        "build",
+      ),
+    ).resolves.toBeDefined();
+  });
+
+  it("should find env.ts in the root, and a file given with the file option", async () => {
     writeEnvFile("env.ts");
-    expect(() => runConfigHook(zodConfigEnv(), { root })).toThrowError(/DATABASE_URL/);
+    await expect(runVite(zodConfigEnv(), { root })).rejects.toThrowError(/DATABASE_URL/);
 
     rmSync(path.join(root, "env.ts"));
     writeEnvFile("config/app-env.ts");
-    expect(() => runConfigHook(zodConfigEnv({ file: "config/app-env.ts" }), { root })).toThrowError(
-      /DATABASE_URL/,
-    );
-    expect(() => runConfigHook(zodConfigEnv({ file: "missing.ts" }), { root })).toThrowError(
+    await expect(
+      runVite(zodConfigEnv({ file: "config/app-env.ts" }), { root }),
+    ).rejects.toThrowError(/DATABASE_URL/);
+    await expect(runVite(zodConfigEnv({ file: "missing.ts" }), { root })).rejects.toThrowError(
       "zodConfigEnv: env file not found: missing.ts",
     );
   });
 
-  it("should resolve aliases from the Vite config and tsconfig paths in the env file", () => {
+  it("should resolve aliases from the Vite config and tsconfig paths in the env file", async () => {
     mkdirSync(path.join(root, "src"));
     writeFileSync(path.join(root, "src/a.ts"), "export const a = 1;\n");
     writeEnvFile(
@@ -156,25 +212,50 @@ export const env = loadEnvConfig({
     );
     const alias = { "#app": path.join(root, "src") };
 
-    expect(() => runConfigHook(zodConfigEnv(), { root, resolve: { alias } })).toThrowError(
+    await expect(runVite(zodConfigEnv(), { root, resolve: { alias } })).rejects.toThrowError(
       /^Invalid environment variables/,
     );
-    expect(() =>
-      runConfigHook(zodConfigEnv(), {
+    await expect(
+      runVite(zodConfigEnv(), {
         root,
         resolve: { alias: [{ find: "#app", replacement: path.join(root, "src") }] },
       }),
-    ).toThrowError(/^Invalid environment variables/);
-    expect(() => runConfigHook(zodConfigEnv(), { root })).toThrowError(
-      /^zodConfigEnv: could not load src\/env\.ts: Cannot find module '#app\/a'$/,
+    ).rejects.toThrowError(/^Invalid environment variables/);
+    await expect(runVite(zodConfigEnv(), { root })).rejects.toThrowError(
+      "zodConfigEnv: could not load src/env.ts: Cannot find module '#app/a'. If it is a path alias, declare it in resolve.alias of the Vite config, or the \"paths\" of tsconfig.json",
     );
   });
 
-  it("should restart the dev server when the env file changes", () => {
+  it("should resolve an alias that is relative to the Vite root, and use the first match", async () => {
+    mkdirSync(path.join(root, "src"));
+    mkdirSync(path.join(root, "other"));
+    writeFileSync(path.join(root, "src/a.ts"), "export const a = 1;\n");
+    writeEnvFile("src/env.ts", 'import { a } from "#app/a";\nvoid a;');
+
+    await expect(
+      runVite(zodConfigEnv(), {
+        root,
+        resolve: {
+          alias: [
+            { find: "#app", replacement: "/src" },
+            { find: "#app", replacement: path.join(root, "other") },
+          ],
+        },
+      }),
+    ).rejects.toThrowError(/^Invalid environment variables/);
+  });
+
+  it("should do nothing for vite preview", async () => {
+    await expect(
+      runVite(zodConfigEnv(), { root }, "production", "serve", true),
+    ).resolves.toBeDefined();
+  });
+
+  it("should restart the dev server when the env file changes", async () => {
     writeEnvFile();
     process.env = { DATABASE_URL: "https://db.dev", VITE_API_URL: "https://api.dev" };
     const plugin = zodConfigEnv();
-    runConfigHook(plugin, { root });
+    await runVite(plugin, { root });
 
     let onChange: (file: string) => void = () => {};
     const server = {
@@ -196,15 +277,15 @@ export const env = loadEnvConfig({
     expect(server.restart).toHaveBeenCalledTimes(1);
   });
 
-  it("should not change the Vite config, and do nothing when Vitest reads the config", () => {
+  it("should do nothing when Vitest reads the config", async () => {
     process.env = { VITEST: "true" };
 
-    expect(runConfigHook(zodConfigEnv(), { root }, "test")).toBeUndefined();
+    await expect(runVite(zodConfigEnv(), { root }, "test")).resolves.toBeDefined();
   });
 
-  it("should throw when there is no env file", () => {
-    expect(() => runConfigHook(zodConfigEnv(), { root })).toThrowError(
-      'zodConfigEnv: no env file (env.ts, env.js, …) in src/ or the project root. Create src/env.ts with loadEnvConfig, or set the "file" option',
+  it("should throw when there is no env file", async () => {
+    await expect(runVite(zodConfigEnv(), { root })).rejects.toThrowError(
+      `zodConfigEnv: no env file (env.ts, env.js, …) in src/ or the root of ${root}. Create src/env.ts with loadEnvConfig, or set the "file" option`,
     );
   });
 
@@ -221,13 +302,13 @@ export const env = loadEnvConfig({
       rmSync(outside, { recursive: true, force: true });
     });
 
-    it("should point at installing jiti when it is missing", () => {
-      expect(() => runConfigHook(zodConfigEnv(), { root: outside })).toThrowError(
+    it("should point at installing jiti when it is missing", async () => {
+      await expect(runVite(zodConfigEnv(), { root: outside })).rejects.toThrowError(
         "zodConfigEnv: loading env.ts needs jiti 2 or later. Install it (npm i -D jiti)",
       );
     });
 
-    it("should point at jiti 2 when only jiti 1.x is installed", () => {
+    it("should point at jiti 2 when only jiti 1.x is installed", async () => {
       // A stand-in for jiti 1.x: a function export, without `createJiti`.
       mkdirSync(path.join(outside, "node_modules/jiti"), { recursive: true });
       writeFileSync(
@@ -239,7 +320,7 @@ export const env = loadEnvConfig({
         "module.exports = () => {};\n",
       );
 
-      expect(() => runConfigHook(zodConfigEnv(), { root: outside })).toThrowError(
+      await expect(runVite(zodConfigEnv(), { root: outside })).rejects.toThrowError(
         "zodConfigEnv: loading env.ts needs jiti 2 or later. Install it (npm i -D jiti)",
       );
     });
