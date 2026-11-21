@@ -122,10 +122,6 @@ export const loadEnvConfigWithPrefix = (
         throw error;
       }
 
-      // An env that failed validation must never be returned, so this always throws. `onError`
-      // can report the Zod error, or throw its own error instead of this one. The Zod error is
-      // not attached as `cause`: Node prints the cause chain, which would repeat the raw issues
-      // JSON under the readable message in terminal and build output.
       options.onError?.(error);
 
       throw new Error(`Invalid environment variables:\n${formatIssues(error)}`);
