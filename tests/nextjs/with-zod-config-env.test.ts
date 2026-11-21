@@ -3,86 +3,43 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { withZodConfigEnv } from "@/nextjs-config";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { z } from "zod/v4";
 
 const originalEnv = process.env;
+const source = path.resolve(__dirname, "../../src");
 
-const envSchema = {
-  server: { DATABASE_URL: z.url() },
-  client: { NEXT_PUBLIC_APP_URL: z.url() },
-} as const;
-
-describe("withZodConfigEnv (zod-config/nextjs)", () => {
-  beforeEach(() => {
-    process.env = {};
-    vi.spyOn(console, "error").mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
-  });
-
-  it("should return the Next.js config unchanged when the environment is valid", () => {
-    process.env = {
-      DATABASE_URL: "https://db.dev",
-      NEXT_PUBLIC_APP_URL: "https://app.dev",
-    };
-    const nextConfig = { reactStrictMode: true };
-
-    expect(withZodConfigEnv(nextConfig, envSchema)).toBe(nextConfig);
-  });
-
-  it("should return a config function unchanged", () => {
-    process.env = {
-      DATABASE_URL: "https://db.dev",
-      NEXT_PUBLIC_APP_URL: "https://app.dev",
-    };
-    const nextConfig = async () => ({ reactStrictMode: true });
-
-    expect(withZodConfigEnv(nextConfig, envSchema)).toBe(nextConfig);
-  });
-
-  it("should throw listing each invalid variable when they are missing", () => {
-    expect(() => withZodConfigEnv({}, envSchema)).toThrowError(
-      /Invalid environment variables:\n {2}DATABASE_URL: .*\n {2}NEXT_PUBLIC_APP_URL: /,
-    );
-  });
-
-  it("should not validate with skipValidation", () => {
-    expect(() => withZodConfigEnv({}, { ...envSchema, skipValidation: true })).not.toThrow();
-  });
-
-  it("should call onError with the Zod error before throwing", () => {
-    const onError = vi.fn();
-
-    expect(() => withZodConfigEnv({}, { ...envSchema, onError })).toThrowError(
-      /Invalid environment variables/,
-    );
-    expect(onError).toHaveBeenCalledTimes(1);
-    expect(onError.mock.calls[0][0].issues).toHaveLength(2);
-  });
-
-  it("should throw when a client key does not start with NEXT_PUBLIC_", () => {
-    expect(() => withZodConfigEnv({}, { client: { APP_URL: z.url() } })).toThrowError(
-      /client keys must start with "NEXT_PUBLIC_"/,
-    );
-  });
-});
-
-describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
+describe("withZodConfigEnv (zod-config/nextjs/config)", () => {
   let root: string;
 
-  // Inside the repository, so `zod` resolves from the generated env.config files.
-  const writeEnvConfig = (file: string, exportLine: string) => {
+  // The app's env file. It imports `loadEnvConfig` from the sources, and `@/` (used inside the
+  // sources) is mapped in the app's tsconfig.json.
+  const writeEnvFile = (file = "src/env.ts", extra = "") => {
     mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
     writeFileSync(
       path.join(root, file),
-      `import { z } from "zod";\n${exportLine} { server: { DATABASE_URL: z.url() }, client: { NEXT_PUBLIC_APP_URL: z.url() } };\n`,
+      `import { z } from "zod";
+import { loadEnvConfig } from "${source}/nextjs";
+${extra}
+enum Level { Info = "info" }
+const level: string = Level.Info;
+
+export const env = loadEnvConfig({
+  server: { DATABASE_URL: z.url(), LEVEL: z.string().default(level) },
+  client: { NEXT_PUBLIC_APP_URL: z.url() },
+  runtimeEnv: { NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL },
+});
+`,
     );
   };
 
   beforeEach(() => {
+    // Inside the repository, so jiti and zod resolve from the generated files.
     root = mkdtempSync(path.join(__dirname, ".tmp-"));
+    writeFileSync(
+      path.join(root, "tsconfig.json"),
+      JSON.stringify({
+        compilerOptions: { paths: { "@/*": [`${source}/*`], "~/*": ["./src/*"] } },
+      }),
+    );
     vi.spyOn(process, "cwd").mockReturnValue(root);
     process.env = {};
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -94,101 +51,46 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
     process.env = originalEnv;
   });
 
-  it("should load the default export of src/env.config.ts", () => {
-    writeEnvConfig("src/env.config.ts", "export default");
-
-    expect(() => withZodConfigEnv({})).toThrowError(
-      /Invalid environment variables:\n {2}DATABASE_URL: .*\n {2}NEXT_PUBLIC_APP_URL: /,
-    );
-
+  it("should return the Next.js config unchanged when the environment is valid", () => {
+    writeEnvFile();
     process.env = { DATABASE_URL: "https://db.dev", NEXT_PUBLIC_APP_URL: "https://app.dev" };
     const nextConfig = { reactStrictMode: true };
+    const configFunction = async () => nextConfig;
+
     expect(withZodConfigEnv(nextConfig)).toBe(nextConfig);
+    expect(withZodConfigEnv(configFunction)).toBe(configFunction);
   });
 
-  it("should load a named envConfig export from env.config.ts in the root", () => {
-    writeEnvConfig("env.config.ts", "export const envConfig =");
+  it("should throw listing each invalid variable when they are missing", () => {
+    writeEnvFile();
 
+    expect(() => withZodConfigEnv({})).toThrowError(
+      /^Invalid environment variables:\n {2}DATABASE_URL: .*\n {2}NEXT_PUBLIC_APP_URL: /,
+    );
+  });
+
+  it("should find env.ts in the root, and a file given with the file option", () => {
+    writeEnvFile("env.ts");
     expect(() => withZodConfigEnv({})).toThrowError(/DATABASE_URL/);
+
+    rmSync(path.join(root, "env.ts"));
+    writeEnvFile("config/app-env.ts");
+    expect(() => withZodConfigEnv({}, { file: "config/app-env.ts" })).toThrowError(/DATABASE_URL/);
+    expect(() => withZodConfigEnv({}, { file: "missing.ts" })).toThrowError(
+      "withZodConfigEnv: env file not found: missing.ts",
+    );
   });
 
-  it("should load a TypeScript env.config in src/ with tsconfig paths through jiti", () => {
-    writeFileSync(
-      path.join(root, "tsconfig.json"),
-      '{ "compilerOptions": { "paths": { "@/*": ["./src/*"] } } }',
-    );
+  it("should resolve tsconfig paths in the env file", () => {
     mkdirSync(path.join(root, "src"));
-    writeFileSync(
-      path.join(root, "src/schemas.ts"),
-      'import { z } from "zod";\nexport const url = z.url();\n',
-    );
-    writeFileSync(
-      path.join(root, "src/env.config.ts"),
-      'import { url } from "@/schemas";\nenum Level { Info = "info" }\nconst level: string = Level.Info;\nexport default { server: { DATABASE_URL: url }, level };\n',
-    );
-    process.env = { DATABASE_URL: "nope" };
+    writeFileSync(path.join(root, "src/a.ts"), "export const a = 1;\n");
+    writeEnvFile("src/env.ts", 'import { a } from "~/a";\nvoid a;');
 
-    expect(() => withZodConfigEnv({})).toThrowError(
-      /Invalid environment variables:\n {2}DATABASE_URL: Invalid URL/,
-    );
+    expect(() => withZodConfigEnv({})).toThrowError(/^Invalid environment variables/);
   });
 
-  describe("without jiti", () => {
-    let outside: string;
-
-    // Outside the repository, where jiti cannot be resolved (and neither can zod).
-    beforeEach(() => {
-      outside = mkdtempSync(path.join(tmpdir(), "zod-config-no-jiti-"));
-      vi.spyOn(process, "cwd").mockReturnValue(outside);
-    });
-
-    afterEach(() => {
-      rmSync(outside, { recursive: true, force: true });
-    });
-
-    it("should point at installing jiti or passing the definition", () => {
-      writeFileSync(path.join(outside, "env.config.ts"), "export default {};\n");
-
-      expect(() => withZodConfigEnv({})).toThrowError(
-        /^withZodConfigEnv: finding the env\.config file needs jiti 2 or later\. Install it \(npm i jiti\), or import the definition and pass it: withZodConfigEnv\(nextConfig, envConfig\)$/,
-      );
-    });
-  });
-
-  it("should point at jiti 2 when only jiti 1.x is installed", () => {
-    // A stand-in for jiti 1.x: a function export, without `createJiti`.
-    const outside = mkdtempSync(path.join(tmpdir(), "zod-config-jiti-1-"));
-    mkdirSync(path.join(outside, "node_modules/jiti"), { recursive: true });
-    writeFileSync(
-      path.join(outside, "node_modules/jiti/package.json"),
-      '{ "name": "jiti", "version": "1.21.7", "main": "index.js" }',
-    );
-    writeFileSync(path.join(outside, "node_modules/jiti/index.js"), "module.exports = () => {};\n");
-    writeFileSync(path.join(outside, "env.config.cjs"), "module.exports = { server: {} };\n");
-    vi.spyOn(process, "cwd").mockReturnValue(outside);
-
-    try {
-      expect(() => withZodConfigEnv({})).toThrowError(
-        /^withZodConfigEnv: finding the env\.config file needs jiti 2 or later\. Install it \(npm i jiti\)/,
-      );
-    } finally {
-      rmSync(outside, { recursive: true, force: true });
-    }
-  });
-
-  it("should load a CommonJS env.config.cjs that assigns module.exports", () => {
-    writeFileSync(
-      path.join(root, "env.config.cjs"),
-      'const { z } = require("zod");\nmodule.exports = { server: { DATABASE_URL: z.url() } };\n',
-    );
-
-    expect(() => withZodConfigEnv({})).toThrowError(
-      /Invalid environment variables:\n {2}DATABASE_URL: /,
-    );
-  });
-
-  it("should keep the original error as cause when env.config fails to load", () => {
-    writeFileSync(path.join(root, "env.config.cjs"), 'throw new Error("boom");\n');
+  it("should say which file could not be loaded when an import is not found", () => {
+    writeEnvFile("src/env.ts", 'import { a } from "#missing/a";\nvoid a;');
 
     let thrown: Error | undefined;
     try {
@@ -197,29 +99,58 @@ describe("withZodConfigEnv without a definition (zod-config/nextjs)", () => {
       thrown = error as Error;
     }
 
-    expect(thrown?.message).toBe("withZodConfigEnv: could not load env.config.cjs: boom");
-    expect((thrown?.cause as Error).message).toBe("boom");
+    expect(thrown?.message).toBe(
+      "withZodConfigEnv: could not load src/env.ts: Cannot find module '#missing/a'",
+    );
+    expect(thrown?.cause).toBeInstanceOf(Error);
   });
 
-  it("should report a non-Error thrown by env.config", () => {
-    writeFileSync(path.join(root, "env.config.cjs"), 'throw "boom";\n');
+  it("should pass on other errors thrown by the env file as they are", () => {
+    writeFileSync(path.join(root, "env.cjs"), 'throw new Error("boom");\n');
 
+    expect(() => withZodConfigEnv({})).toThrowError(/^boom$/);
+  });
+
+  it("should throw when there is no env file", () => {
     expect(() => withZodConfigEnv({})).toThrowError(
-      "withZodConfigEnv: could not load env.config.cjs: boom",
+      'withZodConfigEnv: no env file (env.ts, env.js, …) in src/ or the project root. Create src/env.ts with loadEnvConfig, or set the "file" option',
     );
   });
 
-  it("should name the wrapper and the relative file when nothing usable is exported", () => {
-    writeFileSync(path.join(root, "env.config.cjs"), "module.exports = { other: 1 };\n");
+  describe("without jiti 2", () => {
+    let outside: string;
 
-    expect(() => withZodConfigEnv({})).toThrowError(
-      /^withZodConfigEnv: env\.config\.cjs must export the result of defineEnvConfig/,
-    );
-  });
+    // Outside the repository, where jiti cannot be resolved.
+    beforeEach(() => {
+      outside = mkdtempSync(path.join(tmpdir(), "zod-config-no-jiti-"));
+      writeFileSync(path.join(outside, "env.ts"), "export {};\n");
+      vi.spyOn(process, "cwd").mockReturnValue(outside);
+    });
 
-  it("should throw pointing at the explicit form when there is no env.config file", () => {
-    expect(() => withZodConfigEnv({})).toThrowError(
-      /no env\.config file \(\.ts, \.js, \.mjs, …\) in src\/ or the project root\. Create one there, or import the definition and pass it: withZodConfigEnv\(nextConfig, envConfig\)/,
-    );
+    afterEach(() => {
+      rmSync(outside, { recursive: true, force: true });
+    });
+
+    const message =
+      'withZodConfigEnv: loading env.ts needs jiti 2 or later. Install it (npm i jiti), or import the env file in next.config.ts instead: import "./src/env"';
+
+    it("should point at installing jiti or importing the env file when jiti is missing", () => {
+      expect(() => withZodConfigEnv({})).toThrowError(message);
+    });
+
+    it("should point at jiti 2 when only jiti 1.x is installed", () => {
+      // A stand-in for jiti 1.x: a function export, without `createJiti`.
+      mkdirSync(path.join(outside, "node_modules/jiti"), { recursive: true });
+      writeFileSync(
+        path.join(outside, "node_modules/jiti/package.json"),
+        '{ "name": "jiti", "version": "1.21.7", "main": "index.js" }',
+      );
+      writeFileSync(
+        path.join(outside, "node_modules/jiti/index.js"),
+        "module.exports = () => {};\n",
+      );
+
+      expect(() => withZodConfigEnv({})).toThrowError(message);
+    });
   });
 });

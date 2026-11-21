@@ -72,25 +72,6 @@ export type BaseEnvConfigOptions<TPrefix extends string, TServer, TClient> = {
 };
 
 /**
- * What `defineEnvConfig` accepts: the options that describe the environment, without where its
- * values come from.
- */
-export type EnvConfigDefinitionInput<TPrefix extends string, TServer, TClient> = Pick<
-  BaseEnvConfigOptions<TPrefix, TServer, TClient>,
-  "server" | "client" | "onError" | "skipValidation"
->;
-
-/**
- * What `defineEnvConfig` returns: spread it into `loadEnvConfig`, or pass it to a build plugin.
- */
-export type EnvConfigDefinition<TServer, TClient> = {
-  server: TServer;
-  client: TClient;
-  onError?: (error: EnvConfigError) => void;
-  skipValidation?: boolean;
-};
-
-/**
  * Typed result of `loadEnvConfig`.
  */
 export type EnvConfigOutput<TServer, TClient> = Simplify<

@@ -1,36 +1,43 @@
-import { loadEnvConfigFile } from "./lib/env/find-env-config";
-import { loadEnvConfigWithPrefix } from "./lib/env/load-env-config";
-import type { ZodConfigEnvOptions } from "./nextjs";
+import { loadEnvFile } from "./lib/env/load-env-file";
 
-export type { ZodConfigEnvOptions } from "./nextjs";
+/**
+ * Options for `withZodConfigEnv`.
+ */
+export type ZodConfigEnvOptions = {
+  /**
+   * Path of the env file, from the project root. Defaults to `env.ts` (or `.js`, `.mjs`, …) in
+   * `src/`, then in the project root.
+   */
+  file?: string;
+};
 
 /**
  * Wraps the Next.js config to validate the environment when `next dev`, `next build` or
- * `next start` reads `next.config.ts`, before any page runs.
+ * `next start` reads the config, before any page runs.
  *
- * Without `envConfig` it loads the definition from `env.config.ts` in `src/` or the project
- * root, with `jiti` (install it as a dependency: `next start` reads the config too). Or pass the
- * definition.
+ * It finds the env file (the one that calls `loadEnvConfig`) and runs it with `jiti`, so it works
+ * from `next.config.js` / `.mjs` and with path aliases in the env file. Install `jiti` as a
+ * regular dependency: `next start` reads the config too. From a `next.config.ts`, importing the
+ * env file (`import "./src/env"`) does the same without jiti.
  *
- * Values are read from `process.env`, which Next.js has already filled from the `.env` files.
  * The config is returned unchanged.
  *
- * Node.js only: import it from `zod-config/nextjs/config`, in `next.config.ts`. It is kept out of
- * `zod-config/nextjs`, which is also bundled for the browser.
+ * Node.js only: import it from `zod-config/nextjs/config`. It is kept out of `zod-config/nextjs`,
+ * which is also bundled for the browser.
  */
 export const withZodConfigEnv = <TNextConfig>(
   nextConfig: TNextConfig,
-  envConfig?: ZodConfigEnvOptions,
+  options: ZodConfigEnvOptions = {},
 ): TNextConfig => {
-  const options =
-    envConfig ??
-    loadEnvConfigFile(process.cwd(), {
+  loadEnvFile(
+    process.cwd(),
+    {
       name: "withZodConfigEnv",
-      call: "withZodConfigEnv(nextConfig, envConfig)",
-      install: "npm i jiti",
-    }).options;
-
-  loadEnvConfigWithPrefix("NEXT_PUBLIC_", { ...options, runtimeEnv: process.env, isServer: true });
+      withoutJiti:
+        'Install it (npm i jiti), or import the env file in next.config.ts instead: import "./src/env"',
+    },
+    { file: options.file },
+  );
 
   return nextConfig;
 };

@@ -555,38 +555,33 @@ IAM permissions: `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `p
 
 `loadEnvConfig` validates the environment of apps with a browser bundle with Zod. It keeps `server` and `client` variables apart, checks the public prefix, and throws if browser code reads a server variable.
 
+It works with any framework: you write one env file, and it is validated the first time it is imported. Next.js and Vite also get an optional helper that validates it when the dev server or build starts.
+
 ### Next.js
 
-1. Describe the environment (client keys must start with `NEXT_PUBLIC_`):
-
-```ts
-// src/env.config.ts
-import { defineEnvConfig } from "zod-config/nextjs";
-import { z } from "zod";
-
-export default defineEnvConfig({
-  server: { DATABASE_URL: z.url() }, // Zod 3: z.string().url()
-  client: { NEXT_PUBLIC_APP_URL: z.url() },
-});
-```
-
-2. Load it, listing each client key so Next.js can inline it:
+1. Describe and load the environment in one file. Client keys must start with `NEXT_PUBLIC_`, and each one is listed in `runtimeEnv` so Next.js can inline it:
 
 ```ts
 // src/env.ts
 import { loadEnvConfig } from "zod-config/nextjs";
-import envConfig from "./env.config";
+import { z } from "zod";
 
 export const env = loadEnvConfig({
-  ...envConfig,
+  server: { DATABASE_URL: z.url() }, // Zod 3: z.string().url()
+  client: { NEXT_PUBLIC_APP_URL: z.url() },
   runtimeEnv: { NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL },
 });
 ```
 
-3. Validate it when `next dev` or `next build` starts. The wrapper finds `env.config.ts` in `src/` or the project root and loads it with [jiti](https://github.com/unjs/jiti). Install it as a regular dependency (`npm i jiti`): `next start` reads the config too.
+2. Validate it when `next dev` or `next build` starts. Pick one:
 
 ```ts
-// next.config.ts
+// next.config.ts — import the file
+import "./src/env";
+```
+
+```ts
+// next.config.mjs — or wrap the config. The wrapper finds `env.ts` in `src/` or the project root
 import { withZodConfigEnv } from "zod-config/nextjs/config";
 
 export default withZodConfigEnv({
@@ -594,36 +589,33 @@ export default withZodConfigEnv({
 });
 ```
 
-- Without jiti, or with `env.config.ts` in another folder? Import it and pass it: `withZodConfigEnv(nextConfig, envConfig)`.
-- Prefer a single file? Pass the options straight to `loadEnvConfig` in `src/env.ts` and add `import "./src/env";` at the top of `next.config.ts`.
+```ts
+// next.config.mjs — or run the file with jiti yourself
+import { createJiti } from "jiti";
+
+await createJiti(import.meta.url, { tsconfigPaths: true }).import("./src/env.ts");
+```
+
+The plain import needs a `next.config.ts` and no path aliases such as `@/` in `env.ts`. The other two run the file with [jiti](https://github.com/unjs/jiti), so they work everywhere. Install jiti as a regular dependency (`npm i jiti`): `next start` reads the config too.
 
 ### Vite, Astro, TanStack Start
 
-1. Describe the environment with your framework's public prefix:
-
-```ts
-// src/env.config.ts
-import { defineEnvConfig } from "zod-config";
-import { z } from "zod";
-
-export default defineEnvConfig({
-  clientPrefix: "VITE_", // Astro: "PUBLIC_"
-  server: { DATABASE_URL: z.url() },
-  client: { VITE_API_URL: z.url() },
-});
-```
-
-2. Load it:
+1. Describe and load the environment in one file, with your framework's public prefix:
 
 ```ts
 // src/env.ts
 import { loadEnvConfig } from "zod-config";
-import envConfig from "./env.config";
+import { z } from "zod";
 
-export const env = loadEnvConfig({ ...envConfig, runtimeEnv: import.meta.env });
+export const env = loadEnvConfig({
+  clientPrefix: "VITE_", // Astro: "PUBLIC_"
+  server: { DATABASE_URL: z.url() },
+  client: { VITE_API_URL: z.url() },
+  runtimeEnv: import.meta.env,
+});
 ```
 
-3. Validate it when `vite dev` or `vite build` starts. The plugin finds `env.config.ts` in `src/` or the project root and loads it with [jiti](https://github.com/unjs/jiti) (`npm i -D jiti`):
+2. Validate it when `vite dev` or `vite build` starts. Without this step, a missing variable only shows up when the app loads. The plugin finds `env.ts` in `src/` or the project root and runs it with [jiti](https://github.com/unjs/jiti) (`npm i -D jiti`):
 
 ```ts
 // vite.config.ts (in Astro: `vite.plugins` in astro.config.ts)
@@ -635,11 +627,9 @@ export default defineConfig({
 });
 ```
 
-Without jiti, or with `env.config.ts` in another folder? Import it and pass it: `zodConfigEnv(envConfig)`.
+Is the file somewhere else? Pass its path to either one: `zodConfigEnv({ file: "config/env.ts" })`, `withZodConfigEnv(nextConfig, { file: "config/env.ts" })`.
 
 ### Options
-
-`defineEnvConfig` takes `server`, `client`, `clientPrefix`, `onError` and `skipValidation`. Pass `runtimeEnv`, `isServer` and `strict` to `loadEnvConfig`.
 
 | Option | Description |
 |---|---|

@@ -1,22 +1,20 @@
 import { relative, resolve } from "node:path";
 import { type AliasOptions, type Plugin, loadEnv } from "vite";
-import { loadEnvConfigFile } from "./lib/env/find-env-config";
-import { type EnvSchemaInput, loadEnvConfigWithPrefix } from "./lib/env/load-env-config";
+import { loadEnvFile } from "./lib/env/load-env-file";
 
 /**
- * The options of `loadEnvConfig` without `runtimeEnv`, as returned by `defineEnvConfig`, so that
- * both `loadEnvConfig` and the plugin can use it.
+ * Options for the `zodConfigEnv` plugin.
  */
-export type ZodConfigEnvOptions = EnvSchemaInput & {
+export type ZodConfigEnvOptions = {
   /**
-   * Prefix of the browser-accessible variables, e.g. `VITE_`. Required when `client` has keys.
+   * Path of the env file, from the Vite root. Defaults to `env.ts` (or `.js`, `.mjs`, …) in
+   * `src/`, then in the root.
    */
-  clientPrefix?: string;
+  file?: string;
 };
 
 // String aliases from the Vite config (`resolve.alias`, object or array form), so they also work
-// in `env.config.ts`.
-// Regular-expression aliases are skipped.
+// in the env file. Regular-expression aliases are skipped.
 const stringAliases = (alias: AliasOptions | undefined): Record<string, string> => {
   const entries = Array.isArray(alias)
     ? alias.map(({ find, replacement }) => [find, replacement] as const)
@@ -29,21 +27,21 @@ const stringAliases = (alias: AliasOptions | undefined): Record<string, string> 
  * Vite plugin that validates the environment when `vite dev` or `vite build` starts, so a
  * missing or invalid variable stops the command instead of reaching the browser.
  *
- * Without an argument it loads the definition from `env.config.ts` in `src/` or the project
- * root, with `jiti` (install it as a dev dependency). Or pass the definition.
+ * It finds the env file (the one that calls `loadEnvConfig`) and runs it with `jiti` (install it
+ * as a dev dependency). While the file runs, `import.meta.env` holds what Vite would read: the
+ * `.env` files of the current mode, then `process.env`, plus `MODE`, `DEV` and `PROD`.
  *
- * Values are read the way Vite reads them: the `.env` files of the current mode, then
- * `process.env`. The plugin only validates: it does not change the config or the bundle. It does
- * nothing when Vitest reads the config.
+ * The plugin only validates: it does not change the config or the bundle. It does nothing when
+ * Vitest reads the config.
  */
-export const zodConfigEnv = (envConfig?: ZodConfigEnvOptions): Plugin => {
-  // The loaded `env.config.*`. Vite only restarts for files imported by its config, so the dev
-  // server watches it and restarts on a change, the way it does for `.env` files.
-  let envConfigFile: string | undefined;
+export const zodConfigEnv = (options: ZodConfigEnvOptions = {}): Plugin => {
+  // Vite only restarts for files imported by its config, so the dev server watches the env file
+  // and restarts on a change, the way it does for `.env` files.
+  let envFile: string | undefined;
 
   return {
     name: "zod-config:env",
-    async config(config, { mode }) {
+    config(config, { mode, command }) {
       // Vitest reads the same config. The plugin is for `vite dev` and `vite build`: a test run
       // should not need every variable, and tests that import the env file still validate it.
       if (process.env.VITEST) {
@@ -51,25 +49,25 @@ export const zodConfigEnv = (envConfig?: ZodConfigEnvOptions): Plugin => {
       }
 
       const root = resolve(config.root ?? ".");
-      let options = envConfig;
-      if (!options) {
-        ({ options, file: envConfigFile } = loadEnvConfigFile(
-          root,
-          { name: "zodConfigEnv", call: "zodConfigEnv(envConfig)", install: "npm i -D jiti" },
-          stringAliases(config.resolve?.alias),
-        ));
-      }
       // `envDir: false` turns `.env` files off (Vite 7+); the empty-prefix `loadEnv` call returns
       // the `.env` values with `process.env` on top.
-      const runtimeEnv =
+      const values =
         config.envDir === false
           ? process.env
           : loadEnv(mode, resolve(root, config.envDir ?? "."), "");
 
-      loadEnvConfigWithPrefix(options.clientPrefix, { ...options, runtimeEnv, isServer: true });
+      envFile = loadEnvFile(
+        root,
+        { name: "zodConfigEnv", withoutJiti: "Install it (npm i -D jiti)" },
+        {
+          file: options.file,
+          alias: stringAliases(config.resolve?.alias),
+          env: { ...values, MODE: mode, DEV: command === "serve", PROD: command === "build" },
+        },
+      );
     },
     configureServer(server) {
-      const file = envConfigFile;
+      const file = envFile;
       if (!file) {
         return;
       }
