@@ -2,35 +2,24 @@ import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 
-// Node.js only: used by `zod-config/vite` and `zod-config/nextjs/config`, never by an entry that
-// is bundled for the browser.
-
 const ENV_FILES = ["env.ts", "env.mts", "env.cts", "env.js", "env.mjs", "env.cjs"];
 
 type CreateJiti = (base: string, options: Record<string, unknown>) => (file: string) => unknown;
 
-/**
- * Who is loading the env file, for the error messages.
- */
+// Caller-specific parts of the error messages.
 type Caller = {
-  /** e.g. `zodConfigEnv` */
   name: string;
-  /** What to do without jiti, e.g. `Install it (npm i -D jiti)` */
   withoutJiti: string;
-  /** Where path aliases can be declared, e.g. `tsconfig.json "paths"` */
   aliasSources: string;
 };
 
 type LoadEnvFileOptions = {
-  /** Path of the env file, from the root. Defaults to `env.*` in `src/`, then the root. */
   file?: string;
-  /** Extra aliases, on top of the `tsconfig.json` paths. */
   alias?: Record<string, string>;
-  /** Values to expose as `process.env` (and so `import.meta.env`) while the file runs. */
+  // Replaces `process.env` (and so `import.meta.env`) while the file runs.
   env?: Record<string, unknown>;
 };
 
-// The nearest folder with a package.json, from the folder of `file` upwards.
 const packageDir = (file: string): string | undefined => {
   let dir = dirname(file);
   while (!existsSync(join(dir, "package.json"))) {
@@ -56,16 +45,8 @@ const supportsTsconfigPaths = (requireFromRoot: (id: string) => unknown) => {
 };
 
 /**
- * Finds the app's env file (the one that calls `loadEnvConfig`) and runs it with the app's own
- * `jiti` (an optional peer dependency), so an invalid environment throws here. Returns the path
- * of the file.
- *
- * `jiti` transpiles TypeScript itself, reads `tsconfig.json` paths, and turns `import.meta.env`
- * into `process.env`, on any Node.js version.
- *
- * Alternatives considered, dropped to keep one loader and one env file: a separate
- * `env.config.ts` definition shared with `loadEnvConfig`, Vite's `runnerImport` (Vite 6.1+), and
- * a plain `require` from `next.config.ts` (TypeScript config only, no path aliases).
+ * Finds the env file (`env.*` in `src/`, then the root) and runs it with the app's jiti, so an
+ * invalid environment throws here. Returns the file's path.
  */
 export const loadEnvFile = (
   root: string,
@@ -88,18 +69,15 @@ export const loadEnvFile = (
 
   const name = relative(root, file);
 
-  // jiti and tsconfig.json are resolved from the app. That is the root, unless an absolute `file`
-  // points into another project (e.g. `next build apps/web` run from a monorepo root).
+  // An absolute `file` may live in another package, e.g. `next build apps/web` from a monorepo.
   const project = (options.file && isAbsolute(options.file) && packageDir(file)) || root;
   const requireFromRoot = createRequire(join(project, "package.json"));
   let createJiti: CreateJiti | undefined;
   try {
     ({ createJiti } = requireFromRoot("jiti") as { createJiti?: CreateJiti });
-  } catch {
-    // Not installed.
-  }
+  } catch {}
 
-  // jiti 1.x, e.g. hoisted from another package, has no `createJiti`.
+  // Missing, or jiti 1.x (no `createJiti`).
   if (typeof createJiti !== "function") {
     throw new Error(`${caller.name}: loading ${name} needs jiti 2 or later. ${caller.withoutJiti}`);
   }
@@ -114,23 +92,22 @@ export const loadEnvFile = (
       tsconfigPaths: true,
       alias: options.alias,
       interopDefault: false,
-      // Run the file again on every call, e.g. when a dev server restarts.
+      // Run the file again when a dev server restarts.
       moduleCache: false,
       fsCache: false,
     })(file);
   } catch (error) {
-    // Errors thrown by the env file, such as an invalid environment, are passed on as they are.
+    // Errors from the env file itself, such as an invalid environment, pass through.
     if (!(error instanceof Error) || !error.message.startsWith("Cannot find module")) {
       throw error;
     }
 
-    // jiti appends a require stack to the message. Paths under the root are made relative.
+    // Drop jiti's require stack and make paths relative.
     let message = error.message.split("\nRequire stack:")[0];
     for (const prefix of [`${root}/`, `${root}\\`, `${root.replaceAll("\\", "/")}/`]) {
       message = message.replaceAll(prefix, "");
     }
-    // jiti reads `tsconfig.json` paths from 2.7; older versions only know the `alias` option.
-    // It reads the root tsconfig.json only, not the files it references (tsconfig.app.json).
+    // jiti reads `tsconfig.json` paths from 2.7, and only from the root tsconfig.json.
     message += supportsTsconfigPaths(requireFromRoot)
       ? `. If it is a path alias, declare it in ${caller.aliasSources}`
       : ". Path aliases from tsconfig.json need jiti 2.7 or later";

@@ -1,33 +1,16 @@
 import { loadEnvFile } from "./lib/env/load-env-file";
 
-/**
- * Options for `withZodConfigEnv`.
- */
 export type ZodConfigEnvOptions = {
-  /**
-   * Path of the env file, from the project root. Defaults to `env.ts` (or `.js`, `.mjs`, …) in
-   * `src/`, then in the project root.
-   */
+  /** Path of the env file, from the project root. Defaults to `env.ts` in `src/`, then the root. */
   file?: string;
 };
 
 /**
- * Wraps the Next.js config to validate the environment when `next dev`, `next build` or
- * `next start` reads the config, before any page runs.
+ * Validates the environment when Next.js reads its config (`next dev`, `next build`, `next start`),
+ * by running the env file with jiti. Returns the config unchanged.
  *
- * It finds the env file (the one that calls `loadEnvConfig`) and runs it with `jiti`, so it works
- * from `next.config.js` / `.mjs` and with path aliases in the env file. Install `jiti` as a
- * regular dependency: `next start` reads the config too. From a `next.config.ts`, importing the
- * env file (`import "./src/env"`) does the same without jiti.
- *
- * The env file is looked up from the folder `next` runs in (`process.cwd()`). When that is not
- * the project folder, e.g. `next build apps/web`, pass an absolute `file`: jiti and tsconfig.json
- * are then taken from that file's package.
- *
- * The config is returned unchanged.
- *
- * Node.js only: import it from `zod-config/nextjs/config`. It is kept out of `zod-config/nextjs`,
- * which is also bundled for the browser.
+ * The file is looked up from `process.cwd()`; for `next build apps/web`, pass an absolute `file`.
+ * Node.js only, so it is kept out of `zod-config/nextjs`, which is bundled for the browser.
  */
 export const withZodConfigEnv = <TNextConfig>(
   nextConfig: TNextConfig,
