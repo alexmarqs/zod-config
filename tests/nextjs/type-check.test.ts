@@ -166,6 +166,44 @@ const options = () => {
   });
 };
 
+// `shared`: typed on the result, listed in `runtimeEnv` on Next.js like client keys.
+const sharedTypes = () => {
+  const env = loadEnvConfig({
+    server: { DATABASE_URL: z.url() },
+    client: { NEXT_PUBLIC_APP_URL: z.url() },
+    shared: { NODE_ENV: z.enum(["development", "test", "production"]) },
+    runtimeEnv: {
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+      NODE_ENV: process.env.NODE_ENV,
+    },
+  });
+
+  expectTypeOf(env).toEqualTypeOf<{
+    readonly DATABASE_URL: string;
+    readonly NEXT_PUBLIC_APP_URL: string;
+    readonly NODE_ENV: "development" | "test" | "production";
+  }>();
+
+  // shared keys must be listed in runtimeEnv, like client keys
+  loadEnvConfig({
+    shared: { NODE_ENV: z.enum(["development", "test", "production"]) },
+    // @ts-expect-error NODE_ENV is missing
+    runtimeEnv: {},
+  });
+
+  // runtimeEnv is required when there are shared keys
+  // @ts-expect-error runtimeEnv is missing
+  loadEnvConfig({ shared: { NODE_ENV: z.string() } });
+
+  // shared keys have no prefix rule
+  loadEnvConfig({ shared: { APP_REGION: z.string() }, runtimeEnv: { APP_REGION: "eu" } });
+
+  // Zod 3 and Zod 4 Mini infer too
+  expectTypeOf(
+    loadEnvConfig({ shared: { A: z3.string(), B: zm.number() }, runtimeEnv: { A: "a", B: "1" } }),
+  ).toEqualTypeOf<{ readonly A: string; readonly B: number }>();
+};
+
 describe("type checking loadEnvConfig (nextjs)", () => {
   it("should be covered by tsc", () => {
     expectTypeOf(zod4Inference).toBeFunction();
@@ -178,5 +216,6 @@ describe("type checking loadEnvConfig (nextjs)", () => {
     expectTypeOf(serverKeysInRuntimeEnv).toBeFunction();
     expectTypeOf(serverOnly).toBeFunction();
     expectTypeOf(options).toBeFunction();
+    expectTypeOf(sharedTypes).toBeFunction();
   });
 });

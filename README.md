@@ -635,6 +635,7 @@ Why `runtimeEnv`? In the browser there is no `process.env` to read from. Next.js
 | Option | Description |
 |---|---|
 | `server`, `client` | Objects of Zod schemas. At least one is required. |
+| `shared` | Variables read on the server and in the browser, without the public prefix, e.g. `NODE_ENV`. In the browser they come from `runtimeEnv`: list them on Next.js (`NODE_ENV: process.env.NODE_ENV`), or add them next to `import.meta.env` on Vite (`runtimeEnv: { ...import.meta.env, NODE_ENV: process.env.NODE_ENV }`). |
 | `clientPrefix` | `zod-config` only. Required when `client` has keys. |
 | `runtimeEnv` | Where values come from. Required when `client` has keys. With `zod-config/nextjs`, list each client key as `process.env.NEXT_PUBLIC_NAME`. On the server, entries take priority over `process.env`. |
 | `onError` | `(error) => void`, called with the Zod error (use `error.issues`) before an `Error` listing each invalid variable is thrown. Throw from it to replace that error. Unlike `loadConfig`'s `onError`, it does not swallow the failure. |

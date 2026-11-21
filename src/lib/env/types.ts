@@ -46,7 +46,7 @@ export type EnvConfigError = z3.ZodError | z.$ZodError;
 /**
  * Options shared by every `loadEnvConfig` flavour.
  */
-export type BaseEnvConfigOptions<TPrefix extends string, TServer, TClient> = {
+export type BaseEnvConfigOptions<TPrefix extends string, TServer, TClient, TShared> = {
   /**
    * Server-only variables, read from `runtimeEnv` first, then `process.env`.
    */
@@ -55,6 +55,11 @@ export type BaseEnvConfigOptions<TPrefix extends string, TServer, TClient> = {
    * Browser-accessible variables, read from `runtimeEnv`.
    */
   client?: TClient & ClientShape<TClient, TPrefix>;
+  /**
+   * Variables read on the server and in the browser, without the public prefix, e.g. `NODE_ENV`.
+   * In the browser they are read from `runtimeEnv`, so the bundler must provide them there.
+   */
+  shared?: TShared;
   /**
    * Called with the Zod error on a validation failure. An `Error` listing each invalid variable
    * is always thrown afterwards; throw from `onError` to replace it.
@@ -74,11 +79,11 @@ export type BaseEnvConfigOptions<TPrefix extends string, TServer, TClient> = {
 /**
  * Typed result of `loadEnvConfig`.
  */
-export type EnvConfigOutput<TServer, TClient> = Simplify<
+export type EnvConfigOutput<TServer, TClient, TShared = Record<never, never>> = Simplify<
   Readonly<
     { [K in keyof TServer]: FieldOutput<TServer[K]> } & {
       [K in keyof TClient]: FieldOutput<TClient[K]>;
-    }
+    } & { [K in keyof TShared]: FieldOutput<TShared[K]> }
   >
 >;
 
@@ -91,18 +96,18 @@ export type ServerRuntimeEnv<TServer> = {
 };
 
 /**
- * A `runtimeEnv` that names every `client` key, for bundlers that only inline public variables
- * written out in full (e.g. `process.env.NEXT_PUBLIC_NAME`). Server keys are optional, and
- * undeclared keys are rejected (when written inline). Used by `zod-config/nextjs`.
+ * A `runtimeEnv` that names every `client` and `shared` key, for bundlers that only inline
+ * variables written out in full (e.g. `process.env.NEXT_PUBLIC_NAME`). Server keys are optional,
+ * and undeclared keys are rejected (when written inline). Used by `zod-config/nextjs`.
  */
-export type ListedRuntimeEnv<TServer, TClient> = {
-  [K in Extract<keyof TClient, string>]: string | undefined;
+export type ListedRuntimeEnv<TServer, TClient, TShared = Record<never, never>> = {
+  [K in Extract<keyof TClient | keyof TShared, string>]: string | undefined;
 } & ServerRuntimeEnv<TServer>;
 
 /**
- * A `runtimeEnv` that names every declared key, `server` and `client`, and rejects undeclared
- * ones (when written inline). Used by `zod-config` with `strict: true`.
+ * A `runtimeEnv` that names every declared key, and rejects undeclared ones (when written
+ * inline). Used by `zod-config` with `strict: true`.
  */
-export type StrictRuntimeEnv<TServer, TClient> = {
-  [K in Extract<keyof TServer | keyof TClient, string>]: string | undefined;
+export type StrictRuntimeEnv<TServer, TClient, TShared = Record<never, never>> = {
+  [K in Extract<keyof TServer | keyof TClient | keyof TShared, string>]: string | undefined;
 };

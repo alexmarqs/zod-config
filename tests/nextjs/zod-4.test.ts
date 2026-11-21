@@ -323,7 +323,7 @@ describe("loadEnvConfig (nextjs, zod 4, server side)", () => {
   });
 
   it("should require at least one key", () => {
-    const message = 'loadEnvConfig requires at least one key in "server" or "client"';
+    const message = 'loadEnvConfig requires at least one key in "server", "client" or "shared"';
 
     expect(() => loadEnvConfig({} as any)).toThrow(message);
     expect(() => loadEnvConfig({ server: {}, client: {} } as any)).toThrow(message);
@@ -331,7 +331,7 @@ describe("loadEnvConfig (nextjs, zod 4, server side)", () => {
 
   it("should require runtimeEnv when client keys are defined", () => {
     expect(() => loadEnvConfig({ client: { NEXT_PUBLIC_A: z.string() } } as any)).toThrow(
-      'loadEnvConfig requires "runtimeEnv" when "client" keys are defined',
+      'loadEnvConfig requires "runtimeEnv" when "client" or "shared" keys are defined',
     );
   });
 

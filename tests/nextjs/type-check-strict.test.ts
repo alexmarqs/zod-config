@@ -102,6 +102,31 @@ const strictWithoutClientKeys = () => {
   loadEnvConfig({ server: { API_SECRET: z.string() }, strict: true });
 };
 
+// `shared` keys follow `strict` like the others.
+const sharedStrict = () => {
+  loadEnvConfig({
+    clientPrefix: "EXPO_PUBLIC_",
+    client: { EXPO_PUBLIC_A: z.string() },
+    shared: { NODE_ENV: z.string() },
+    strict: true,
+    runtimeEnv: { EXPO_PUBLIC_A: "a", NODE_ENV: "test" },
+  });
+
+  // @ts-expect-error NODE_ENV is missing
+  loadEnvConfig({
+    clientPrefix: "EXPO_PUBLIC_",
+    client: { EXPO_PUBLIC_A: z.string() },
+    shared: { NODE_ENV: z.string() },
+    strict: true,
+    runtimeEnv: { EXPO_PUBLIC_A: "a" },
+  });
+
+  // without client keys, shared keys still need runtimeEnv, and no clientPrefix
+  loadEnvConfig({ shared: { NODE_ENV: z.string() }, runtimeEnv: { NODE_ENV: "test" } });
+  // @ts-expect-error runtimeEnv is missing
+  loadEnvConfig({ shared: { NODE_ENV: z.string() } });
+};
+
 describe("loadEnvConfig (generic) strict types", () => {
   it("is checked by tsc", () => {
     expectTypeOf(looseByDefault).toBeFunction();
@@ -109,5 +134,6 @@ describe("loadEnvConfig (generic) strict types", () => {
     expectTypeOf(strictRequiresServerKeysToo).toBeFunction();
     expectTypeOf(strictRejectsWholeObjects).toBeFunction();
     expectTypeOf(strictWithoutClientKeys).toBeFunction();
+    expectTypeOf(sharedStrict).toBeFunction();
   });
 });

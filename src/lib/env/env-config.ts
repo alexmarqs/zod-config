@@ -8,7 +8,8 @@ export type EnvConfigOptions<
   TPrefix extends string,
   TServer extends Record<string, FieldSchema>,
   TClient extends Record<string, FieldSchema>,
-> = BaseEnvConfigOptions<TPrefix, TServer, TClient> &
+  TShared extends Record<string, FieldSchema> = Record<never, never>,
+> = BaseEnvConfigOptions<TPrefix, TServer, TClient, TShared> &
   (keyof TClient extends never
     ? {
         /**
@@ -16,22 +17,26 @@ export type EnvConfigOptions<
          * Only needed when `client` has keys.
          */
         clientPrefix?: TPrefix;
-        /**
-         * Optional without `client` keys. On the server, `server` keys found here take priority
-         * over `process.env`.
-         */
-        runtimeEnv?: Record<string, unknown>;
-        /**
-         * Has no effect without `client` keys.
-         */
-        strict?: boolean;
       }
     : {
         /**
          * Prefix your framework uses for browser-accessible variables, e.g. `VITE_` or `PUBLIC_`.
          */
         clientPrefix: TPrefix;
-      } & (
+      }) &
+  ([keyof TClient | keyof TShared] extends [never]
+    ? {
+        /**
+         * Optional without `client` or `shared` keys. On the server, `server` keys found here
+         * take priority over `process.env`.
+         */
+        runtimeEnv?: Record<string, unknown>;
+        /**
+         * Has no effect without `client` or `shared` keys.
+         */
+        strict?: boolean;
+      }
+    :
         | {
             /**
              * Object holding the values at runtime, e.g. `import.meta.env`. Only declared keys
@@ -39,27 +44,24 @@ export type EnvConfigOptions<
              */
             runtimeEnv: Record<string, unknown>;
             /**
-             * Type-check that `runtimeEnv` lists every declared key, `server` and `client` (and,
-             * when written inline, no undeclared key). For
-             * bundlers that only inline variables written out in full, such as
-             * `process.env.EXPO_PUBLIC_NAME`. Type-level only. Defaults to `false`.
+             * Type-check that `runtimeEnv` lists every declared key (and, when written inline,
+             * no undeclared key). For bundlers that only inline variables written out in full,
+             * such as `process.env.EXPO_PUBLIC_NAME`. Type-level only. Defaults to `false`.
              */
             strict?: false;
           }
         | {
             /**
-             * One entry per declared key, `server` and `client`.
+             * One entry per declared key, `server`, `client` and `shared`.
              */
-            runtimeEnv: StrictRuntimeEnv<TServer, TClient>;
+            runtimeEnv: StrictRuntimeEnv<TServer, TClient, TShared>;
             /**
-             * Type-check that `runtimeEnv` lists every declared key, `server` and `client` (and,
-             * when written inline, no undeclared key). For
-             * bundlers that only inline variables written out in full, such as
-             * `process.env.EXPO_PUBLIC_NAME`. Type-level only. Defaults to `false`.
+             * Type-check that `runtimeEnv` lists every declared key (and, when written inline,
+             * no undeclared key). For bundlers that only inline variables written out in full,
+             * such as `process.env.EXPO_PUBLIC_NAME`. Type-level only. Defaults to `false`.
              */
             strict: true;
-          }
-      ));
+          });
 
 /**
  * Synchronously load and validate environment variables for an app with a browser bundle
@@ -67,6 +69,7 @@ export type EnvConfigOptions<
  *
  * - `server` variables are read from `runtimeEnv` first, then `process.env`, on the server only.
  * - `client` variables must start with `clientPrefix` and are read from `runtimeEnv`.
+ * - `shared` variables (e.g. `NODE_ENV`) are read on both sides, from `runtimeEnv` in the browser.
  * - Reading a server variable in the browser throws.
  *
  * For Next.js use `loadEnvConfig` from `zod-config/nextjs`. For plain environment loading on a
@@ -78,11 +81,12 @@ export const loadEnvConfig = <
   TPrefix extends string = never,
   TServer extends Record<string, FieldSchema> = Record<never, never>,
   TClient extends Record<string, FieldSchema> = Record<never, never>,
+  TShared extends Record<string, FieldSchema> = Record<never, never>,
 >(
-  options: EnvConfigOptions<TPrefix, TServer, TClient>,
-): EnvConfigOutput<TServer, TClient> => {
+  options: EnvConfigOptions<TPrefix, TServer, TClient, TShared>,
+): EnvConfigOutput<TServer, TClient, TShared> => {
   return loadEnvConfigWithPrefix(
     options?.clientPrefix,
     options as LoadEnvConfigInput,
-  ) as EnvConfigOutput<TServer, TClient>;
+  ) as EnvConfigOutput<TServer, TClient, TShared>;
 };

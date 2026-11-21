@@ -7,6 +7,7 @@ import type { EnvConfigError } from "./types";
 export type LoadEnvConfigInput = {
   server?: Record<string, FieldSchema>;
   client?: Record<string, FieldSchema>;
+  shared?: Record<string, FieldSchema>;
   runtimeEnv?: Record<string, unknown>;
   onError?: (error: EnvConfigError) => void;
   skipValidation?: boolean;
@@ -60,11 +61,22 @@ export const loadEnvConfigWithPrefix = (
 ): Record<string, unknown> => {
   const server = options?.server ?? {};
   const client = options?.client ?? {};
+  const shared = options?.shared ?? {};
   const serverKeys = Object.keys(server);
   const clientKeys = Object.keys(client);
+  const sharedKeys = Object.keys(shared);
 
-  if (serverKeys.length === 0 && clientKeys.length === 0) {
-    throw new Error('loadEnvConfig requires at least one key in "server" or "client"');
+  if (serverKeys.length === 0 && clientKeys.length === 0 && sharedKeys.length === 0) {
+    throw new Error('loadEnvConfig requires at least one key in "server", "client" or "shared"');
+  }
+
+  const groups = [serverKeys, clientKeys, sharedKeys];
+  for (const key of new Set(groups.flat())) {
+    if (groups.filter((keys) => keys.includes(key)).length > 1) {
+      throw new Error(
+        `Environment variable "${key}" is declared more than once: use only one of "server", "client" or "shared"`,
+      );
+    }
   }
 
   if (clientKeys.length > 0 && !clientPrefix) {
@@ -91,8 +103,10 @@ export const loadEnvConfigWithPrefix = (
     }
   }
 
-  if (clientKeys.length > 0 && !options.runtimeEnv) {
-    throw new Error('loadEnvConfig requires "runtimeEnv" when "client" keys are defined');
+  if ((clientKeys.length > 0 || sharedKeys.length > 0) && !options.runtimeEnv) {
+    throw new Error(
+      'loadEnvConfig requires "runtimeEnv" when "client" or "shared" keys are defined',
+    );
   }
 
   const isServer = options.isServer ?? typeof window === "undefined";
@@ -104,16 +118,19 @@ export const loadEnvConfigWithPrefix = (
     // Server values: an entry in `runtimeEnv` wins (what the caller passes explicitly), and
     // `process.env` fills in the rest. `runtimeEnv` also covers runtimes without
     // `process.env`, and Vite and Astro, which expose `.env` values on `import.meta.env`.
-    pickValues(values, getSafeProcessEnv(), serverKeys);
+    pickValues(values, getSafeProcessEnv(), [...serverKeys, ...sharedKeys]);
     pickValues(values, options.runtimeEnv ?? {}, serverKeys);
   }
 
-  pickValues(values, options.runtimeEnv ?? {}, clientKeys);
+  // Client and shared values: from `runtimeEnv`, where the bundler fills them in for the browser.
+  pickValues(values, options.runtimeEnv ?? {}, [...clientKeys, ...sharedKeys]);
 
   let result = values;
 
   if (!options.skipValidation) {
-    const schema = buildObjectSchema(isServer ? { ...server, ...client } : client);
+    const schema = buildObjectSchema(
+      isServer ? { ...server, ...client, ...shared } : { ...client, ...shared },
+    );
 
     try {
       result = loadConfigSync({ schema, adapters: envAdapter({ customEnv: values }) });
