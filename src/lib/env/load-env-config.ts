@@ -70,13 +70,14 @@ export const loadEnvConfigWithPrefix = (
     throw new Error('loadEnvConfig requires at least one key in "server", "client" or "shared"');
   }
 
-  const groups = [serverKeys, clientKeys, sharedKeys];
-  for (const key of new Set(groups.flat())) {
-    if (groups.filter((keys) => keys.includes(key)).length > 1) {
+  const declared = new Set<string>();
+  for (const key of [...serverKeys, ...clientKeys, ...sharedKeys]) {
+    if (declared.has(key)) {
       throw new Error(
         `Environment variable "${key}" is declared more than once: use only one of "server", "client" or "shared"`,
       );
     }
+    declared.add(key);
   }
 
   if (clientKeys.length > 0 && !clientPrefix) {
