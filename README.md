@@ -1,4 +1,6 @@
-![Zod logo](https://github.com/alexmarqs/zod-config/blob/main/.github/assets/logo.png?raw=true)
+<p align="center">
+  <img src="https://github.com/alexmarqs/zod-config/blob/main/.github/assets/logo.png?raw=true" alt="Zod Config logo" width="180" />
+</p>
 
 # Zod Config
 
