@@ -130,3 +130,9 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Superpowers scratch
+.superpowers
+docs/**
+
+.mcp.json

@@ -1,3 +1,5 @@
+// ZOD3: remove in next major: the Zod 3 types in SchemaConfig, ShapeConfig,
+// InferredDataConfig and InferredErrorConfig.
 import type * as z3 from "zod/v3";
 import type * as z from "zod/v4/core";
 
