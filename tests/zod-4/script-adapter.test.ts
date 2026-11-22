@@ -17,6 +17,18 @@ describe.each([
     expected: { HOST: "localhost", PORT: "9000" },
   },
   {
+    // Shape of a TypeScript file compiled to CommonJS by a runner such as tsx or jiti.
+    fileName: "test-compiled.cjs",
+    content: `module.exports = { __esModule: true, default: { HOST: "localhost", PORT: "4000" } };`,
+    expected: { HOST: "localhost", PORT: "4000" },
+  },
+  {
+    // CommonJS exports in a TypeScript file.
+    fileName: "test.cts",
+    content: `module.exports = { HOST: "localhost", PORT: "5000" };`,
+    expected: { HOST: "localhost", PORT: "5000" },
+  },
+  {
     fileName: "test.json",
     content: `{"HOST":"localhost","PORT":"3000"}`,
     expected: { HOST: "localhost", PORT: "3000" },
@@ -50,6 +62,66 @@ describe.each([
     // then
     expect(config.HOST).toBe(expected.HOST);
     expect(config.PORT).toBe(expected.PORT);
+  });
+});
+
+describe("script adapter with TypeScript that needs jiti", () => {
+  // Node's type stripping rejects enums and extensionless imports; jiti handles both.
+  const sharedFilePath = path.join(__dirname, "test-jiti-shared.ts");
+  const testFilePath = path.join(__dirname, "test-jiti.ts");
+
+  beforeAll(async () => {
+    await writeFile(sharedFilePath, `export const host = "localhost";`);
+    await writeFile(
+      testFilePath,
+      `import { host } from "./test-jiti-shared";
+enum Port { Default = "3000" }
+export default { HOST: host, PORT: Port.Default };`,
+    );
+  });
+
+  afterAll(async () => {
+    await Promise.all([unlink(sharedFilePath), unlink(testFilePath)]);
+  });
+
+  it("should load the file with jiti", async () => {
+    // given
+    const schema = z.object({ HOST: z.string(), PORT: z.string() });
+
+    // when
+    const config = await loadConfig({
+      schema,
+      adapters: scriptAdapter({ path: testFilePath }),
+    });
+
+    // then
+    expect(config).toEqual({ HOST: "localhost", PORT: "3000" });
+  });
+});
+
+describe("script adapter with a relative path", () => {
+  const testFilePath = path.join(__dirname, "test-relative-script-adapter.json");
+
+  beforeAll(async () => {
+    await writeFile(testFilePath, `{"HOST":"relative"}`);
+  });
+
+  afterAll(async () => {
+    await unlink(testFilePath);
+  });
+
+  it("should resolve the path from the working directory", async () => {
+    // given
+    const schema = z.object({ HOST: z.string() });
+
+    // when
+    const config = await loadConfig({
+      schema,
+      adapters: scriptAdapter({ path: path.relative(process.cwd(), testFilePath) }),
+    });
+
+    // then
+    expect(config.HOST).toBe("relative");
   });
 });
 

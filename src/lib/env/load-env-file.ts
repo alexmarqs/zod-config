@@ -1,10 +1,8 @@
 import { existsSync } from "node:fs";
-import { createRequire } from "node:module";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { createProjectJiti, jitiSupportsTsconfigPaths } from "../utils/jiti";
 
 const ENV_FILES = ["env.ts", "env.mts", "env.cts", "env.js", "env.mjs", "env.cjs"];
-
-type CreateJiti = (base: string, options: Record<string, unknown>) => (file: string) => unknown;
 
 // Caller-specific parts of the error messages.
 type Caller = {
@@ -31,17 +29,6 @@ const packageDir = (file: string): string | undefined => {
   }
 
   return dir;
-};
-
-const supportsTsconfigPaths = (requireFromRoot: (id: string) => unknown) => {
-  try {
-    const { version } = requireFromRoot("jiti/package.json") as { version: string };
-    const [major, minor] = version.split(".").map(Number);
-
-    return major > 2 || (major === 2 && minor >= 7);
-  } catch {
-    return true;
-  }
 };
 
 /**
@@ -71,14 +58,17 @@ export const loadEnvFile = (
 
   // An absolute `file` may live in another package, e.g. `next build apps/web` from a monorepo.
   const project = (options.file && isAbsolute(options.file) && packageDir(file)) || root;
-  const requireFromRoot = createRequire(join(project, "package.json"));
-  let createJiti: CreateJiti | undefined;
-  try {
-    ({ createJiti } = requireFromRoot("jiti") as { createJiti?: CreateJiti });
-  } catch {}
+  const jiti = createProjectJiti(project, {
+    tsconfigPaths: true,
+    alias: options.alias,
+    interopDefault: false,
+    // Run the file again when a dev server restarts.
+    moduleCache: false,
+    fsCache: false,
+  });
 
-  // Missing, or jiti 1.x (no `createJiti`).
-  if (typeof createJiti !== "function") {
+  // Missing, or jiti 1.x.
+  if (!jiti) {
     throw new Error(`${caller.name}: loading ${name} needs jiti 2 or later. ${caller.withoutJiti}`);
   }
 
@@ -88,14 +78,7 @@ export const loadEnvFile = (
       process.env = options.env as NodeJS.ProcessEnv;
     }
 
-    createJiti(join(project, "package.json"), {
-      tsconfigPaths: true,
-      alias: options.alias,
-      interopDefault: false,
-      // Run the file again when a dev server restarts.
-      moduleCache: false,
-      fsCache: false,
-    })(file);
+    jiti(file);
   } catch (error) {
     // Errors from the env file itself, such as an invalid environment, pass through.
     if (!(error instanceof Error) || !error.message.startsWith("Cannot find module")) {
@@ -107,8 +90,7 @@ export const loadEnvFile = (
     for (const prefix of [`${root}/`, `${root}\\`, `${root.replaceAll("\\", "/")}/`]) {
       message = message.replaceAll(prefix, "");
     }
-    // jiti reads `tsconfig.json` paths from 2.7, and only from the root tsconfig.json.
-    message += supportsTsconfigPaths(requireFromRoot)
+    message += jitiSupportsTsconfigPaths(project)
       ? `. If it is a path alias, declare it in ${caller.aliasSources}`
       : ". Path aliases from tsconfig.json need jiti 2.7 or later";
 
