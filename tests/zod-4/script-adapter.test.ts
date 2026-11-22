@@ -1,6 +1,6 @@
 import { scriptAdapter } from "@/lib/adapters/script-adapter";
 import { loadConfig } from "@/lib/config";
-import { unlink, writeFile } from "node:fs/promises";
+import { mkdir, rm, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod/v4";
@@ -65,26 +65,31 @@ describe.each([
   });
 });
 
-describe("script adapter with TypeScript that needs jiti", () => {
-  // Node's type stripping rejects enums and extensionless imports; jiti handles both.
-  const sharedFilePath = path.join(__dirname, "test-jiti-shared.ts");
-  const testFilePath = path.join(__dirname, "test-jiti.ts");
+describe("script adapter falling back to jiti", () => {
+  // Native import() can't resolve a tsconfig.json path alias; jiti can.
+  const dir = path.join(__dirname, "jiti-fallback");
+  const testFilePath = path.join(dir, "config.ts");
 
   beforeAll(async () => {
-    await writeFile(sharedFilePath, `export const host = "localhost";`);
+    await mkdir(path.join(dir, "src"), { recursive: true });
+    await writeFile(
+      path.join(dir, "tsconfig.json"),
+      JSON.stringify({ compilerOptions: { paths: { "~shared/*": ["./src/*"] } } }),
+    );
+    await writeFile(path.join(dir, "src", "host.ts"), `export const host = "localhost";`);
     await writeFile(
       testFilePath,
-      `import { host } from "./test-jiti-shared";
+      `import { host } from "~shared/host";
 enum Port { Default = "3000" }
 export default { HOST: host, PORT: Port.Default };`,
     );
   });
 
   afterAll(async () => {
-    await Promise.all([unlink(sharedFilePath), unlink(testFilePath)]);
+    await rm(dir, { recursive: true, force: true });
   });
 
-  it("should load the file with jiti", async () => {
+  it("should load the file with jiti when native import() fails", async () => {
     // given
     const schema = z.object({ HOST: z.string(), PORT: z.string() });
 
