@@ -395,7 +395,7 @@ const nestedConfig = await loadConfig({
 
 Loads configuration from TypeScript (`.ts`), JavaScript (`.js`), or JSON (`.json`) files. The `.ts` and `.js` files must export a default object with the configuration data. Relative paths resolve from the working directory.
 
-`.ts` files load with Node's built-in type stripping (Node 22.18+). If that fails (older Node, `enum`, extensionless imports or tsconfig path aliases), they load with [jiti](https://github.com/unjs/jiti) when it's installed (`npm i jiti`).
+`.ts` files load with Node's built-in type stripping (Node 22.18+). If that fails (older Node, `enum`, extensionless imports or tsconfig path aliases), they load with [jiti](https://github.com/unjs/jiti) when it's installed (`npm i jiti`, version 2 or later; path aliases need 2.7 or later).
 
 ```ts
 import { z } from 'zod';

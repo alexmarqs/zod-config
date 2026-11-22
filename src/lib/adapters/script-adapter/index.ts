@@ -13,7 +13,7 @@ const ADAPTER_NAME = "script adapter";
 const TS_EXTENSIONS = [".ts", ".mts", ".cts"];
 
 // Relative paths resolve from the working directory. Node needs an import attribute for JSON,
-// so JSON is read and parsed instead. When native import() fails on a TypeScript file (older
+// so JSON is read and parsed instead. When native import() can't load a TypeScript file (older
 // Node, enums, extensionless imports, path aliases), it retries with the jiti nearest to the file.
 const loadScript = async (path: string): Promise<Record<string, unknown>> => {
   const file = path.startsWith("file:") ? fileURLToPath(path) : resolve(path);
@@ -22,9 +22,9 @@ const loadScript = async (path: string): Promise<Record<string, unknown>> => {
     return JSON.parse(await readFile(file, "utf8")) || {};
   }
 
-  let loaded: any;
+  let data: any;
   try {
-    loaded = await import(pathToFileURL(file).href);
+    ({ default: data } = await import(pathToFileURL(file).href));
   } catch (error) {
     const jiti = TS_EXTENSIONS.includes(extension)
       ? createProjectJiti(dirname(file), { interopDefault: false, tsconfigPaths: true })
@@ -32,10 +32,10 @@ const loadScript = async (path: string): Promise<Record<string, unknown>> => {
     if (!jiti) {
       throw error;
     }
-    loaded = await jiti.import(file);
+    const loaded = (await jiti.import(file)) as any;
+    // jiti marks ESM output with `__esModule`, and returns `module.exports` as is.
+    data = loaded?.__esModule ? loaded.default : loaded;
   }
-  // jiti returns `module.exports` as is, without a `default`.
-  const data = "default" in loaded ? loaded.default : loaded;
   // TypeScript runners (tsx, jiti) can compile the file to CommonJS, which nests the export.
   return data?.__esModule && "default" in data ? data.default : data;
 };
