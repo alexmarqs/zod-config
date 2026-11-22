@@ -1,23 +1,18 @@
 <p align="center">
-  <img src="https://github.com/alexmarqs/zod-config/blob/main/.github/assets/logo.png?raw=true" width="200px" align="center" alt="Zod logo" />
-  <h1 align="center">Zod Config</h1>
-  <p align="center">
-   Load configuration variables from multiple sources type safely using Zod.
-  </p>
-</p>
-<p align="center">
-  <a href="https://github.com/alexmarqs/zod-config/actions/workflows/ci-cd.yaml" target="_blank"><img height=20 src="https://github.com/alexmarqs/zod-config/actions/workflows/ci-cd.yaml/badge.svg" /></a>
-  <a href="https://opensource.org/licenses/MIT" target="_blank"><img height=20 src="https://img.shields.io/badge/License-MIT-yellow.svg" /></a>
-   <a href="https://www.npmjs.com/package/zod-config" target="_blank"><img height=20 src="https://img.shields.io/npm/dt/zod-config.svg" /></a>
-</a>
-<p align="center">
-  <a href="https://www.npmjs.com/package/zod-config" target="_blank">NPM</a>
-</a>
+  <img src="https://github.com/alexmarqs/zod-config/blob/main/.github/assets/logo.png?raw=true" alt="Zod Config logo" width="180" />
 </p>
 
+# Zod Config
+
+Load configuration variables from multiple sources type safely using Zod.
+
+
+
+![](https://github.com/alexmarqs/zod-config/actions/workflows/ci-cd.yaml/badge.svg)![](https://img.shields.io/badge/License-MIT-yellow.svg) ![](https://img.shields.io/npm/dt/zod-config.svg)
+
+[NPM](https://www.npmjs.com/package/zod-config)
 
 > The new **major version** supports both [Zod 4](https://zod.dev/v4) and [Zod 3](https://v3.zod.dev/) out of the box. Check the [compatibility](#compatibility) section for more details.
-
 
 ## Features
 
@@ -26,7 +21,7 @@
 - ✨ **Flexible**. [Combine multiple adapters](#combine-multiple-adapters) to load the configuration from different sources. We deeply merge the configuration from different sources, following the order of the adapters provided; Create your own adapters easily; Use the callback functions to handle errors and success due to the async nature of the adapters;
 - 🪴 **Easy to use**. Zod Config is designed to be easy to use, with a simple API;
 - 🔄 **Async / Sync support**. Zod Config provides both asynchronous and synchronous APIs to fit different application needs;
-
+- ▲ **Next.js, Vite, Astro, TanStack Start**. Type-safe [environment variables](#type-safe-environment-variables) with server and client schemas, checked when the build starts;
 
 ## Install
 
@@ -54,6 +49,10 @@ yarn add zod-config zod # yarn
   - [Directory Adapter](#directory-adapter)
   - [AWS Secrets Manager Adapter](#aws-secrets-manager-adapter)
   - [AWS SSM Adapter](#aws-ssm-adapter)
+- [Type-safe Environment Variables](#type-safe-environment-variables)
+  - [Next.js](#nextjs)
+  - [Vite, Astro, TanStack Start](#vite-astro-tanstack-start)
+  - [Options](#options)
 - [Advanced Features](#advanced-features)
   - [Load once](#load-once)
   - [Combine multiple adapters](#combine-multiple-adapters)
@@ -65,13 +64,12 @@ yarn add zod-config zod # yarn
 - [Contributing notes](#contributing-notes)
 - [On the web](#on-the-web)
 
-
 ## Quick Start
 
 Zod Config provides both asynchronous and synchronous APIs for loading configuration:
 
-- **`loadConfig`**: Asynchronous function that takes a Zod Object schema and returns a promise resolving to the validated configuration object;
-- **`loadConfigSync`**: Synchronous version that takes the same configuration but returns the result directly without a promise;
+- `loadConfig`: Asynchronous function that takes a Zod Object schema and returns a promise resolving to the validated configuration object;
+- `loadConfigSync`: Synchronous version that takes the same configuration but returns the result directly without a promise;
 
 > **Note**: `loadConfigSync` only supports synchronous adapters and schemas. For details on compatibility, see [Synchronous loading](#synchronous-loading).
 
@@ -98,7 +96,10 @@ This library provides some built in adapters to load the configuration from diff
 
 ### Compatibility
 
-Zod Config supports both [Zod 4](https://zod.dev/v4) and [Zod 3](https://v3.zod.dev/) out of the box. To start using it, just make sure you have the correct versions of `zod-config` (zod-config@^1.0.0) and `zod` (zod@^3.25.0 or zod@^4.0.0)! 
+Zod Config supports both [Zod 4](https://zod.dev/v4) and [Zod 3](https://v3.zod.dev/) out of the box. To start using it, just make sure you have the correct versions of `zod-config` (zod-config@^1.0.0) and `zod` (zod@^3.25.1 or zod@^4.0.0)! 
+
+> [!WARNING]
+> Zod 3 support is deprecated and will be removed in the next major version. Use Zod 4 or Zod 4 Mini for new code.
 
 ```ts
 // Using Zod 4
@@ -543,6 +544,107 @@ With `path`, the prefix is stripped, sub-paths become nested objects and results
 
 IAM permissions: `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `path` (granted on the path itself, e.g. `arn:aws:ssm:<region>:<account>:parameter/my-app/prod`). `SecureString` parameters encrypted with a customer-managed KMS key also need `kms:Decrypt` on that key.
 
+## Type-safe Environment Variables
+
+`loadEnvConfig` validates the environment of apps with a browser bundle with Zod. It keeps `server` and `client` variables apart, checks the public prefix, and throws if browser code reads a server variable.
+
+It works with any framework: you write one env file, and it is validated the first time it is imported. Next.js and Vite also get an optional helper that validates it when the dev server or build starts.
+
+### Next.js
+
+1. Describe and load the environment in one file. Client keys must start with `NEXT_PUBLIC_`, and each one is listed in `runtimeEnv` so Next.js can inline it:
+
+```ts
+// src/env.ts
+import { loadEnvConfig } from "zod-config/nextjs";
+import { z } from "zod";
+
+export const env = loadEnvConfig({
+  server: { DATABASE_URL: z.url() }, // Zod 3: z.string().url()
+  client: { NEXT_PUBLIC_APP_URL: z.url() },
+  runtimeEnv: { NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL },
+});
+```
+
+2. Validate it when `next dev` or `next build` starts. Choose **one** of these options:
+
+**A. Import the file**, with `next.config.ts` and no path aliases such as `@/` in `env.ts`. Nothing to install.
+
+```ts
+// next.config.ts
+import "./src/env";
+```
+
+**B. Wrap the config**, with `next.config.js` / `.mjs` or path aliases in `env.ts`. The wrapper finds `env.ts` in `src/` or the project root and runs it with [jiti](https://github.com/unjs/jiti).
+
+```ts
+// next.config.mjs
+import { withZodConfigEnv } from "zod-config/nextjs/config";
+
+export default withZodConfigEnv({
+  // your Next.js config
+});
+```
+
+**C. Run the file with jiti yourself**, for the same cases as B, without the wrapper.
+
+```ts
+// next.config.mjs
+import { createJiti } from "jiti";
+
+await createJiti(import.meta.url, { tsconfigPaths: true }).import("./src/env.ts");
+```
+
+`next start` reads the config too, so with any of the three, `env.ts` must be among the deployed files. B and C also need jiti as a regular dependency (`npm i jiti`).
+
+### Vite, Astro, TanStack Start
+
+1. Describe and load the environment in one file, with your framework's public prefix:
+
+```ts
+// src/env.ts
+import { loadEnvConfig } from "zod-config";
+import { z } from "zod";
+
+export const env = loadEnvConfig({
+  clientPrefix: "VITE_", // Astro: "PUBLIC_"
+  server: { DATABASE_URL: z.url() },
+  client: { VITE_API_URL: z.url() },
+  runtimeEnv: import.meta.env,
+});
+```
+
+2. Validate it when `vite dev` or `vite build` starts. Without this step, a missing variable only shows up when the app loads. The plugin finds `env.ts` in `src/` or the project root and runs it with [jiti](https://github.com/unjs/jiti) (`npm i -D jiti`):
+
+```ts
+// vite.config.ts (in Astro: `vite.plugins` in astro.config.ts)
+import { defineConfig } from "vite";
+import { zodConfigEnv } from "zod-config/vite";
+
+export default defineConfig({
+  plugins: [zodConfigEnv()],
+});
+```
+
+Is the file somewhere else? Pass its path to either one: `zodConfigEnv({ file: "config/env.ts" })`, `withZodConfigEnv(nextConfig, { file: "config/env.ts" })`.
+
+Why `runtimeEnv`? In the browser there is no `process.env` to read from. Next.js only inlines `process.env.NEXT_PUBLIC_*` where your code writes it out in full, and Vite puts the values in `import.meta.env`, so your env file has to hand them over. Server keys are read from `process.env` and don't need to be listed.
+
+### Options
+
+| Option | Description |
+|---|---|
+| `server`, `client` | Objects of Zod schemas. At least one is required. |
+| `shared` | Variables read on the server and in the browser, without the public prefix, e.g. `NODE_ENV`. In the browser they come from `runtimeEnv`: list them on Next.js (`NODE_ENV: process.env.NODE_ENV`), or add them next to `import.meta.env` on Vite (`runtimeEnv: { ...import.meta.env, NODE_ENV: process.env.NODE_ENV }`). |
+| `clientPrefix` | `zod-config` only. Required when `client` has keys. |
+| `runtimeEnv` | Where values come from. Required when `client` has keys. With `zod-config/nextjs`, list each client key as `process.env.NEXT_PUBLIC_NAME`. On the server, entries take priority over `process.env`. |
+| `onError` | `(error) => void`, called with the Zod error (use `error.issues`) before an `Error` listing each invalid variable is thrown. Throw from it to replace that error. Unlike `loadConfig`'s `onError`, it does not swallow the failure. |
+| `skipValidation` | Return raw values without running Zod, e.g. `skipValidation: process.env.SKIP_ENV_VALIDATION === "true"` when secrets are not available while building. Defaults and coercion are not applied. Pages that read these secrets must render at request time, or the build bakes in missing values. |
+| `isServer` | Override server detection (default `typeof window === "undefined"`), e.g. in jsdom tests. |
+| `strict` | `zod-config` only. Type-checks that `runtimeEnv` lists every `server` and `client` key, for bundlers that only inline variables written out in full (e.g. `process.env.EXPO_PUBLIC_API_URL` in Expo). |
+
+For a server without a browser bundle, use [`loadConfig`](#basic-usage) or [`loadConfigSync`](#synchronous-loading) with the [env adapter](#env-adapter), or any other adapter.
+
 ## Advanced Features
 
 ### Load once
@@ -614,6 +716,7 @@ const config = await loadConfig({
 The `loadConfig` function is asynchronous to allow for adapters that are asynchronous. If you are only using synchronous adapters, you can use the `loadConfigSync` function which is synchronous and does not return a promise.
 
 The following default adapters are synchronous and can be used with `loadConfigSync`:
+
 - `envAdapter`
 - `jsonAdapter`
 - `json5Adapter`
@@ -736,6 +839,7 @@ const config = await loadConfig({
 In this example, the key `MYHOST`, `MY_HOST`, or `my-host` from the adapter would be correctly matched to `myHost` in your schema. 
 
 The lenient matching works by comparing keys after:
+
 1. Removing all non-alphanumeric characters (like underscores, hyphens, dots)
 2. Converting to lowercase
 
@@ -860,11 +964,8 @@ const complexConfig = await loadConfig({
 
 The goal is to have a helper to load configuration data from several srouces. If you have any source in mind, feel free to open a PR to add it or just open an issue to discuss it. More adapters are coming soon.
 
-
-## On the web 
+## On the web
 
 - This library is referenced in the official Zod documentation as part of the [ecosystem](https://zod.dev/?id=ecosystem) section "Powered by Zod", check it out [here](https://zod.dev/?id=powered-by-zod);
-
 - This library is referenced in the [Next.js Weekly](https://nextjsweekly.com/issues/77) newsletter (Packages / Tools / Repos section);
-
 - Check related dev.to article [here](https://dev.to/alexmarqs/simplify-type-safe-configuration-from-multiple-sources-with-zod-config-28ad);

@@ -44,7 +44,7 @@ export const loadConfigSync = <T extends SchemaConfig>(
     // v4
     result = safeParse(schema, data);
   } else {
-    // v3
+    // ZOD3: remove in next major (v3 branch)
     result = schema.safeParse(data);
   }
 

@@ -7,6 +7,7 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "sideEffects": false,
   "scripts": {
     "build": "tsup",
     "prepublishOnly": "pnpm build",
@@ -22,15 +23,31 @@
     "release:publish": "changeset publish",
     "yalc:publish": "yalc publish"
   },
-  "files": [
-    "dist/**"
-  ],
+  "files": ["dist/**"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "module": "./dist/index.mjs",
       "require": "./dist/index.js"
+    },
+    "./nextjs": {
+      "types": "./dist/nextjs.d.ts",
+      "import": "./dist/nextjs.mjs",
+      "module": "./dist/nextjs.mjs",
+      "require": "./dist/nextjs.js"
+    },
+    "./nextjs/config": {
+      "types": "./dist/nextjs-config.d.ts",
+      "import": "./dist/nextjs-config.mjs",
+      "module": "./dist/nextjs-config.mjs",
+      "require": "./dist/nextjs-config.js"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "import": "./dist/vite.mjs",
+      "module": "./dist/vite.mjs",
+      "require": "./dist/vite.js"
     },
     "./env-adapter": {
       "types": "./dist/env-adapter.d.ts",
@@ -95,36 +112,19 @@
   },
   "typesVersions": {
     "*": {
-      "env-adapter": [
-        "./dist/env-adapter.d.ts"
-      ],
-      "json-adapter": [
-        "./dist/json-adapter.d.ts"
-      ],
-      "json5-adapter": [
-        "./dist/json5-adapter.d.ts"
-      ],
-      "dotenv-adapter": [
-        "./dist/dotenv-adapter.d.ts"
-      ],
-      "script-adapter": [
-        "./dist/script-adapter.d.ts"
-      ],
-      "directory-adapter": [
-        "./dist/directory-adapter.d.ts"
-      ],
-      "yaml-adapter": [
-        "./dist/yaml-adapter.d.ts"
-      ],
-      "toml-adapter": [
-        "./dist/toml-adapter.d.ts"
-      ],
-      "aws-secrets-manager-adapter": [
-        "./dist/aws-secrets-manager-adapter.d.ts"
-      ],
-      "aws-ssm-adapter": [
-        "./dist/aws-ssm-adapter.d.ts"
-      ]
+      "nextjs": ["./dist/nextjs.d.ts"],
+      "nextjs/config": ["./dist/nextjs-config.d.ts"],
+      "vite": ["./dist/vite.d.ts"],
+      "env-adapter": ["./dist/env-adapter.d.ts"],
+      "json-adapter": ["./dist/json-adapter.d.ts"],
+      "json5-adapter": ["./dist/json5-adapter.d.ts"],
+      "dotenv-adapter": ["./dist/dotenv-adapter.d.ts"],
+      "script-adapter": ["./dist/script-adapter.d.ts"],
+      "directory-adapter": ["./dist/directory-adapter.d.ts"],
+      "yaml-adapter": ["./dist/yaml-adapter.d.ts"],
+      "toml-adapter": ["./dist/toml-adapter.d.ts"],
+      "aws-secrets-manager-adapter": ["./dist/aws-secrets-manager-adapter.d.ts"],
+      "aws-ssm-adapter": ["./dist/aws-ssm-adapter.d.ts"]
     }
   },
   "publishConfig": {
@@ -148,12 +148,23 @@
     "toml",
     "dotenv",
     "typescript",
+    "nextjs",
+    "vite",
+    "vite-plugin",
+    "astro",
+    "tanstack-start",
+    "environment-variables",
+    "secrets",
     "adapters",
     "typesafe",
     "aws",
     "secrets-manager",
     "ssm",
-    "parameter-store"
+    "parameter-store",
+    "env-validation",
+    "type-safe",
+    "validation",
+    "runtime-config"
   ],
   "devDependencies": {
     "@aws-sdk/client-secrets-manager": "^3.1152.0",
@@ -166,7 +177,9 @@
     "lefthook": "^2.1.6",
     "smol-toml": "1.3.1",
     "tsup": "6.7.0",
+    "jiti": "2.7.0",
     "typescript": "5.1.3",
+    "vite": "6.4.2",
     "vitest": "4.1.2",
     "yaml": "2.7.0",
     "zod": "^4.6.7"
@@ -175,10 +188,12 @@
     "@aws-sdk/client-secrets-manager": "^3.428.0",
     "@aws-sdk/client-ssm": "^3.428.0",
     "dotenv": ">=15",
+    "jiti": ">=2.0.0",
     "json5": ">=2",
     "smol-toml": "^1.x",
+    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0",
     "yaml": "^2.x",
-    "zod": "^3.25.0 || ^4.0.0"
+    "zod": "^3.25.1 || ^4.0.0"
   },
   "peerDependenciesMeta": {
     "@aws-sdk/client-secrets-manager": {
@@ -197,6 +212,12 @@
       "optional": true
     },
     "json5": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    },
+    "jiti": {
       "optional": true
     }
   },

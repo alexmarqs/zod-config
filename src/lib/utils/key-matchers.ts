@@ -1,11 +1,5 @@
-import {
-  type AnyZodObject,
-  ZodDefault,
-  ZodObject,
-  ZodOptional,
-  type ZodRawShape,
-  type ZodTypeAny,
-} from "zod/v3";
+// ZOD3: remove in next major: this import and the *V3 helpers below.
+import type { AnyZodObject, ZodDefault, ZodOptional, ZodRawShape, ZodTypeAny } from "zod/v3";
 import * as z from "zod/v4/core";
 import { isMergeableObject } from "@/lib/utils/is-mergeable-object";
 import type { KeyMatching, ShapeConfig } from "@/types";
@@ -88,16 +82,26 @@ function isZodPrefault(input: unknown): input is z.$ZodPrefault {
   return input instanceof z.$ZodPrefault;
 }
 
+// ZOD3: remove in next major: hasTypeNameV3, isZodObjectV3, isZodDefultV3, isZodOptionalV3,
+// getShapeV3.
+/**
+ * Zod 3 schemas are recognised by their type name instead of `instanceof`, so that Zod 3 is
+ * never imported at runtime (it would otherwise be bundled for Zod 4 users, including in browsers).
+ */
+function hasTypeNameV3(input: unknown, typeName: string) {
+  return (input as { _def?: { typeName?: string } } | undefined)?._def?.typeName === typeName;
+}
+
 function isZodObjectV3(input: unknown): input is AnyZodObject {
-  return input instanceof ZodObject;
+  return hasTypeNameV3(input, "ZodObject");
 }
 
 function isZodDefultV3(input: unknown): input is ZodDefault<any> {
-  return input instanceof ZodDefault;
+  return hasTypeNameV3(input, "ZodDefault");
 }
 
 function isZodOptionalV3(input: unknown): input is ZodOptional<any> {
-  return input instanceof ZodOptional;
+  return hasTypeNameV3(input, "ZodOptional");
 }
 
 function isZodPipeTransformObject(
@@ -140,5 +144,6 @@ export const getSchemaShape = (schema: z.$ZodType<unknown> | ZodTypeAny | undefi
     return getShape(schema);
   }
 
+  // ZOD3: remove in next major (v3 fallback)
   return getShapeV3(schema);
 };
