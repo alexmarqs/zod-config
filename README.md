@@ -395,7 +395,11 @@ const nestedConfig = await loadConfig({
 
 Loads configuration from TypeScript (`.ts`), JavaScript (`.js`), or JSON (`.json`) files. The `.ts` and `.js` files must export a default object with the configuration data. Relative paths resolve from the working directory.
 
-`.ts` files load with Node's built-in type stripping (Node 22.18+). If that fails (older Node, `enum`, extensionless imports or tsconfig path aliases), they load with [jiti](https://github.com/unjs/jiti) when it's installed (`npm i jiti`, version 2 or later; path aliases need 2.7 or later).
+`.ts` files load with Node's built-in type stripping (Node 22.18+). If that fails (older Node, `enum`, extensionless imports or tsconfig path aliases), they load with [jiti](https://github.com/unjs/jiti) instead. In order to use this fallback, you need to install `jiti` (peer dependency, version 2 or later; path aliases need 2.7 or later), if you don't have it already:
+
+```sh
+npm install jiti
+```
 
 ```ts
 import { z } from 'zod';
@@ -597,7 +601,11 @@ import { createJiti } from "jiti";
 await createJiti(import.meta.url, { tsconfigPaths: true }).import("./src/env.ts");
 ```
 
-`next start` reads the config too, so with any of the three, `env.ts` must be among the deployed files. B and C also need jiti as a regular dependency (`npm i jiti`).
+`next start` reads the config too, so with any of the three, `env.ts` must be among the deployed files. In order to use B or C, you need to install `jiti` (peer dependency) as a regular dependency, if you don't have it already:
+
+```sh
+npm install jiti
+```
 
 ### Vite, Astro, TanStack Start
 
@@ -616,7 +624,11 @@ export const env = loadEnvConfig({
 });
 ```
 
-2. Validate it when `vite dev` or `vite build` starts. Without this step, a missing variable only shows up when the app loads. The plugin finds `env.ts` in `src/` or the project root and runs it with [jiti](https://github.com/unjs/jiti) (`npm i -D jiti`):
+2. Validate it when `vite dev` or `vite build` starts. Without this step, a missing variable only shows up when the app loads. The plugin finds `env.ts` in `src/` or the project root and runs it with [jiti](https://github.com/unjs/jiti). In order to use the plugin, you need to install `jiti` (peer dependency), if you don't have it already:
+
+```sh
+npm install -D jiti
+```
 
 ```ts
 // vite.config.ts (in Astro: `vite.plugins` in astro.config.ts)
