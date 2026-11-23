@@ -1,6 +1,6 @@
 import { scriptAdapter } from "@/lib/adapters/script-adapter";
 import { loadConfig } from "@/lib/config";
-import { unlink, writeFile } from "node:fs/promises";
+import { mkdir, rm, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod/v4-mini";
@@ -15,6 +15,18 @@ describe.each([
     fileName: "test.js",
     content: `module.exports = { HOST: "localhost", PORT: "9000" };`,
     expected: { HOST: "localhost", PORT: "9000" },
+  },
+  {
+    // Shape of a TypeScript file compiled to CommonJS by a runner such as tsx or jiti.
+    fileName: "test-compiled.cjs",
+    content: `module.exports = { __esModule: true, default: { HOST: "localhost", PORT: "4000" } };`,
+    expected: { HOST: "localhost", PORT: "4000" },
+  },
+  {
+    // CommonJS exports in a TypeScript file.
+    fileName: "test.cts",
+    content: `module.exports = { HOST: "localhost", PORT: "5000" };`,
+    expected: { HOST: "localhost", PORT: "5000" },
   },
   {
     fileName: "test.json",
@@ -50,6 +62,71 @@ describe.each([
     // then
     expect(config.HOST).toBe(expected.HOST);
     expect(config.PORT).toBe(expected.PORT);
+  });
+});
+
+describe("script adapter falling back to jiti", () => {
+  // Native import() can't resolve a tsconfig.json path alias; jiti can.
+  const dir = path.join(__dirname, "jiti-fallback");
+  const testFilePath = path.join(dir, "config.ts");
+
+  beforeAll(async () => {
+    await mkdir(path.join(dir, "src"), { recursive: true });
+    await writeFile(
+      path.join(dir, "tsconfig.json"),
+      JSON.stringify({ compilerOptions: { paths: { "~shared/*": ["./src/*"] } } }),
+    );
+    await writeFile(path.join(dir, "src", "host.ts"), `export const host = "localhost";`);
+    await writeFile(
+      testFilePath,
+      `import { host } from "~shared/host";
+enum Port { Default = "3000" }
+export default { HOST: host, PORT: Port.Default };`,
+    );
+  });
+
+  afterAll(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("should load the file with jiti when native import() fails", async () => {
+    // given
+    const schema = z.object({ HOST: z.string(), PORT: z.string() });
+
+    // when
+    const config = await loadConfig({
+      schema,
+      adapters: scriptAdapter({ path: testFilePath }),
+    });
+
+    // then
+    expect(config).toEqual({ HOST: "localhost", PORT: "3000" });
+  });
+});
+
+describe("script adapter with a relative path", () => {
+  const testFilePath = path.join(__dirname, "test-relative-script-adapter.json");
+
+  beforeAll(async () => {
+    await writeFile(testFilePath, `{"HOST":"relative"}`);
+  });
+
+  afterAll(async () => {
+    await unlink(testFilePath);
+  });
+
+  it("should resolve the path from the working directory", async () => {
+    // given
+    const schema = z.object({ HOST: z.string() });
+
+    // when
+    const config = await loadConfig({
+      schema,
+      adapters: scriptAdapter({ path: path.relative(process.cwd(), testFilePath) }),
+    });
+
+    // then
+    expect(config.HOST).toBe("relative");
   });
 });
 
