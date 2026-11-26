@@ -1,7 +1,7 @@
-import { loadConfig } from "@/index";
-import { inlineAdapter } from "../fixtures/utils-fixtures";
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod/v3";
+import { loadConfig } from "@/index";
+import { inlineAdapter } from "../fixtures/utils-fixtures";
 
 describe("type checking zod v3", () => {
   it("should infer the correct type", async () => {

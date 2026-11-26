@@ -1,12 +1,12 @@
+import { unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { z } from "zod/v4";
 import { loadConfigSync } from "@/index";
 import { envAdapter } from "@/lib/adapters/env-adapter";
 import { jsonAdapter } from "@/lib/adapters/json-adapter";
 import { loadConfig } from "@/lib/config";
 import type { Adapter, Logger } from "@/types";
-import { unlink, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { z } from "zod/v4";
 
 describe("multiple adapters", () => {
   const testFilePath = path.join(__dirname, "test-multiple-adapters.json");

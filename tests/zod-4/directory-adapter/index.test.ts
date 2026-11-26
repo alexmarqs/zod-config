@@ -1,12 +1,11 @@
-import { rm, writeFile, mkdir } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { afterEach, vi, describe, it, beforeEach, beforeAll, afterAll, expect } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4";
-
-import { directoryAdapter } from "@/lib/adapters/directory-adapter";
-import { scriptAdapter } from "@/lib/adapters/script-adapter";
-import * as variables from "@/lib/adapters/directory-adapter/variables";
 import { loadConfig } from "@/index";
+import { directoryAdapter } from "@/lib/adapters/directory-adapter";
+import * as variables from "@/lib/adapters/directory-adapter/variables";
+import { scriptAdapter } from "@/lib/adapters/script-adapter";
 
 vi.mock("@/lib/adapters/directory-adapter/variables", async (importOriginal) => {
   const original =

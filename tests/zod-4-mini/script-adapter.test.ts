@@ -1,9 +1,9 @@
-import { scriptAdapter } from "@/lib/adapters/script-adapter";
-import { loadConfig } from "@/lib/config";
 import { mkdir, rm, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod/v4-mini";
+import { scriptAdapter } from "@/lib/adapters/script-adapter";
+import { loadConfig } from "@/lib/config";
 
 describe.each([
   {

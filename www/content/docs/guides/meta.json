@@ -1,0 +1,15 @@
+{
+  "title": "Guides",
+  "icon": "BookOpen",
+  "defaultOpen": true,
+  "pages": [
+    "load-once",
+    "combine-adapters",
+    "sync-loading",
+    "callbacks",
+    "custom-logger",
+    "silent-mode",
+    "lenient-key-matching",
+    "transform"
+  ]
+}

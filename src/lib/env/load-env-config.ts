@@ -1,7 +1,7 @@
 import { envAdapter } from "../adapters/env-adapter";
 import { loadConfigSync } from "../config-sync";
 import { getSafeProcessEnv } from "../utils/get-safe-process-env";
-import { type FieldSchema, buildObjectSchema } from "./build-schema";
+import { buildObjectSchema, type FieldSchema } from "./build-schema";
 import type { EnvConfigError } from "./types";
 
 export type LoadEnvConfigInput = {

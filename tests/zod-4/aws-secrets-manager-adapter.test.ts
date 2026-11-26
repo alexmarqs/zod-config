@@ -1,10 +1,10 @@
-import { awsSecretsManagerAdapter } from "@/lib/adapters/aws-secrets-manager-adapter";
-import { loadConfig } from "@/lib/config";
-import type { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
+import type { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4";
+import { awsSecretsManagerAdapter } from "@/lib/adapters/aws-secrets-manager-adapter";
+import { loadConfig } from "@/lib/config";
 
 const createClient = (response: () => Promise<unknown>) => {
   const send = vi.fn(response);

@@ -1,0 +1,68 @@
+---
+title: Astro
+description: Type-safe environment variables for Astro with the PUBLIC_ prefix.
+icon: Astro
+---
+
+Use the root `zod-config` export with `clientPrefix: "PUBLIC_"`.
+
+## Define the schema
+
+```ts title="src/env.ts"
+import { loadEnvConfig } from 'zod-config';
+import { z } from 'zod';
+
+export const env = loadEnvConfig({
+  clientPrefix: 'PUBLIC_',
+  server: {
+    DB_PASSWORD: z.string(),
+  },
+  client: {
+    PUBLIC_API_URL: z.url(),
+  },
+  runtimeEnv: import.meta.env,
+});
+```
+
+Astro exposes only `PUBLIC_`-prefixed variables to client-side code. Server code (pages, endpoints, middleware) can read every variable.
+
+## Validate when Astro starts
+
+To stop `astro dev` and `astro build` on a missing or invalid variable, add the [`zod-config/vite` plugin](/docs/env/vite#validate-when-vite-starts) under `vite.plugins` in `astro.config.ts`:
+
+```ts title="astro.config.ts"
+import { defineConfig } from 'astro/config';
+import { zodConfigEnv } from 'zod-config/vite';
+
+export default defineConfig({
+  vite: { plugins: [zodConfigEnv()] },
+});
+```
+
+## Build-time and runtime values
+
+Astro replaces `import.meta.env` values statically at build time. Because `server` variables are read from `runtimeEnv` first, passing the whole `import.meta.env` means a server value present in `.env` at build time wins over the one set at runtime. This matches what Astro's own `import.meta.env` does.
+
+To read server variables at runtime instead, list only the client keys in `runtimeEnv`. Server values then come from `process.env`, which most Astro adapters provide:
+
+```ts
+export const env = loadEnvConfig({
+  clientPrefix: 'PUBLIC_',
+  server: { DB_PASSWORD: z.string() },
+  client: { PUBLIC_API_URL: z.url() },
+  runtimeEnv: {
+    PUBLIC_API_URL: import.meta.env.PUBLIC_API_URL,
+  },
+});
+```
+
+For the Deno adapter, Astro's docs read variables with `Deno.env.get()` instead of `process.env`. In that case, pass the server values in `runtimeEnv` yourself.
+
+## Astro's own `astro:env`
+
+Astro also ships `astro:env`, a schema for environment variables declared in `astro.config` with `envField`. Use it if you only need Astro. `loadEnvConfig` is useful when you want the same Zod schemas across frameworks, or Zod features `envField` does not have.
+
+## See also
+
+- [Options and errors](/docs/env#options)
+- [Astro: Using environment variables](https://docs.astro.build/en/guides/environment-variables/)

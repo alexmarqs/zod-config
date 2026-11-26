@@ -1,9 +1,9 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { zodConfigEnv } from "@/vite";
-import { type Plugin, type UserConfig, resolveConfig } from "vite";
+import { type Plugin, resolveConfig, type UserConfig } from "vite";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { zodConfigEnv } from "@/vite";
 
 const originalEnv = process.env;
 const source = path.resolve(__dirname, "../../src");

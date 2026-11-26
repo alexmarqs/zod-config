@@ -1,6 +1,6 @@
-import { loadConfig } from "@/lib/config";
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v3";
+import { loadConfig } from "@/lib/config";
 
 describe("default adapter", () => {
   it("should return parsed data when schema is valid", async () => {

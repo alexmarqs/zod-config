@@ -1,0 +1,66 @@
+---
+title: Adapters
+description: Where Zod Config reads configuration from, and how sources are combined.
+---
+
+An adapter reads configuration from one source (environment variables, a file, AWS) and hands the raw data to Zod Config, which merges it and validates it with your schema.
+
+## Default adapter
+
+By default, Zod Config loads the configuration from `process.env`, so you don't need to provide any adapter:
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const config = await loadConfig({
+  schema: schemaConfig,
+});
+
+// config is now type safe!
+console.log(config.port);
+console.log(config.host);
+```
+
+## Built-in adapters
+
+Built-in adapters are imported from `zod-config/<adapter-name>`. Some need a peer dependency, which you install yourself.
+
+| Adapter | Import | Reads | Peer dependency | Sync |
+| --- | --- | --- | --- | --- |
+| [Env](/docs/adapters/env) | `zod-config/env-adapter` | `process.env` or a custom object | none | ✅ |
+| [JSON](/docs/adapters/json) | `zod-config/json-adapter` | a `.json` file | none | ✅ |
+| [JSON5](/docs/adapters/json5) | `zod-config/json5-adapter` | a `.json5` file | `json5` | ✅ |
+| [YAML](/docs/adapters/yaml) | `zod-config/yaml-adapter` | a `.yaml` file | `yaml` | ✅ |
+| [TOML](/docs/adapters/toml) | `zod-config/toml-adapter` | a `.toml` file | `smol-toml` | ✅ |
+| [Dotenv](/docs/adapters/dotenv) | `zod-config/dotenv-adapter` | a `.env` file | `dotenv` | ✅ |
+| [Script](/docs/adapters/script) | `zod-config/script-adapter` | a `.ts`, `.js` or `.json` file | `jiti`, optional, for TypeScript | ❌ |
+| [Directory](/docs/adapters/directory) | `zod-config/directory-adapter` | a directory of config files | none | ❌ |
+| [AWS Secrets Manager](/docs/adapters/aws-secrets-manager) | `zod-config/aws-secrets-manager-adapter` | an AWS Secrets Manager secret | `@aws-sdk/client-secrets-manager` | ❌ |
+| [AWS SSM](/docs/adapters/aws-ssm) | `zod-config/aws-ssm-adapter` | AWS SSM Parameter Store | `@aws-sdk/client-ssm` | ❌ |
+
+Synchronous adapters also work with [`loadConfigSync`](/docs/guides/sync-loading). Need another source? [Write your own adapter](/docs/adapters/custom).
+
+## Combining adapters
+
+Pass an array to read from several sources. The results are **deeply merged in the order of the adapters**, so later adapters override earlier ones. See [Combine multiple adapters](/docs/guides/combine-adapters).
+
+The keys `__proto__` and `constructor` are skipped when merging, and so are nested keys with a `__proto__` or `constructor` segment when a nesting separator is used.
+
+## Shared adapter options
+
+Every built-in adapter accepts these options on top of its own:
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `regex` | `RegExp` | Only keep keys that match this regular expression. |
+| `silent` | `boolean` | Don't log a warning when this adapter fails. See [Silent mode](/docs/guides/silent-mode). |
+| `keyMatching` | `'strict' \| 'lenient'` | How to match keys to the schema. See [Lenient key matching](/docs/guides/lenient-key-matching). |
+| `transform` | `(obj: { key: string; value: unknown }) => { key: string; value: unknown } \| false` | Transform or drop key-value pairs before processing. See [Transform](/docs/guides/transform). |
+
+`silent`, `keyMatching` and `transform` can also be set globally on `loadConfig`. When both are set, the adapter-level option takes precedence.

@@ -1,8 +1,7 @@
-import { loadConfig } from "@/lib/config";
-import type { Adapter } from "@/types";
-import {} from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v4-mini";
+import { loadConfig } from "@/lib/config";
+import type { Adapter } from "@/types";
 
 describe("custom adapter", () => {
   it("should return parsed data when schema is valid", async () => {

@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+import { z } from "zod/v4";
 import {
   deepMerge,
   filterByRegex,
@@ -5,8 +7,6 @@ import {
   parseJsonObject,
   processAdapterData,
 } from "../../src/lib/utils";
-import { describe, it, expect } from "vitest";
-import { z } from "zod/v4";
 
 describe("filterByRegex", () => {
   it("should return an object with keys that match the regex #1", () => {

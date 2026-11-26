@@ -1,8 +1,8 @@
+import { describe, expect, it } from "vitest";
+import { z } from "zod/v4";
 import { loadConfig } from "@/lib/config";
 import { loadConfigSync } from "@/lib/config-sync";
 import type { Adapter } from "@/types";
-import { describe, expect, it } from "vitest";
-import { z } from "zod/v4";
 
 describe("custom adapter", () => {
   describe("loadConfig", () => {

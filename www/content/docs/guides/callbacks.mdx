@@ -1,0 +1,29 @@
+---
+title: Callbacks
+description: Handle success and validation errors with onSuccess and onError.
+icon: Webhook
+---
+
+Use `onSuccess` and `onError` to react to the result of loading, for example when you don't `await` the promise.
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+loadConfig({
+  schema: schemaConfig,
+  onError: (error) => {
+    console.error('An error occurred while loading the configuration:', error);
+  },
+  onSuccess: (config) => {
+    console.log('Configuration loaded successfully:', config);
+  },
+});
+```
+
+`onError` receives the Zod error. When you pass it, the validation error is handled by your callback instead of being thrown.

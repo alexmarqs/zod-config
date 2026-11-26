@@ -1,9 +1,9 @@
-import { json5Adapter } from "@/lib/adapters/json5-adapter";
-import { loadConfig } from "@/lib/config";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4-mini";
+import { json5Adapter } from "@/lib/adapters/json5-adapter";
+import { loadConfig } from "@/lib/config";
 
 describe("json5 adapter", () => {
   const testFilePath = path.join(__dirname, "test-json5-adapter.json5");

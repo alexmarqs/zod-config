@@ -1,3 +1,4 @@
+import { safeParse } from "zod/v4/core";
 import type {
   InferredDataConfig,
   InferredErrorConfig,
@@ -8,7 +9,6 @@ import type {
   SyncConfig,
   Transform,
 } from "../types";
-import { safeParse } from "zod/v4/core";
 import { deepMerge, getSafeProcessEnv, processAdapterData } from "./utils";
 import { getResolvedConfig } from "./utils/resolved-config";
 

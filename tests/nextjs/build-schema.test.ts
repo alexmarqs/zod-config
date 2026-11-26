@@ -1,9 +1,9 @@
-import { buildObjectSchema } from "@/lib/env/build-schema";
 import { describe, expect, it } from "vitest";
 import { z as z3 } from "zod/v3";
 import { z as z4 } from "zod/v4";
-import { z as zm } from "zod/v4-mini";
 import { safeParse } from "zod/v4/core";
+import { z as zm } from "zod/v4-mini";
+import { buildObjectSchema } from "@/lib/env/build-schema";
 
 describe("buildObjectSchema", () => {
   it("should build a zod 4 object schema from a shape", () => {

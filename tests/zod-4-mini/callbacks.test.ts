@@ -1,7 +1,7 @@
-import { loadConfig } from "@/lib/config";
-import { loadConfigSync } from "@/lib/config-sync";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4-mini";
+import { loadConfig } from "@/lib/config";
+import { loadConfigSync } from "@/lib/config-sync";
 
 describe("callbacks", () => {
   describe("loadConfig", () => {

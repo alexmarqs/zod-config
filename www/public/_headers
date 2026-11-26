@@ -1,0 +1,3 @@
+# Cloudflare static assets headers: the search index has no file extension
+/api/search
+  Content-Type: application/json; charset=utf-8

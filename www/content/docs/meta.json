@@ -1,0 +1,5 @@
+{
+  "title": "Zod Config",
+  "description": "Load configuration variables from multiple sources type safely using Zod.",
+  "pages": ["index", "adapters", "env", "guides", "ai"]
+}

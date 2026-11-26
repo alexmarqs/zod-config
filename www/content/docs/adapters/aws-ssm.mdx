@@ -1,0 +1,64 @@
+---
+title: AWS SSM adapter
+description: Load configuration from AWS SSM Parameter Store, one parameter or a whole path.
+icon: Aws
+---
+
+Loads the configuration from [AWS SSM Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html), either a single parameter (`name`) or every parameter under a `path`. `SecureString` values are decrypted.
+
+## Install
+
+This adapter needs the `@aws-sdk/client-ssm` peer dependency, if you don't have it already:
+
+```package-install
+@aws-sdk/client-ssm
+```
+
+The adapter is asynchronous, so use it with `loadConfig`.
+
+## Usage
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { awsSsmAdapter } from 'zod-config/aws-ssm-adapter';
+
+// single parameter: works like the Secrets Manager adapter (JSON or `key`)
+const config = await loadConfig({
+  schema: z.object({ API_KEY: z.string() }),
+  adapters: awsSsmAdapter({ name: '/my-app/api-key', key: 'API_KEY' }),
+});
+
+// path: /my-app/prod/LOG_LEVEL, /my-app/prod/db/HOST, /my-app/prod/db/PORT
+const appConfig = await loadConfig({
+  schema: z.object({
+    LOG_LEVEL: z.string(),
+    db: z.object({ HOST: z.string(), PORT: z.coerce.number() }),
+  }),
+  adapters: awsSsmAdapter({ path: '/my-app/prod' }),
+});
+// { LOG_LEVEL: 'info', db: { HOST: 'db.internal', PORT: 5432 } }
+```
+
+With `path`, the prefix is stripped, sub-paths become nested objects and results are paginated.
+
+A parameter whose name is also a prefix of another parameter's name (e.g. `/my-app/prod/db` and `/my-app/prod/db/HOST`) cannot be loaded from the same path, since `db` would have to be both a value and an object; this raises a nested key conflict error. Exclude the conflicting name with `regex`, and load that parameter with a second adapter under a different key.
+
+**IAM permissions:** `ssm:GetParameter` for `name`, `ssm:GetParametersByPath` for `path` (granted on the path itself, e.g. `arn:aws:ssm:<region>:<account>:parameter/my-app/prod`). `SecureString` parameters encrypted with a customer-managed KMS key also need `kms:Decrypt` on that key.
+
+<Callout>
+  Remote reads cost a network call each time `loadConfig` runs. Load the config once and reuse it: see [Load once](/docs/guides/load-once).
+</Callout>
+
+## Options
+
+Pass either `name` or `path`, not both.
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | Name or ARN of a single parameter. |
+| `key` | `string` | With `name` only: expose the raw parameter value (as a string) under this key instead of merging its JSON entries. Parse it in the schema if needed, e.g. `z.string().transform(JSON.parse)`. |
+| `path` | `string` | Load every parameter under this path (recursively). `regex` is matched against the stripped names before nesting, e.g. `db/HOST`. |
+| `client` | `SSMClient` | Client to use. Defaults to a shared client that resolves region and credentials through the AWS SDK default chain. |
+
+Also accepts the [shared adapter options](/docs/adapters#shared-adapter-options): `regex`, `silent`, `keyMatching` and `transform`.

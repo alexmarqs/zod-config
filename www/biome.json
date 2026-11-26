@@ -1,0 +1,11 @@
+{
+  "$schema": "../node_modules/@biomejs/biome/configuration_schema.json",
+  "root": false,
+  "extends": "//",
+  "files": {
+    "includes": ["**", "!.source", "!out", "!.next", "!.wrangler", "!next-env.d.ts"]
+  },
+  "css": {
+    "parser": { "tailwindDirectives": true }
+  }
+}

@@ -1,0 +1,36 @@
+---
+title: Coming from T3 Env or similar
+description: Move a T3 Env (or similar) setup to zod-config's loadEnvConfig.
+icon: ArrowRightLeft
+---
+
+`loadEnvConfig` keeps the shape of T3 Env's `createEnv`: `server` and `client` objects of Zod schemas, plus `runtimeEnv`.
+
+| T3 Env | zod-config | Notes |
+| --- | --- | --- |
+| `createEnv` from `@t3-oss/env-nextjs` | `loadEnvConfig` from `zod-config/nextjs` | Prefix fixed to `NEXT_PUBLIC_`. |
+| `createEnv` from `@t3-oss/env-core` | `loadEnvConfig` from `zod-config` | Pass the prefix as `clientPrefix`. |
+| `server`, `client`, `shared` | `server`, `client`, `shared` | Unchanged. |
+| `runtimeEnv` | `runtimeEnv` | Works as it is. Server entries are optional (without them, server values come from `process.env`), but client entries must stay: client values are only read from `runtimeEnv`. |
+| `runtimeEnvStrict` (env-core) | `runtimeEnv` with `strict: true` | Every server, client and shared key must be listed. |
+| `onValidationError` | `onError` | Receives the Zod error rather than the issues array: use `error.issues`. Throw from it to replace the default error. |
+| `skipValidation` | `skipValidation` | Returns raw values. Reading server variables in the browser still throws. |
+| `import "./src/env"` in `next.config` | The same, or [`withZodConfigEnv`](/docs/env/nextjs#validate-when-nextjs-starts) | The wrapper also works with `next.config.mjs` and path aliases. On Vite, use the [`zodConfigEnv` plugin](/docs/env/vite#validate-when-vite-starts). |
+| `isServer` | `isServer` | Unchanged. |
+
+```ts twoslash title="src/env.ts"
+import { loadEnvConfig } from 'zod-config/nextjs';
+import { z } from 'zod';
+
+export const env = loadEnvConfig({
+  server: { DATABASE_URL: z.url() },
+  client: { NEXT_PUBLIC_APP_URL: z.url() },
+  runtimeEnv: {
+    DATABASE_URL: process.env.DATABASE_URL,
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  },
+  onError: (error) => {
+    console.error(error.issues);
+  },
+});
+```

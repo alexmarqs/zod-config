@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
+import { parse as tomlParse } from "smol-toml";
 import type { BaseAdapterProps, SyncAdapter } from "../../../types";
 import { filteredData } from "../../utils";
-import { parse as tomlParse } from "smol-toml";
 
 export type TomlAdapterProps = BaseAdapterProps & {
   path: string;

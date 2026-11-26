@@ -1,3 +1,4 @@
+import { safeParseAsync } from "zod/v4/core";
 import type {
   Adapter,
   Config,
@@ -10,7 +11,6 @@ import type {
   Transform,
 } from "../types";
 import { deepMerge, getSafeProcessEnv, processAdapterData } from "./utils";
-import { safeParseAsync } from "zod/v4/core";
 import { getResolvedConfig } from "./utils/resolved-config";
 
 /**

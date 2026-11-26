@@ -1,8 +1,8 @@
-import { awsSecretsManagerAdapter } from "@/lib/adapters/aws-secrets-manager-adapter";
-import { loadConfig } from "@/lib/config";
 import type { SecretsManagerClient } from "@aws-sdk/client-secrets-manager";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod/v3";
+import { awsSecretsManagerAdapter } from "@/lib/adapters/aws-secrets-manager-adapter";
+import { loadConfig } from "@/lib/config";
 
 const createClient = (secretString: string) =>
   ({

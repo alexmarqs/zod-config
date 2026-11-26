@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
+import JSON5 from "json5";
 import type { BaseAdapterProps, SyncAdapter } from "../../../types";
 import { filteredData } from "../../utils";
-import JSON5 from "json5";
 
 export type Json5AdapterProps = BaseAdapterProps & {
   path: string;

@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
-import { type Alias, type Plugin, loadEnv } from "vite";
+import { type Alias, loadEnv, type Plugin } from "vite";
 import { loadEnvFile } from "./lib/env/load-env-file";
 
 export type ZodConfigEnvOptions = {

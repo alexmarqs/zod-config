@@ -1,0 +1,26 @@
+---
+title: Silent mode
+description: Don't log a warning when an adapter fails.
+icon: VolumeX
+---
+
+If an adapter fails, Zod Config still returns the data from the other adapters, and by default it logs a warning. Set `silent` to skip the warning, for example when a source is optional:
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { envAdapter } from 'zod-config/env-adapter';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  // silent: true --> also available in the global config in case you want to use it for all adapters
+  adapters: envAdapter({ silent: true }),
+});
+```
+
+`silent` can be set on one adapter or globally on `loadConfig`. The adapter-level value takes precedence.

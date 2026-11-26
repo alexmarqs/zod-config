@@ -1,7 +1,7 @@
-import { parse } from "dotenv";
-import type { SyncAdapter, BaseAdapterProps } from "../../../types";
-import { filteredData } from "../../utils";
 import { readFileSync } from "node:fs";
+import { parse } from "dotenv";
+import type { BaseAdapterProps, SyncAdapter } from "../../../types";
+import { filteredData } from "../../utils";
 
 export type DotEnvAdapterProps = BaseAdapterProps & {
   path: string;

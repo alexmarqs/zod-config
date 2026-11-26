@@ -1,0 +1,36 @@
+---
+title: Combine multiple adapters
+description: Read configuration from several sources and deep-merge it in order.
+icon: Layers
+---
+
+You can combine multiple adapters to load the configuration from different sources. Zod Config **deeply merges the configuration from the different sources, following the order of the adapters**: later adapters override earlier ones.
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { envAdapter } from 'zod-config/env-adapter';
+import { jsonAdapter } from 'zod-config/json-adapter';
+import path from 'path';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const filePath = path.join(__dirname, 'config.json');
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: [
+    jsonAdapter({ path: filePath }),
+    envAdapter(), // overrides values from config.json
+  ],
+});
+```
+
+<Callout type="warn">
+  When combining multiple adapters, `null` values from later adapters override existing values. You can use this on purpose to reset a value.
+</Callout>
+
+If one adapter fails, the data from the others is still used, and a warning is logged. See [Silent mode](/docs/guides/silent-mode).

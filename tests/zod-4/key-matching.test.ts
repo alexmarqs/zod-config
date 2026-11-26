@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4";
 
 import { loadConfig } from "@/index";
-import { inlineAdapter } from "../fixtures/utils-fixtures";
 import { envAdapter } from "@/lib/adapters/env-adapter";
+import { inlineAdapter } from "../fixtures/utils-fixtures";
 
 describe("Lenient key matching tests", () => {
   it("should perform lenient matching", async () => {
@@ -169,7 +169,7 @@ describe("Lenient key matching tests", () => {
     });
   });
 
-  it("should work with nested transforms", async () => {
+  it("should apply field-level transforms with lenient key matching", async () => {
     const ConfigWithTransforms = z.object({
       apiKey: z.string().transform((val) => val.trim()),
       maxRetries: z.string().transform((val) => Number.parseInt(val, 10)),

@@ -1,0 +1,78 @@
+---
+title: Vite
+description: Type-safe environment variables for Vite apps with the VITE_ prefix.
+icon: Vite
+---
+
+Use the root `zod-config` export with `clientPrefix: "VITE_"` and pass `import.meta.env` as `runtimeEnv`.
+
+## Define the schema
+
+```ts title="src/env.ts"
+import { loadEnvConfig } from 'zod-config';
+import { z } from 'zod';
+
+export const env = loadEnvConfig({
+  clientPrefix: 'VITE_',
+  client: {
+    VITE_API_URL: z.url(),
+    VITE_SENTRY_DSN: z.string().optional(),
+  },
+  runtimeEnv: import.meta.env,
+});
+```
+
+```ts
+import { env } from './env';
+
+env.VITE_API_URL; // string
+```
+
+Vite exposes only `VITE_`-prefixed variables to client code, on `import.meta.env`, and replaces them statically at build time. Vite's [`envPrefix`](https://vite.dev/config/shared-options#envprefix) option changes the prefix; if you change it, pass the same value as `clientPrefix`.
+
+## Validate when Vite starts
+
+In a single-page app, `env.ts` runs in the browser, so validation happens when the app loads, not at build. To stop `vite dev` and `vite build` on a missing or invalid variable instead, add the `zodConfigEnv` plugin. It finds `env.ts` in `src/` or the project root and runs it with [jiti](https://github.com/unjs/jiti), so install `jiti` if you don't have it already:
+
+```package-install
+-D jiti
+```
+
+```ts twoslash title="vite.config.ts"
+import { defineConfig } from 'vite';
+import { zodConfigEnv } from 'zod-config/vite';
+
+export default defineConfig({
+  plugins: [zodConfigEnv()],
+});
+```
+
+- The command stops before anything is built, with the same `Invalid environment variables` message.
+- While the plugin runs `env.ts`, `import.meta.env` holds the values the way Vite reads them: the `.env` files of the current mode, then `process.env`, plus Vite's `MODE`, `DEV`, `PROD` and `BASE_URL`.
+- Path aliases come from `resolve.alias` in the Vite config, or the `paths` of `tsconfig.json`.
+- The dev server restarts when `env.ts` changes, and checks it again.
+- The plugin only validates. It does not change the bundle: Vite still decides which variables reach the browser.
+- It does nothing under Vitest or `vite preview`, so a test run does not need every variable.
+- It works with Vite 5 and later, and with frameworks built on Vite, such as [TanStack Start](/docs/env/tanstack-start) and [Astro](/docs/env/astro).
+- The file is somewhere else? Pass its path, from the Vite root: `zodConfigEnv({ file: 'config/env.ts' })`.
+
+With server-side rendering, add a `server` schema. On the server, `server` variables are read from `runtimeEnv` first, then `process.env`. In the browser they are never read, and accessing one throws.
+
+## Types for import.meta.env
+
+`loadEnvConfig` returns typed values on its own. If you also read `import.meta.env` directly, declare your variables in `src/vite-env.d.ts` as the Vite docs describe:
+
+```ts title="src/vite-env.d.ts"
+interface ImportMetaEnv {
+  readonly VITE_API_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+## See also
+
+- [Options and errors](/docs/env#options)
+- [Vite: Env variables and modes](https://vite.dev/guide/env-and-mode)
