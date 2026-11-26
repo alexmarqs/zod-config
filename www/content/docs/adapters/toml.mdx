@@ -1,0 +1,55 @@
+---
+title: TOML adapter
+description: Load configuration from a TOML file.
+icon: Toml
+---
+
+Loads the configuration from a `toml` file.
+
+## Install
+
+This adapter needs the `smol-toml` peer dependency, if you don't have it already:
+
+```package-install
+smol-toml
+```
+
+The TOML adapter is synchronous, so it also works with [`loadConfigSync`](/docs/guides/sync-loading).
+
+## Usage
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { tomlAdapter } from 'zod-config/toml-adapter';
+import path from 'path';
+
+const schemaConfig = z.object({
+  MY_APP_PORT: z.string().regex(/^\d+$/),
+  MY_APP_HOST: z.string(),
+});
+
+const filePath = path.join(__dirname, 'config.toml');
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: tomlAdapter({ path: filePath }),
+});
+
+// using filter regex to match only the keys we need
+const customConfig = await loadConfig({
+  schema: schemaConfig,
+  adapters: tomlAdapter({
+    path: filePath,
+    regex: /^MY_APP_/,
+  }),
+});
+```
+
+## Options
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `path` | `string` | Path to the TOML file. Required. |
+
+Also accepts the [shared adapter options](/docs/adapters#shared-adapter-options): `regex`, `silent`, `keyMatching` and `transform`.

@@ -1,0 +1,66 @@
+---
+title: TanStack Start
+description: Type-safe environment variables for TanStack Start with the VITE_ prefix.
+icon: TanStack
+---
+
+TanStack Start builds with Vite, so use the root `zod-config` export with `clientPrefix: "VITE_"`.
+
+## Define the schema
+
+```ts title="src/env.ts"
+import { loadEnvConfig } from 'zod-config';
+import { z } from 'zod';
+
+export const env = loadEnvConfig({
+  clientPrefix: 'VITE_',
+  server: {
+    DATABASE_URL: z.url(),
+  },
+  client: {
+    VITE_APP_NAME: z.string(),
+  },
+  runtimeEnv: import.meta.env,
+});
+```
+
+Client code can only read `VITE_`-prefixed variables. On the server, `server` variables are read from `runtimeEnv` first, then `process.env`. TanStack Start loads your `.env` files automatically.
+
+## Validate when Vite starts
+
+By default, the environment is validated when `env.ts` is first imported. To stop `vite dev` and `vite build` on a missing or invalid variable, add the [`zodConfigEnv` plugin](/docs/env/vite#validate-when-vite-starts) to `vite.config.ts`:
+
+```ts title="vite.config.ts"
+import { tanstackStart } from '@tanstack/react-start/plugin/vite';
+import { defineConfig } from 'vite';
+import { zodConfigEnv } from 'zod-config/vite';
+
+export default defineConfig({
+  plugins: [zodConfigEnv(), tanstackStart()],
+});
+```
+
+## Read server variables in server functions
+
+Read `server` variables inside `createServerFn` handlers (or server routes and middleware). Route loaders also run in the browser, where server values are never available, so reading one there throws.
+
+```ts
+import { createServerFn } from '@tanstack/react-start';
+import { env } from './env';
+
+export const getUsers = createServerFn().handler(async () => {
+  const db = connect(env.DATABASE_URL); // your database client; runs on the server only
+  return db.users.findMany();
+});
+```
+
+A loader that needs server data calls the server function.
+
+## Runtimes that inject variables per request
+
+`loadEnvConfig` reads the environment once, when `env.ts` is first imported. On runtimes that inject variables per request, such as Cloudflare Workers, TanStack Start's docs recommend reading `process.env` inside each handler instead of at module scope. Check how your deployment target provides variables before relying on a module-level `env`.
+
+## See also
+
+- [Options and errors](/docs/env#options)
+- [TanStack Start: Environment variables](https://tanstack.com/start/latest/docs/framework/react/guide/environment-variables)

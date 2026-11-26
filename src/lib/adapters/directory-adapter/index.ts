@@ -1,9 +1,8 @@
 import assert from "node:assert";
 import path from "node:path";
-
-import { deepMerge, filteredData } from "../../utils";
 import type { Adapter, BaseAdapterProps } from "../../../types";
-import { getExtensionToAdapterFactoryMap, type AdapterSpecifier } from "./adapter-specifiers";
+import { deepMerge, filteredData } from "../../utils";
+import { type AdapterSpecifier, getExtensionToAdapterFactoryMap } from "./adapter-specifiers";
 import { getAllowedFilenames } from "./allowed-filenames";
 import {
   type ConfigResolutionResult,

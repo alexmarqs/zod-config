@@ -1,0 +1,59 @@
+---
+title: JSON5 adapter
+description: Load configuration from a JSON5 file.
+icon: Json
+---
+
+Loads the configuration from a `json5` file.
+
+## Install
+
+This adapter needs the `json5` peer dependency, if you don't have it already:
+
+```package-install
+json5
+```
+
+The JSON5 adapter is synchronous, so it also works with [`loadConfigSync`](/docs/guides/sync-loading).
+
+## Usage
+
+```json5 title="config.json5"
+{
+  // Server settings
+  host: 'localhost', // Single quotes + unquoted key
+  port: 3000, // Trailing comma
+  allowedIPs: [
+    '192.168.0.1',
+    '10.0.0.1', // Local access
+  ],
+}
+```
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { json5Adapter } from 'zod-config/json5-adapter';
+import path from 'path';
+
+const filePath = path.join(__dirname, 'config.json5');
+
+const schemaConfig = z.object({
+  host: z.string(),
+  port: z.number(),
+  allowedIPs: z.array(z.string()),
+});
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: json5Adapter({ path: filePath }),
+});
+```
+
+## Options
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `path` | `string` | Path to the JSON5 file. Required. |
+
+Also accepts the [shared adapter options](/docs/adapters#shared-adapter-options): `regex`, `silent`, `keyMatching` and `transform`.

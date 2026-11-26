@@ -1,11 +1,11 @@
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
+import type { SSMClient } from "@aws-sdk/client-ssm";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod/v4";
 import { awsSsmAdapter } from "@/lib/adapters/aws-ssm-adapter";
 import { envAdapter } from "@/lib/adapters/env-adapter";
 import { loadConfig } from "@/lib/config";
-import type { SSMClient } from "@aws-sdk/client-ssm";
-import { createServer } from "node:http";
-import type { AddressInfo } from "node:net";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { z } from "zod/v4";
 
 const createClient = (response: () => Promise<unknown>) => {
   const send = vi.fn(response);

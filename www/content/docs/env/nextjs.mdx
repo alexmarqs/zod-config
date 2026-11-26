@@ -1,0 +1,155 @@
+---
+title: Next.js
+description: Type-safe environment variables for Next.js with zod-config/nextjs.
+icon: Nextjs
+---
+
+`zod-config/nextjs` fixes the client prefix to `NEXT_PUBLIC_`.
+
+## Define the schema
+
+```ts twoslash title="src/env.ts"
+import { loadEnvConfig } from 'zod-config/nextjs';
+import { z } from 'zod';
+
+export const env = loadEnvConfig({
+  // server-only, read from process.env
+  server: {
+    DATABASE_URL: z.url(), // Zod 3: z.string().url()
+    PORT: z.coerce.number().default(3000),
+  },
+  // available in the browser, keys must start with NEXT_PUBLIC_
+  client: {
+    NEXT_PUBLIC_APP_URL: z.url(),
+  },
+  // read on both sides, without the prefix
+  shared: {
+    NODE_ENV: z.enum(['development', 'test', 'production']),
+  },
+  // one entry per client and shared key, so Next.js can inline the values
+  runtimeEnv: {
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NODE_ENV: process.env.NODE_ENV,
+  },
+});
+```
+
+`runtimeEnv` needs one entry per `client` and `shared` key, written as `process.env.NAME`: Next.js only inlines a variable into the browser bundle where the code writes it out in full. The types check that every one is listed.
+
+## Use it
+
+```ts
+import { env } from '@/env';
+
+env.PORT; // number
+env.NEXT_PUBLIC_APP_URL; // string, on the server and in the browser
+env.DATABASE_URL; // string on the server, throws in the browser
+```
+
+An invalid environment throws an `Error` that lists each invalid variable and why. See [errors and options](/docs/env#errors).
+
+## Validate when Next.js starts
+
+By default, `env.ts` is checked the first time it is imported, so `next dev` starts even with a missing variable and only fails when a page uses it. To check it when `next dev` or `next build` starts, choose **one** of these options.
+
+<Tabs items={['Import the file', 'Wrap the config', 'Run it with jiti']}>
+  <Tab value="Import the file">
+
+With `next.config.ts` and no path aliases such as `@/` in `env.ts`. Nothing to install.
+
+```ts title="next.config.ts"
+import './src/env';
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {};
+
+export default nextConfig;
+```
+
+  </Tab>
+  <Tab value="Wrap the config">
+
+With `next.config.js` / `.mjs`, or path aliases in `env.ts`. The wrapper finds `env.ts` in `src/` or the project root, runs it with [jiti](https://github.com/unjs/jiti), and returns your config unchanged. Path aliases come from the `paths` of `tsconfig.json`.
+
+```ts twoslash title="next.config.mjs"
+import { withZodConfigEnv } from 'zod-config/nextjs/config';
+
+export default withZodConfigEnv({
+  // your Next.js config
+});
+```
+
+  </Tab>
+  <Tab value="Run it with jiti">
+
+For the same cases as the wrapper, without it.
+
+```ts title="next.config.mjs"
+import { createJiti } from 'jiti';
+
+await createJiti(import.meta.url, { tsconfigPaths: true }).import('./src/env.ts');
+
+export default {
+  // your Next.js config
+};
+```
+
+  </Tab>
+</Tabs>
+
+- `next build` fails before compiling, with the same `Invalid environment variables` message.
+- `next dev` reports the error and exits at startup.
+- Values from `.env` files work: Next.js loads them before reading the config.
+- It works together with [`skipValidation`](#building-without-secrets): with `SKIP_ENV_VALIDATION=true`, the build still runs.
+
+To use the wrapper or jiti by hand, install `jiti` as a regular dependency, since `next start` needs it too:
+
+```package-install
+jiti
+```
+
+### Deploying
+
+`next start` reads `next.config` too, so with any of the three options it validates again at start, and `env.ts` (plus `jiti`, for the wrapper) must be among the deployed files. With `output: "standalone"`, the server does not read `next.config` at start: it needs neither, and the environment is validated on the first request that imports `env.ts`.
+
+### Monorepos
+
+The wrapper looks for `env.ts` from the working directory. When you run `next build apps/web` from the repository root, pass an absolute path:
+
+```ts twoslash title="apps/web/next.config.mjs"
+import { fileURLToPath } from 'node:url';
+import { withZodConfigEnv } from 'zod-config/nextjs/config';
+
+export default withZodConfigEnv(
+  {},
+  { file: fileURLToPath(new URL('./src/env.ts', import.meta.url)) },
+);
+```
+
+jiti and `tsconfig.json` are then taken from the package that holds that file.
+
+## Building without secrets
+
+When secrets are not available during `next build`, skip validation for the build:
+
+```bash
+SKIP_ENV_VALIDATION=true next build
+```
+
+```ts
+export const env = loadEnvConfig({
+  // ...
+  skipValidation: process.env.SKIP_ENV_VALIDATION === 'true',
+});
+```
+
+With `skipValidation`, raw values are returned without validation, coercion, transforms or defaults. The inferred types still describe the validated output, so they may not match the values.
+
+<Callout type="warn">
+  Render pages that read these secrets at request time, for example with `await connection()` from `next/server`. Next.js renders static pages once, during `next build`. With validation skipped, a static page that reads a missing secret saves `undefined` into its HTML, and no error is shown.
+</Callout>
+
+## See also
+
+- [Coming from T3 Env or similar](/docs/env/from-t3-env)
+- [Next.js: Environment variables](https://nextjs.org/docs/app/guides/environment-variables)

@@ -1,0 +1,60 @@
+---
+title: Script adapter
+description: Load configuration from a TypeScript, JavaScript or JSON file.
+icon: TypeScript
+---
+
+Loads configuration from TypeScript (`.ts`), JavaScript (`.js`) or JSON (`.json`) files. The `.ts` and `.js` files must export a default object with the configuration data. Relative paths resolve from the working directory.
+
+## Install
+
+No extra dependency for `.js` and `.json` files. The script adapter is asynchronous, so use it with `loadConfig`.
+
+### TypeScript files
+
+`.ts` files load with Node's built-in type stripping (Node 22.18 and later). If that fails, they load with [jiti](https://github.com/unjs/jiti) instead, for example:
+
+- on older Node versions;
+- with syntax that type stripping does not support, such as `enum`;
+- with extensionless imports (`import { db } from './db'`);
+- with path aliases from `tsconfig.json`.
+
+To use this fallback, install `jiti`, version 2 or later (path aliases need 2.7 or later), if you don't have it already:
+
+```package-install
+jiti
+```
+
+## Usage
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { scriptAdapter } from 'zod-config/script-adapter';
+import path from 'path';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+// config.ts might contain: export default { port: '3000', host: 'localhost' }
+const filePath = path.join(__dirname, 'config.ts');
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: scriptAdapter({
+    path: filePath,
+  }),
+});
+```
+
+## Options
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `path` | `string` | Path to the `.ts`, `.js` or `.json` file, absolute or relative to the working directory. Required. |
+
+Also accepts the [shared adapter options](/docs/adapters#shared-adapter-options): `regex`, `silent`, `keyMatching` and `transform`.
+
+To load several files by environment, combine it with the [directory adapter](/docs/adapters/directory).

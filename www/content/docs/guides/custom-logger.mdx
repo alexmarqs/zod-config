@@ -1,0 +1,30 @@
+---
+title: Custom logger
+description: Send Zod Config's warnings to your own logger.
+icon: ScrollText
+---
+
+Zod Config logs a warning when an adapter fails. By default it uses `console`. Pass a `logger` to send these messages somewhere else:
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig, type Logger } from 'zod-config';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const customLogger: Logger = {
+  warn: (message) => {
+    // your custom implementation, e.g., log to a file or call an external service
+  },
+};
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  logger: customLogger,
+});
+```
+
+To turn the warnings off instead, use [silent mode](/docs/guides/silent-mode).

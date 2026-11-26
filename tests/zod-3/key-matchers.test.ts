@@ -1,6 +1,6 @@
+import { describe, expect, it } from "vitest";
 import { z } from "zod/v3";
 import { applyKeyMatching, getShapeV3 } from "../../src/lib/utils";
-import { describe, it, expect } from "vitest";
 
 describe("applyKeyMatching", () => {
   it("should match keys in a simple object", () => {

@@ -1,0 +1,32 @@
+---
+title: Lenient key matching
+description: Match keys that differ in casing or separators, such as MY_HOST and myHost.
+icon: CaseSensitive
+---
+
+If your sources use a different casing or format than your schema, enable `keyMatching: 'lenient'`. This helps with environment variables, which usually use `UPPER_SNAKE_CASE`, and with systems that use other naming conventions. By default, key matching is `strict`: keys must match exactly.
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { envAdapter } from 'zod-config/env-adapter';
+
+const schemaConfig = z.object({
+  myHost: z.string(),
+});
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  keyMatching: 'lenient',
+  adapters: envAdapter({
+    // keyMatching: 'lenient' --> it can also be applied to the adapter level if you want to use a different key matching for a specific adapter
+  }),
+});
+```
+
+In this example, the key `MYHOST`, `MY_HOST` or `my-host` from the adapter is matched to `myHost` in your schema.
+
+Lenient matching compares keys after:
+
+1. removing all non-alphanumeric characters (like underscores, hyphens and dots);
+2. converting them to lowercase.

@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod/v3";
 import { loadConfig, loadConfigSync } from "@/index";
-import { jsonAdapter } from "@/lib/adapters/json-adapter";
 import { envAdapter } from "@/lib/adapters/env-adapter";
-import type { Adapter, SyncAdapter, Logger } from "@/types";
+import { jsonAdapter } from "@/lib/adapters/json-adapter";
+import type { Adapter, Logger, SyncAdapter } from "@/types";
 
 describe("Resolved Config Tests", () => {
   describe("Silent option resolution", () => {

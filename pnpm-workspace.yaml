@@ -1,0 +1,11 @@
+# The library is the root package (pnpm always includes it); the docs site in www/ is a workspace member.
+packages:
+  - www
+
+# pnpm 10 blocks dependency install scripts unless allowed here.
+allowBuilds:
+  "@biomejs/biome": true
+  esbuild: true
+  lefthook: true # installs the git hooks
+  sharp: true
+  workerd: true # used by wrangler (docs deploy)

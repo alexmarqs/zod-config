@@ -1,8 +1,8 @@
-import { awsSsmAdapter } from "@/lib/adapters/aws-ssm-adapter";
-import { loadConfig } from "@/lib/config";
 import type { SSMClient } from "@aws-sdk/client-ssm";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4-mini";
+import { awsSsmAdapter } from "@/lib/adapters/aws-ssm-adapter";
+import { loadConfig } from "@/lib/config";
 
 const createClient = (response: unknown) =>
   ({ send: vi.fn(async () => response) }) as unknown as SSMClient;

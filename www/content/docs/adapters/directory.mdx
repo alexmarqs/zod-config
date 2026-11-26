@@ -1,0 +1,94 @@
+---
+title: Directory adapter
+description: Load configuration from a directory of files, ordered by environment and host.
+icon: FolderTree
+---
+
+Loads configuration from a directory containing multiple configuration files, usually together with the [script adapter](/docs/adapters/script) or another file adapter. Inspired by [node-config](https://github.com/node-config/node-config/wiki/Configuration-Files#file-load-order), the files in the config directory are loaded in the following order:
+
+```txt
+default.EXT
+default-{instance}.EXT
+{deployment}.EXT
+{deployment}-{instance}.EXT
+{short_hostname}.EXT
+{short_hostname}-{instance}.EXT
+{short_hostname}-{deployment}.EXT
+{short_hostname}-{deployment}-{instance}.EXT
+{hostname}.EXT
+{hostname}-{instance}.EXT
+{hostname}-{deployment}.EXT
+{hostname}-{deployment}-{instance}.EXT
+local.EXT
+local-{instance}.EXT
+local-{deployment}.EXT
+local-{deployment}-{instance}.EXT
+```
+
+Where:
+
+- `EXT` is the file extension, e.g. `ts`, `js`, `json`;
+- `instance` is the `NODE_APP_INSTANCE` environment variable;
+- `deployment` is the `NODE_CONFIG_ENV` or `NODE_ENV` environment variable;
+- `hostname` is the `HOST` or `HOSTNAME` environment variable, or `os.hostname()`;
+- `short_hostname` is the first part of the hostname.
+
+This adapter is useful when you keep the configuration for each environment in version control.
+
+## Install
+
+No extra dependency. The directory adapter is asynchronous, so use it with `loadConfig`.
+
+## Usage
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { directoryAdapter } from 'zod-config/directory-adapter';
+import { scriptAdapter } from 'zod-config/script-adapter';
+import path from 'path';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const directories = [path.join(__dirname, 'config-dir')];
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: directoryAdapter({
+    paths: directories,
+    adapters: [
+      {
+        // Restrict adapter to handle only ts files
+        extensions: ['.ts'],
+        // Use the scriptAdapter for handling .ts files
+        adapterFactory: (filePath: string) =>
+          scriptAdapter({
+            path: filePath,
+          }),
+      },
+      // {
+      //  Add here other adapters for other file types if needed
+      // }
+    ],
+  }),
+});
+```
+
+## Options
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `paths` | `string \| string[]` | Directory or directories to load files from. Required. |
+| `adapters` | `AdapterSpecifier \| AdapterSpecifier[]` | Which adapter reads which file extensions. Required. |
+
+Each `AdapterSpecifier` has:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `extensions` | `string[]` | File extensions this adapter handles, e.g. `['.ts']`. An extension can appear in only one specifier. |
+| `adapterFactory` | `(path: string) => Adapter` | Creates the adapter for one file. |
+
+Also accepts the [shared adapter options](/docs/adapters#shared-adapter-options): `regex`, `silent`, `keyMatching` and `transform`.

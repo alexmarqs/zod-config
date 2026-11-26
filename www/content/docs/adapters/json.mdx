@@ -1,0 +1,49 @@
+---
+title: JSON adapter
+description: Load configuration from a JSON file.
+icon: Json
+---
+
+Loads the configuration from a `json` file.
+
+## Install
+
+No extra dependency. The JSON adapter is synchronous, so it also works with [`loadConfigSync`](/docs/guides/sync-loading).
+
+## Usage
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { jsonAdapter } from 'zod-config/json-adapter';
+import path from 'path';
+
+const schemaConfig = z.object({
+  MY_APP_PORT: z.string().regex(/^\d+$/),
+  MY_APP_HOST: z.string(),
+});
+
+const filePath = path.join(__dirname, 'config.json');
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: jsonAdapter({ path: filePath }),
+});
+
+// using filter regex to match only the keys we need
+const customConfig = await loadConfig({
+  schema: schemaConfig,
+  adapters: jsonAdapter({
+    path: filePath,
+    regex: /^MY_APP_/,
+  }),
+});
+```
+
+## Options
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `path` | `string` | Path to the JSON file. Required. |
+
+Also accepts the [shared adapter options](/docs/adapters#shared-adapter-options): `regex`, `silent`, `keyMatching` and `transform`.

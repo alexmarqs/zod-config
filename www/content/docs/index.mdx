@@ -1,0 +1,97 @@
+---
+title: Getting started
+description: Install Zod Config and load your first type-safe configuration.
+icon: Rocket
+---
+
+Zod Config loads configuration from one or more sources (environment variables, files, AWS, your own) and validates it with a [Zod](https://zod.dev) schema, so the result is fully typed.
+
+## Install
+
+```package-install
+zod-config zod
+```
+
+## Quick start
+
+Zod Config provides both asynchronous and synchronous APIs for loading configuration:
+
+- **`loadConfig`**: asynchronous function that takes a Zod object schema and returns a promise resolving to the validated configuration object.
+- **`loadConfigSync`**: synchronous version that takes the same options but returns the result directly, without a promise.
+
+<Callout>
+  `loadConfigSync` only supports synchronous adapters and schemas. See [Synchronous loading](/docs/guides/sync-loading).
+</Callout>
+
+By default, Zod Config loads the configuration from `process.env`, so you don't need to provide any adapter:
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const config = await loadConfig({
+  schema: schemaConfig,
+});
+
+// config is now type safe!
+console.log(config.port);
+//                 ^?
+```
+
+To read from other sources, pass one or more [adapters](/docs/adapters). Built-in adapters are imported from `zod-config/<adapter-name>`:
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { envAdapter } from 'zod-config/env-adapter';
+
+const schema = z.object({
+  name: z.string(),
+});
+
+const config = await loadConfig({
+  schema,
+  adapters: [envAdapter()],
+});
+```
+
+## Options
+
+The options for `loadConfig` and `loadConfigSync`:
+
+| Property | Type | Description | Required | Global | Adapter |
+| --- | --- | --- | --- | --- | --- |
+| `schema` | `AnyZodObject` | A Zod object schema to validate the configuration. | ✅ | N/A | N/A |
+| `adapters` | `Array<Adapter \| SyncAdapter> \| Adapter \| SyncAdapter` | Adapter(s) to load the configuration from. If not provided, `process.env` is used. | ❌ | N/A | N/A |
+| `onError` | `(error: InferredErrorConfig<T>) => void` | A callback called when an error occurs. See [Callbacks](/docs/guides/callbacks). | ❌ | ✅ | ❌ |
+| `onSuccess` | `(data: InferredDataConfig<S>) => void` | A callback called when the configuration is loaded successfully. | ❌ | ✅ | ❌ |
+| `logger` | `Logger` | A custom logger used to log messages. Defaults to `console`. See [Custom logger](/docs/guides/custom-logger). | ❌ | ✅ | ❌ |
+| `keyMatching` | `'strict' \| 'lenient'` | How to match keys between the schema and the adapters' data. Defaults to `strict`. See [Lenient key matching](/docs/guides/lenient-key-matching). | ❌ | ✅ | ✅ |
+| `silent` | `boolean` | Whether to suppress errors. Defaults to `false`. See [Silent mode](/docs/guides/silent-mode). | ❌ | ✅ | ✅ |
+| `transform` | `(obj: { key: string; value: unknown }) => { key: string; value: unknown } \| false` | Transforms key-value pairs before processing. Returning `false` drops the pair. See [Transform](/docs/guides/transform). | ❌ | ✅ | ✅ |
+
+Options marked as both "Global" and "Adapter" can be set at the global level (affecting all adapters) or on an individual adapter (affecting only that adapter). When both are set, the adapter-level option takes precedence. Adapter-specific options are listed on each [adapter's page](/docs/adapters).
+
+The package also exports the types you need to [write your own adapters](/docs/adapters/custom). Some options are shared between the global config and the adapter config, so your adapters can accept them too.
+
+## Compatibility
+
+Zod Config supports both [Zod 4](https://zod.dev/v4) and [Zod 3](https://v3.zod.dev/) out of the box. Make sure you have `zod-config@^1.0.0` and `zod@^3.25.1` or `zod@^4.0.0`.
+
+<Callout type="warn">
+  Zod 3 support is deprecated and will be removed in the next major version. Use Zod 4 or Zod 4 Mini for new code.
+</Callout>
+
+```ts
+// Using Zod 4
+import { z } from 'zod/v4'; // for ^4.0.0 zod versions, you can import from "zod" instead
+// Using Zod 4 Mini
+import { z } from 'zod/v4-mini'; // for ^4.0.0 zod versions, you can import from "zod/mini" instead
+// Using Zod 3
+import { z } from 'zod/v3';
+```

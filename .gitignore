@@ -136,3 +136,5 @@ dist
 docs/**
 
 .mcp.json
+.playwright-mcp
+.unslop-ui

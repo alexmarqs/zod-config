@@ -1,0 +1,52 @@
+---
+title: Load once
+description: Cache your configuration instead of reading every source on each call.
+icon: Repeat1
+---
+
+`loadConfig` is stateless: it reads every configured source on each call. Caching is left to you. With remote sources such as AWS Secrets Manager or SSM, load the config once and reuse the result instead of calling `loadConfig` per request.
+
+If all your adapters are synchronous, call [`loadConfigSync`](/docs/guides/sync-loading) once at module scope and export the result.
+
+## Top-level await
+
+With ES modules, the simplest option is to export the result of a top-level `await loadConfig(...)` from a module such as `config.ts`. It loads once on first import (in AWS Lambda, during the init phase).
+
+Startup fails when the schema rejects the result. An adapter read error is only a warning: `loadConfig` continues with empty data from that adapter, so a schema of optional fields or defaults still starts.
+
+## Load on first use
+
+To defer loading until the config is first needed, cache the load promise (add a TTL yourself if needed):
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { awsSecretsManagerAdapter } from 'zod-config/aws-secrets-manager-adapter';
+
+const schema = z.object({ DB_HOST: z.string(), DB_PASSWORD: z.string() });
+
+let configPromise: Promise<z.infer<typeof schema>> | undefined;
+
+export const getConfig = () => {
+  configPromise ??= loadConfig({
+    schema,
+    adapters: awsSecretsManagerAdapter({ secretId: 'my-app/config' }),
+  }).catch((error) => {
+    configPromise = undefined; // cleared only when loadConfig throws
+    throw error;
+  });
+
+  return configPromise;
+};
+
+export const handler = async () => {
+  const config = await getConfig();
+  // ...
+};
+```
+
+The `.catch` runs only when `loadConfig` throws. Required fields with no defaults do that after an empty read, so the next call tries AWS again. If every field is optional or has a default, validation succeeds and those defaults stay cached until the process restarts.
+
+<Callout type="warn">
+  Leave out `onError` here: it swallows the validation error, so the cache is kept.
+</Callout>

@@ -1,9 +1,8 @@
-import { envAdapter } from "@/lib/adapters/env-adapter";
-import { loadConfig } from "@/lib/config";
-import {} from "node:fs/promises";
-import { inlineAdapter } from "../fixtures/utils-fixtures";
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
+import { envAdapter } from "@/lib/adapters/env-adapter";
+import { loadConfig } from "@/lib/config";
+import { inlineAdapter } from "../fixtures/utils-fixtures";
 
 describe("env adapter", () => {
   it("should return parsed data when schema is valid", async () => {

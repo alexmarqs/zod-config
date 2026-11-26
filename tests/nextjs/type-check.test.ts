@@ -1,8 +1,8 @@
-import { loadEnvConfig } from "@/nextjs";
 import { describe, expectTypeOf, it } from "vitest";
 import { z as z3 } from "zod/v3";
 import { z } from "zod/v4";
 import { z as zm } from "zod/v4-mini";
+import { loadEnvConfig } from "@/nextjs";
 
 // These functions are never called: the assertions are checked by `tsc` (pnpm type-check).
 

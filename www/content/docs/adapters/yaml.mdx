@@ -1,0 +1,55 @@
+---
+title: YAML adapter
+description: Load configuration from a YAML file.
+icon: Yaml
+---
+
+Loads the configuration from a `yaml` file.
+
+## Install
+
+This adapter needs the `yaml` peer dependency, if you don't have it already:
+
+```package-install
+yaml
+```
+
+The YAML adapter is synchronous, so it also works with [`loadConfigSync`](/docs/guides/sync-loading).
+
+## Usage
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { yamlAdapter } from 'zod-config/yaml-adapter';
+import path from 'path';
+
+const schemaConfig = z.object({
+  MY_APP_PORT: z.string().regex(/^\d+$/),
+  MY_APP_HOST: z.string(),
+});
+
+const filePath = path.join(__dirname, 'config.yaml');
+
+const config = await loadConfig({
+  schema: schemaConfig,
+  adapters: yamlAdapter({ path: filePath }),
+});
+
+// using filter regex to match only the keys we need
+const customConfig = await loadConfig({
+  schema: schemaConfig,
+  adapters: yamlAdapter({
+    path: filePath,
+    regex: /^MY_APP_/,
+  }),
+});
+```
+
+## Options
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `path` | `string` | Path to the YAML file. Required. |
+
+Also accepts the [shared adapter options](/docs/adapters#shared-adapter-options): `regex`, `silent`, `keyMatching` and `transform`.

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { applyDataTransformation } from "@/lib/utils/data-transformation";
 
 describe("applyTransformations", () => {

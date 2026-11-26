@@ -1,0 +1,21 @@
+---
+title: Landing page quick start
+---
+
+```ts twoslash title="config.ts"
+import { z } from "zod";
+import { loadConfig } from "zod-config";
+import { envAdapter } from "zod-config/env-adapter";
+import { jsonAdapter } from "zod-config/json-adapter";
+
+const config = await loadConfig({
+  schema: z.object({
+    port: z.coerce.number().default(3000),
+    databaseUrl: z.url(),
+  }),
+  adapters: [jsonAdapter({ path: "./config.json" }), envAdapter()],
+});
+
+config.port;
+//     ^?
+```

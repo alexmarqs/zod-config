@@ -1,5 +1,5 @@
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import * as os from "node:os";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as variables from "@/lib/adapters/directory-adapter/variables";
 

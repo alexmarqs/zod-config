@@ -1,0 +1,38 @@
+---
+title: Synchronous loading
+description: Use loadConfigSync when all your adapters are synchronous.
+icon: Timer
+---
+
+`loadConfig` is asynchronous to allow for asynchronous adapters. If you only use synchronous adapters, use `loadConfigSync`, which returns the configuration directly instead of a promise.
+
+These built-in adapters are synchronous and work with `loadConfigSync`:
+
+- [`envAdapter`](/docs/adapters/env)
+- [`jsonAdapter`](/docs/adapters/json)
+- [`json5Adapter`](/docs/adapters/json5)
+- [`yamlAdapter`](/docs/adapters/yaml)
+- [`tomlAdapter`](/docs/adapters/toml)
+- [`dotEnvAdapter`](/docs/adapters/dotenv)
+
+When you [write your own adapter](/docs/adapters/custom) for `loadConfigSync`, implement the `SyncAdapter` type instead of `Adapter`. The schema must be synchronous too (no async refinements or transforms).
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfigSync } from 'zod-config';
+import { envAdapter } from 'zod-config/env-adapter';
+import { jsonAdapter } from 'zod-config/json-adapter';
+import path from 'path';
+
+const schemaConfig = z.object({
+  port: z.string().regex(/^\d+$/),
+  host: z.string(),
+});
+
+const filePath = path.join(__dirname, 'config.json');
+
+const config = loadConfigSync({
+  schema: schemaConfig,
+  adapters: [jsonAdapter({ path: filePath }), envAdapter()],
+});
+```

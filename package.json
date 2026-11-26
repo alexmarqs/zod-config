@@ -12,8 +12,8 @@
     "build": "tsup",
     "prepublishOnly": "pnpm build",
     "type-check": "tsc --noEmit",
-    "format": "biome format ./src ./tests --write",
-    "lint": "biome lint ./src ./tests",
+    "lint": "biome check --write ./src ./tests",
+    "lint:ci": "biome ci ./src ./tests",
     "test": "vitest run --silent",
     "test:debug": "vitest run",
     "test:watch": "vitest",
@@ -165,7 +165,7 @@
   "bugs": {
     "url": "https://github.com/alexmarqs/zod-config/issues"
   },
-  "homepage": "https://github.com/alexmarqs/zod-config#readme",
+  "homepage": "https://zod-config.alexandremarques.io",
   "keywords": [
     "zod",
     "config",
@@ -197,7 +197,7 @@
   "devDependencies": {
     "@aws-sdk/client-secrets-manager": "^3.1152.0",
     "@aws-sdk/client-ssm": "^3.1152.0",
-    "@biomejs/biome": "1.7.3",
+    "@biomejs/biome": "2.6.8",
     "@changesets/cli": "2.30.0",
     "@types/node": "20.10.7",
     "dotenv": "16.4.1",
@@ -252,5 +252,5 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "packageManager": "pnpm@8.15.9"
+  "packageManager": "pnpm@10.34.9"
 }

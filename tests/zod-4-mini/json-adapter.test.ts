@@ -1,10 +1,10 @@
-import { jsonAdapter } from "@/lib/adapters/json-adapter";
-import { loadConfig } from "@/lib/config";
-import type { Logger } from "@/types";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4-mini";
+import { jsonAdapter } from "@/lib/adapters/json-adapter";
+import { loadConfig } from "@/lib/config";
+import type { Logger } from "@/types";
 
 describe("json adapter", () => {
   const testFilePath = path.join(__dirname, "test-json-adapter.json");

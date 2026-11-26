@@ -1,8 +1,8 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { withZodConfigEnv } from "@/nextjs-config";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { withZodConfigEnv } from "@/nextjs-config";
 
 const originalEnv = process.env;
 const source = path.resolve(__dirname, "../../src");

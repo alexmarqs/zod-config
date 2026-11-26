@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // must match the Worker name in the Cloudflare dashboard, or Workers Builds fails
+  "name": "zod-config-docs",
+  "compatibility_date": "2026-11-19",
+  // assets-only Worker: no script, Cloudflare serves the static export
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page"
+  },
+  // `wrangler deploy` creates the DNS record and certificate for this hostname
+  "routes": [{ "pattern": "zod-config.alexandremarques.io", "custom_domain": true }]
+}

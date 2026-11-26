@@ -1,0 +1,34 @@
+// Format with Biome on save. Without this, Zed falls back to Prettier, whose
+// defaults (80 columns) disagree with biome.json (100 columns).
+{
+  "languages": {
+    "JavaScript": {
+      "formatter": [
+        { "language_server": { "name": "biome" } },
+        { "code_action": "source.fixAll.biome" },
+        { "code_action": "source.organizeImports.biome" }
+      ]
+    },
+    "TypeScript": {
+      "formatter": [
+        { "language_server": { "name": "biome" } },
+        { "code_action": "source.fixAll.biome" },
+        { "code_action": "source.organizeImports.biome" }
+      ]
+    },
+    "TSX": {
+      "formatter": [
+        { "language_server": { "name": "biome" } },
+        { "code_action": "source.fixAll.biome" },
+        { "code_action": "source.organizeImports.biome" }
+      ]
+    },
+    "JSON": { "formatter": { "language_server": { "name": "biome" } } },
+    "JSONC": { "formatter": { "language_server": { "name": "biome" } } },
+    "CSS": {
+      // Tailwind's CSS server knows @theme, @apply, etc.; the default one flags them
+      "language_servers": ["tailwindcss-intellisense-css", "!vscode-css-language-server", "..."],
+      "formatter": { "language_server": { "name": "biome" } }
+    }
+  }
+}

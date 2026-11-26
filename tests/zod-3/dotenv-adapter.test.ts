@@ -1,10 +1,10 @@
-import { dotEnvAdapter } from "@/lib/adapters/dotenv-adapter";
-import { loadConfig } from "@/lib/config";
-import type { Logger } from "@/types";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { z } from "zod/v3";
+import { dotEnvAdapter } from "@/lib/adapters/dotenv-adapter";
+import { loadConfig } from "@/lib/config";
+import type { Logger } from "@/types";
 
 describe("dotenv adapter", () => {
   const testFilePath = path.join(__dirname, ".env.test");

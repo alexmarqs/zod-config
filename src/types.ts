@@ -17,26 +17,27 @@ export type ShapeConfig = z3.ZodRawShape | z.$ZodShape;
 
 /*
   Helper type for Zod v4 output inference that avoids infinite recursion.
-*/
+  */
 type ZodV4Output<T> = T extends z.$ZodType<any> ? z.infer<T> : never;
 
 /*
   This is a type that represents the data of the config.
   It can be a zod v3 data or a zod v4 data.
 */
-export type InferredDataConfig<S extends SchemaConfig> = S extends z3.ZodType<infer T>
-  ? T
-  : ZodV4Output<S>;
+export type InferredDataConfig<S extends SchemaConfig> =
+  S extends z3.ZodType<infer T> ? T : ZodV4Output<S>;
 
 /*
   This is a type that represents the error of the config.
   It can be a zod v3 error or a zod v4 error.
 */
-export type InferredErrorConfig<S extends SchemaConfig> = S extends z3.ZodType<infer T>
-  ? z3.ZodError<T>
-  : S extends z.$ZodType<infer U>
-    ? z.$ZodError<U>
-    : never;
+
+export type InferredErrorConfig<S extends SchemaConfig> =
+  S extends z3.ZodType<infer T>
+    ? z3.ZodError<T>
+    : S extends z.$ZodType<infer U>
+      ? z.$ZodError<U>
+      : never;
 
 /*
   Base adapter type
@@ -157,9 +158,10 @@ export type SharedConfigOptions = {
 /**
  * Transform type
  */
-export type Transform = (obj: { key: string; value: unknown }) =>
-  | { key: string; value: unknown }
-  | false;
+export type Transform = (obj: {
+  key: string;
+  value: unknown;
+}) => { key: string; value: unknown } | false;
 
 /**
  * Key matching type

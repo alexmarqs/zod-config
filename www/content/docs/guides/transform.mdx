@@ -1,0 +1,124 @@
+---
+title: Transform
+description: Rename, reshape or drop key-value pairs before they are validated.
+icon: Shuffle
+---
+
+The `transform` option modifies key-value pairs before the schema processes them. Use it to normalize data, filter out unwanted keys or change values. The function receives an object with `key` and `value`, and returns either a transformed object or `false` to drop the pair.
+
+`transform` can be set globally (all adapters) or on one adapter. When both are set, the adapter-level transform takes precedence.
+
+<Callout>
+  `transform` is the first step of the processing pipeline: it runs before key matching, the nesting separator and the other features.
+</Callout>
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig } from 'zod-config';
+import { envAdapter } from 'zod-config/env-adapter';
+
+const schema = z.object({
+  database: z.object({
+    host: z.string(),
+    port: z.string(),
+  }),
+  apiKey: z.string(),
+});
+
+// Global transform - applied to all adapters
+const config = await loadConfig({
+  schema,
+  transform: ({ key, value }) => {
+    // Drop sensitive keys
+    if (key.includes('SECRET')) {
+      return false;
+    }
+
+    // Transform keys to lowercase
+    return {
+      key: key.toLowerCase(),
+      value,
+    };
+  },
+  adapters: envAdapter({
+    customEnv: {
+      DATABASE_HOST: 'localhost',
+      DATABASE_PORT: '5432',
+      API_KEY: 'my-key',
+      SECRET_TOKEN: 'should-be-dropped',
+    },
+    nestingSeparator: '_',
+  }),
+});
+
+// Adapter-level transform - applied only to this adapter
+const configWithAdapterTransform = await loadConfig({
+  schema,
+  adapters: envAdapter({
+    customEnv: {
+      MY_APP_DATABASE_HOST: 'localhost',
+      MY_APP_DATABASE_PORT: '5432',
+      MY_APP_API_KEY: 'my-key',
+      OTHER_VAR: 'ignored',
+    },
+    transform: ({ key, value }) => {
+      // Only process keys that start with 'MY_APP_'
+      if (!key.startsWith('MY_APP_')) {
+        return false;
+      }
+
+      // Remove the prefix and convert to lowercase
+      const cleanKey = key.replace(/^MY_APP_/, '').toLowerCase();
+
+      return {
+        key: cleanKey,
+        value,
+      };
+    },
+    nestingSeparator: '_',
+  }),
+});
+
+// Complex transformation with multiple operations
+const complexConfig = await loadConfig({
+  schema: z.object({
+    api: z.object({
+      key: z.string(),
+      timeout: z.string(),
+    }),
+    database: z.object({
+      host: z.string(),
+      port: z.string(),
+    }),
+  }),
+  adapters: envAdapter({
+    customEnv: {
+      API_KEY: 'secret123',
+      API_TIMEOUT: '30000',
+      DB_HOST: 'localhost',
+      DB_PORT: '5432',
+      CACHE_TTL: '3600',
+    },
+    transform: ({ key, value }) => {
+      // Transform different prefixes to nested structure
+      if (key.startsWith('API_')) {
+        return {
+          key: key.replace('API_', 'api.').toLowerCase(),
+          value,
+        };
+      }
+
+      if (key.startsWith('DB_')) {
+        return {
+          key: key.replace('DB_', 'database.').toLowerCase(),
+          value,
+        };
+      }
+
+      // Drop other keys
+      return false;
+    },
+    nestingSeparator: '.',
+  }),
+});
+```

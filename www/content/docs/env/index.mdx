@@ -1,0 +1,118 @@
+---
+title: Type-safe environment variables
+description: Validate server and client environment variables with Zod in Next.js, Vite, Astro and TanStack Start.
+---
+
+Validate environment variables with Zod in apps that have a browser bundle, such as Next.js, Vite, Astro and TanStack Start. `loadEnvConfig` gives you:
+
+- separate `server` and `client` schemas, plus `shared` for variables read on both sides, such as `NODE_ENV`;
+- public prefix enforcement: client keys must start with the framework's public prefix, server keys must not;
+- protection against reading server variables in the browser.
+
+You write one env file. It is validated, synchronously, the first time it is imported. Next.js and Vite also get an optional helper that validates it when the dev server or the build starts.
+
+<Cards>
+  <Card title="Next.js" href="/docs/env/nextjs" />
+  <Card title="Vite" href="/docs/env/vite" />
+  <Card title="Astro" href="/docs/env/astro" />
+  <Card title="TanStack Start" href="/docs/env/tanstack-start" />
+</Cards>
+
+## Entry points
+
+| Import | Exports | Notes |
+| --- | --- | --- |
+| `zod-config/nextjs` | `loadEnvConfig` | Prefix fixed to `NEXT_PUBLIC_`. `runtimeEnv` needs one entry per `client` and `shared` key, checked by the types. |
+| `zod-config` | `loadEnvConfig` | Pass the prefix as `clientPrefix`, e.g. `"VITE_"` or `"PUBLIC_"`. `runtimeEnv` can be any object, e.g. `import.meta.env`. |
+| `zod-config/nextjs/config` | `withZodConfigEnv` | Node.js only. Validates the env file when Next.js reads its config. |
+| `zod-config/vite` | `zodConfigEnv` | Vite plugin. Validates the env file when `vite dev` or `vite build` starts. |
+
+```ts twoslash
+import { z } from 'zod';
+import { loadEnvConfig } from 'zod-config';
+
+export const env = loadEnvConfig({
+  clientPrefix: 'PUBLIC_',
+  server: {
+    DATABASE_URL: z.url(),
+  },
+  client: {
+    PUBLIC_API_URL: z.url(),
+  },
+  shared: {
+    NODE_ENV: z.enum(['development', 'test', 'production']),
+  },
+  runtimeEnv: {
+    PUBLIC_API_URL: process.env.PUBLIC_API_URL,
+    NODE_ENV: process.env.NODE_ENV,
+  },
+});
+
+env.DATABASE_URL;
+//  ^?
+```
+
+## Where values come from
+
+- **`server` variables** are read from `runtimeEnv` first, then `process.env`, and only on the server. In the browser they are never read, and accessing one throws.
+- **`client` variables** are read from `runtimeEnv` only, on the server and in the browser.
+- **`shared` variables** are read like `server` variables on the server, and from `runtimeEnv` in the browser. They don't need the public prefix.
+
+The server is detected with `typeof window === "undefined"`. Override it with `isServer`, e.g. in jsdom tests.
+
+### Why `runtimeEnv`?
+
+In the browser there is no `process.env` to read from. Bundlers put public values in the code themselves: Next.js replaces each `process.env.NEXT_PUBLIC_*` that the code writes out in full, and Vite puts them on `import.meta.env`, which only exists in your app's files. So your env file has to hand them over. Server values are read from `process.env` and don't need to be listed.
+
+## When validation runs
+
+The environment is validated when the file that calls `loadEnvConfig` is first imported. In a single-page app, that is in the browser, when the app loads. To fail as soon as the dev server or the build starts:
+
+| Framework | How |
+| --- | --- |
+| Next.js | Import the env file in `next.config.ts`, or wrap the config with [`withZodConfigEnv`](/docs/env/nextjs#validate-when-nextjs-starts) |
+| Vite, TanStack Start, Astro | Add the [`zodConfigEnv` plugin](/docs/env/vite#validate-when-vite-starts) |
+
+The plugin and the wrapper find `env.ts` (or `env.mts`, `env.js`, …) in `src/`, then in the project root, and run it with [jiti](https://github.com/unjs/jiti). If the file is somewhere else, pass its path:
+
+```ts
+zodConfigEnv({ file: 'config/env.ts' });
+withZodConfigEnv(nextConfig, { file: 'config/env.ts' });
+```
+
+### What to know about the env file
+
+- **It runs in Node.js** when the plugin or the wrapper loads it. Keep it to the schema and `loadEnvConfig`: an import such as `server-only`, or code that needs the browser, fails there.
+- **jiti** is an optional peer dependency, version 2 or later. Path aliases from `tsconfig.json` need jiti 2.7 or later, and only the root `tsconfig.json` is read, not files it references such as `tsconfig.app.json`. On Vite, `resolve.alias` works too.
+- **Vite restarts** the dev server when `env.ts` or a `.env` file changes, not when a file that `env.ts` imports changes.
+
+## Errors
+
+An invalid environment throws an `Error` that lists each invalid variable and why:
+
+```txt
+Error: Invalid environment variables:
+  DATABASE_URL: Invalid input: expected string, received undefined
+  PORT: Invalid input: expected number, received NaN
+```
+
+Misconfiguration also throws, before any validation: a `client` key without the prefix, a `server` key with it, the same key in two groups, `client` or `shared` keys without `runtimeEnv` or (on `zod-config`) `client` keys without `clientPrefix`, or no keys at all.
+
+## Options
+
+| Option | Description |
+| --- | --- |
+| `server`, `client` | Objects of Zod schemas. At least one group is required. |
+| `shared` | Variables read on the server and in the browser, without the public prefix, e.g. `NODE_ENV`. In the browser they come from `runtimeEnv`: list them on Next.js (`NODE_ENV: process.env.NODE_ENV`), or add them next to `import.meta.env` on Vite (`runtimeEnv: { ...import.meta.env, NODE_ENV: process.env.NODE_ENV }`). |
+| `clientPrefix` | `zod-config` only. Required and non-empty when `client` has keys. |
+| `runtimeEnv` | Where values come from. Required when `client` or `shared` has keys. With `zod-config/nextjs`, list each client and shared key as `process.env.NAME`; server keys are optional. On the server, entries take priority over `process.env`, which provides the rest. |
+| `onError` | `(error) => void`, called with the Zod error (use `error.issues`) before the `Error` above is thrown. Throw from it to replace that error. Unlike `loadConfig`'s `onError`, it does not swallow the failure. |
+| `skipValidation` | Return raw values without running Zod, e.g. `skipValidation: process.env.SKIP_ENV_VALIDATION === "true"` when secrets are not available while building. Defaults, coercion and transforms are not applied, so the inferred types may not match the values. Reading server variables in the browser still throws. |
+| `isServer` | Override server detection (default `typeof window === "undefined"`), e.g. in jsdom tests. |
+| `strict` | `zod-config` only. Type-checks that `runtimeEnv` lists every `server`, `client` and `shared` key and, when written inline, no undeclared key. For bundlers that only inline variables written out in full (e.g. `process.env.EXPO_PUBLIC_API_URL` in Expo). Type-level only. |
+
+## When not to use it
+
+`loadEnvConfig` is for apps with a browser bundle. For a server without one, use [`loadConfig`](/docs) or [`loadConfigSync`](/docs/guides/sync-loading) with the [env adapter](/docs/adapters/env), or any other adapter.
+
+SvelteKit 3 is not supported: it has its own `$app/env` module and reserves `src/env.ts`.

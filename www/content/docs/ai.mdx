@@ -1,0 +1,52 @@
+---
+title: AI skills
+description: Give your coding agent up-to-date zod-config docs, with an agent skill, Context7 or llms.txt.
+icon: Bot
+---
+
+Coding agents often guess an API from older training data. Give yours the current zod-config docs in one of these ways. Each one works on its own: pick the one that fits your agent.
+
+## Agent skill
+
+The repository ships an [agent skill](https://github.com/alexmarqs/zod-config/blob/main/skills/zod-config/SKILL.md): a short `SKILL.md` that tells the agent which API to pick, how adapters and `loadEnvConfig` work, and the mistakes to avoid. Install it with the [`skills`](https://github.com/vercel-labs/skills) command-line tool, which supports Claude Code, Cursor, Codex, OpenCode and other agents:
+
+```bash
+npx skills add alexmarqs/zod-config
+```
+
+It goes into your project's agent folder (for example `.claude/skills/`). Add `-g` to install it for every project. The agent loads it when a task touches zod-config.
+
+## Context7
+
+[Context7](https://context7.com/alexmarqs/zod-config) indexes these docs as `/alexmarqs/zod-config`. With the Context7 MCP server connected to your agent, ask it to use that library:
+
+```txt
+Add a YAML config file to this app with zod-config. use context7 /alexmarqs/zod-config
+```
+
+To connect the server, see [Context7's install guide](https://github.com/upstash/context7#installation). In Claude Code, for example:
+
+```bash
+claude mcp add --transport http context7 https://mcp.context7.com/mcp
+```
+
+## Point your agent to the docs
+
+No install: add a few lines to the file your agent reads for project instructions, such as `AGENTS.md`, `CLAUDE.md` or `.cursor/rules`:
+
+```md title="AGENTS.md"
+## zod-config
+
+This project loads its configuration with zod-config. Before writing code that uses it,
+read https://zod-config.alexandremarques.io/llms.txt and open the pages it links to.
+```
+
+The site serves these files for agents:
+
+| File | What it holds |
+| --- | --- |
+| [`/llms.txt`](/llms.txt) | An index of every page, with a short description and a link to its Markdown. |
+| [`/llms-full.txt`](/llms-full.txt) | Every page in one file. |
+| `/llms.mdx/docs/<page>.md` | One page as Markdown, e.g. [`/llms.mdx/docs/env.md`](/llms.mdx/docs/env.md). |
+
+Every page also has a **Copy Markdown** button, and an **Open** menu that sends the page to ChatGPT, Claude and other assistants.

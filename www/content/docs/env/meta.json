@@ -1,0 +1,6 @@
+{
+  "title": "Type-safe env",
+  "icon": "ShieldCheck",
+  "defaultOpen": true,
+  "pages": ["nextjs", "vite", "astro", "tanstack-start", "from-t3-env"]
+}

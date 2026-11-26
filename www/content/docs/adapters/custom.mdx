@@ -1,0 +1,70 @@
+---
+title: Write your own adapter
+description: Load configuration from any source by implementing the Adapter or SyncAdapter type.
+icon: Plug
+---
+
+An adapter is a plain object with a `name` and a `read` function. Zod Config calls `read`, merges what it returns with the other adapters, and validates the result with your schema. The package exports the `Adapter` and `SyncAdapter` types for this.
+
+## Asynchronous adapter
+
+Implement `Adapter` when `read` returns a promise, for example to call an API. It works with `loadConfig`:
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfig, type Adapter } from 'zod-config';
+
+const httpAdapter = (url: string): Adapter => ({
+  name: 'http adapter',
+  read: async () => {
+    const response = await fetch(url);
+    return response.json();
+  },
+});
+
+const config = await loadConfig({
+  schema: z.object({ featureFlag: z.boolean() }),
+  adapters: httpAdapter('https://example.com/config.json'),
+});
+```
+
+## Synchronous adapter
+
+Implement `SyncAdapter` when `read` returns the data directly. It works with both `loadConfig` and [`loadConfigSync`](/docs/guides/sync-loading); `loadConfigSync` only accepts `SyncAdapter`s.
+
+```ts twoslash
+import { z } from 'zod';
+import { loadConfigSync, type SyncAdapter } from 'zod-config';
+
+const argvAdapter = (): SyncAdapter => ({
+  name: 'argv adapter',
+  read: () =>
+    Object.fromEntries(
+      process.argv
+        .filter((arg) => arg.startsWith('--') && arg.includes('='))
+        .map((arg) => arg.slice(2).split('=', 2)),
+    ),
+});
+
+const config = loadConfigSync({
+  schema: z.object({ port: z.coerce.number().default(3000) }),
+  adapters: argvAdapter(),
+});
+```
+
+## What an adapter can set
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | Name of the adapter, used in warnings. Required. |
+| `read` | `() => Promise<data>` (`Adapter`) or `() => data` (`SyncAdapter`) | Returns the raw configuration data. Required. |
+| `nestingSeparator` | `string` | Build nested objects from flat keys using this separator. Only top-level keys are split. |
+| `silent` | `boolean` | Don't log a warning when `read` throws. |
+| `keyMatching` | `'strict' \| 'lenient'` | How to match keys to the schema. |
+| `transform` | `(obj: { key: string; value: unknown }) => { key: string; value: unknown } \| false` | Transform or drop key-value pairs before processing. |
+
+If `read` throws, Zod Config logs a warning (unless `silent`) and continues with empty data from that adapter. Validation then decides whether loading fails.
+
+To accept the same options as the built-in adapters, take them as parameters and set them on the returned object. Filtering by `regex` is up to your `read` function: it is not applied automatically.
+
+Built an adapter others could use? Open a PR or an issue on [GitHub](https://github.com/alexmarqs/zod-config).

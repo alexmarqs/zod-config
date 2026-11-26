@@ -1,8 +1,7 @@
-import { loadConfig } from "@/lib/config";
-import type { Adapter, SyncAdapter } from "@/types";
-import {} from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 import { z } from "zod/v4";
+import { loadConfig } from "@/lib/config";
+import type { Adapter, SyncAdapter } from "@/types";
 import { loadConfigSync } from "../../src";
 
 describe("custom adapter", () => {

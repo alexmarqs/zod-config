@@ -1,8 +1,8 @@
 // ZOD3: remove in next major: this import, z3 in FieldSchema, Zod3ErrorConstructor,
 // withoutReceivedValue, the mixing check and the aggregator at the end of buildObjectSchema.
 import type * as z3 from "zod/v3";
-import { $ZodObject } from "zod/v4/core";
 import type * as z from "zod/v4/core";
+import { $ZodObject } from "zod/v4/core";
 import type { SchemaConfig } from "../../types";
 
 /**

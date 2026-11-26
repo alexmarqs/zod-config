@@ -1,9 +1,9 @@
-import { loadEnvConfig as loadGenericEnvConfig } from "@/index";
-import { loadEnvConfig } from "@/nextjs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z as z3 } from "zod/v3";
 import { z } from "zod/v4";
 import { z as zm } from "zod/v4-mini";
+import { loadEnvConfig as loadGenericEnvConfig } from "@/index";
+import { loadEnvConfig } from "@/nextjs";
 
 const originalEnv = process.env;
 

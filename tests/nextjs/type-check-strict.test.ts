@@ -1,6 +1,6 @@
-import { loadEnvConfig } from "@/index";
 import { describe, expectTypeOf, it } from "vitest";
 import { z } from "zod/v4";
+import { loadEnvConfig } from "@/index";
 
 // These functions are never called: the assertions are checked by `tsc` (pnpm type-check).
 

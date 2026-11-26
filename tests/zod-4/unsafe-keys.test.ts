@@ -1,10 +1,10 @@
+import { afterEach, describe, expect, it } from "vitest";
+import { z } from "zod/v4";
 import { envAdapter } from "@/lib/adapters/env-adapter";
 import { loadConfig } from "@/lib/config";
 import { loadConfigSync } from "@/lib/config-sync";
 import { deepMerge } from "@/lib/utils";
 import { applyNestingSeparatorKeyValue } from "@/lib/utils/nesting-separator";
-import { afterEach, describe, expect, it } from "vitest";
-import { z } from "zod/v4";
 
 const syncAdapter = (json: string) => ({ name: "inline", read: () => JSON.parse(json) });
 

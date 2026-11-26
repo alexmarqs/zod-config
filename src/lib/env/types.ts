@@ -10,11 +10,8 @@ type Simplify<T> = { [K in keyof T]: T[K] } & {};
 /**
  * Output type of a single variable schema (Zod 3, Zod 4 or Zod 4 Mini).
  */
-type FieldOutput<F> = F extends z3.ZodType<infer O, any, any>
-  ? O
-  : F extends z.$ZodType
-    ? z.output<F>
-    : never;
+type FieldOutput<F> =
+  F extends z3.ZodType<infer O, any, any> ? O : F extends z.$ZodType ? z.output<F> : never;
 
 /**
  * Shape of server-only variables: keys must not start with the public prefix.

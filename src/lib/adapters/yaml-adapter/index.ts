@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
+import YAML from "yaml";
 import type { BaseAdapterProps, SyncAdapter } from "../../../types";
 import { filteredData } from "../../utils";
-import YAML from "yaml";
 
 export type YamlAdapterProps = BaseAdapterProps & {
   path: string;

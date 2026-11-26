@@ -1,0 +1,104 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+@import "fumadocs-twoslash/twoslash.css";
+
+/* Brand: the teal of the logo, on a deep navy in dark mode. */
+@theme {
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-code), ui-monospace, monospace;
+  --font-display: var(--font-heading), var(--font-body), sans-serif;
+
+  --color-brand: hsl(178, 80%, 36%);
+  --color-brand-2: hsl(165, 70%, 38%);
+
+  --color-fd-background: hsl(200, 40%, 99%);
+  --color-fd-card: hsl(200, 45%, 97.5%);
+  --color-fd-muted: hsl(200, 40%, 95%);
+  --color-fd-accent: hsl(195, 55%, 93%);
+  --color-fd-accent-foreground: hsl(200, 60%, 12%);
+  --color-fd-border: hsl(200, 30%, 88%);
+  --color-fd-primary: hsl(180, 85%, 27%);
+  --color-fd-primary-foreground: hsl(0, 0%, 100%);
+  --color-fd-ring: hsl(178, 80%, 36%);
+}
+
+.dark {
+  --color-brand: hsl(176, 78%, 52%);
+  --color-brand-2: hsl(162, 68%, 50%);
+
+  --color-fd-background: hsl(210, 45%, 6%);
+  --color-fd-foreground: hsl(195, 30%, 94%);
+  --color-fd-card: hsl(210, 40%, 9%);
+  --color-fd-popover: hsl(210, 40%, 9%);
+  --color-fd-muted: hsl(210, 35%, 12%);
+  --color-fd-muted-foreground: hsl(200, 18%, 66%);
+  --color-fd-secondary: hsl(210, 35%, 13%);
+  --color-fd-accent: hsl(200, 45%, 15%);
+  --color-fd-accent-foreground: hsl(190, 60%, 90%);
+  --color-fd-border: hsla(195, 40%, 60%, 0.16);
+  --color-fd-primary: hsl(176, 78%, 52%);
+  --color-fd-primary-foreground: hsl(210, 50%, 8%);
+  --color-fd-ring: hsl(176, 78%, 52%);
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+/* overrides the scroll lock added by dialogs, so the page does not shift */
+/* biome-ignore-start lint/complexity/noImportantStyles: must beat the inline styles set by the scroll lock */
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+/* biome-ignore-end lint/complexity/noImportantStyles: end */
+
+/* Page headings in the docs use the display face too. */
+article h1,
+article h2,
+#nd-page h1,
+#nd-page h2 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* ---------- landing page ---------- */
+
+/* Circuit grid: a faint board pattern that fades out towards the edges. */
+.circuit-grid {
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklab, var(--color-fd-foreground) 7%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--color-fd-foreground) 7%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 30%, transparent 75%);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+}

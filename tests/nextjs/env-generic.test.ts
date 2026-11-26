@@ -1,6 +1,6 @@
-import { loadEnvConfig } from "@/index";
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import { z } from "zod/v4";
+import { loadEnvConfig } from "@/index";
 
 const originalEnv = process.env;
 
