@@ -38,9 +38,11 @@ jobs:
       - name: Run tests
         run: pnpm test
 
+  # PR gate only: on main, Cloudflare Workers Builds builds and deploys the docs
   docs:
     name: "Docs"
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
