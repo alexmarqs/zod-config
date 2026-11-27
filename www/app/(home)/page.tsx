@@ -292,9 +292,18 @@ export default function HomePage() {
 
       <footer className="border-t">
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-fd-muted-foreground sm:flex-row">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap text-center justify-center">
             <Image src="/logo.png" alt="" width={20} height={20} />
-            <span>MIT License</span>
+            <span>
+              MIT License | Built and maintained with ❤️ by{" "}
+              <Link
+                href={site.authorWebsite}
+                target="_blank"
+                className="hover:text-fd-foreground font-medium"
+              >
+                {site.authorName}
+              </Link>
+            </span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/docs" className="hover:text-fd-foreground">

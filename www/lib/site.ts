@@ -4,4 +4,6 @@ export const site = {
   tagline: "Load configuration variables from multiple sources type safely using Zod.",
   repo: "https://github.com/alexmarqs/zod-config",
   npm: "https://www.npmjs.com/package/zod-config",
+  authorWebsite: "https://alexandremarques.io",
+  authorName: "Alexandre Marques",
 } as const;

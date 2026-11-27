@@ -9,7 +9,14 @@ const contentDir = join(wwwDir, "content", "docs");
 const siteUrl = "https://zod-config.alexandremarques.io";
 
 // Files that must exist in out/, besides the pages.
-const requiredFiles = ["404.html", "llms.txt", "llms-full.txt", "api/search"];
+const requiredFiles = [
+  "404.html",
+  "llms.txt",
+  "llms-full.txt",
+  "api/search",
+  "sitemap.xml",
+  "robots.txt",
+];
 
 const failures = [];
 
